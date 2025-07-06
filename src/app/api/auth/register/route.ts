@@ -14,19 +14,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    // Ensure database is connected before proceeding
     await dbConnect();
 
     const lowercasedEmail = email.toLowerCase();
     
-    // Explicitly check if user exists in a way that is robust to case sensitivity
-    const existingUser = await User.findOne({ email: lowercasedEmail }).lean().exec();
+    // Use a case-insensitive collation to robustly check for existing users
+    const existingUser = await User.findOne({ email: lowercasedEmail }).collation({ locale: 'en', strength: 2 });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
     }
 
-    // Hash the password and determine the final role
     const passwordHash = await bcryptjs.hash(password, 10);
     const finalRole = (process.env.ADMIN_EMAIL && lowercasedEmail === process.env.ADMIN_EMAIL) ? 'admin' : role;
     
@@ -37,23 +35,19 @@ export async function POST(request: Request) {
       role: finalRole,
     });
 
-    // Attempt to save the new user
     await newUser.save();
 
     return NextResponse.json({ message: 'User created successfully', userId: newUser._id }, { status: 201 });
 
   } catch (error: any) {
-    // Log the full error for better debugging
     console.error('Full registration error:', JSON.stringify(error, null, 2));
 
-    // Check for specific MongoDB error codes and names
     if (error.code === 11000) {
       return NextResponse.json({ message: 'A user with this email already exists (database conflict).' }, { status: 409 });
     }
     
-    // Check for common network/connection errors
-    if (error.name === 'MongoNetworkError' || error.name === 'MongooseServerSelectionError' || (error.message && error.message.includes('timed out'))) {
-      return NextResponse.json({ message: 'Database connection failed. Please ensure your MongoDB Atlas IP access list is correctly configured to allow connections.' }, { status: 500 });
+    if (error instanceof mongoose.Error.MongooseServerSelectionError || error.name === 'MongoNetworkError') {
+      return NextResponse.json({ message: 'Database connection failed. Please ensure your MongoDB Atlas IP access list is correctly configured.' }, { status: 500 });
     }
     
     if (error instanceof mongoose.Error.ValidationError) {
@@ -61,7 +55,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: `Validation failed: ${messages}` }, { status: 400 });
     }
 
-    // Fallback for any other errors
     return NextResponse.json({ message: 'An unknown error occurred during registration.', error: error.message || 'No error message available.' }, { status: 500 });
   }
 }

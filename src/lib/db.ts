@@ -22,11 +22,10 @@ async function dbConnect() {
     return cached.conn;
   }
   
-  if (!MONGODB_URI || !(MONGODB_URI.startsWith('mongodb://') || MONGODB_URI.startsWith('mongodb+srv://'))) {
-    console.warn(
-      'MONGODB_URI not found or is invalid. Please ensure it starts with "mongodb://" or "mongodb+srv://". The app will use mock data where possible.'
+  if (!MONGODB_URI) {
+    throw new Error(
+      'Please define the MONGODB_URI environment variable inside .env.local'
     );
-    return null;
   }
 
   if (!cached.promise) {
