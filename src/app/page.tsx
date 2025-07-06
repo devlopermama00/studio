@@ -13,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getPublicTours } from "@/lib/tours-data";
 import { Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const howItWorksSteps = [
   {
@@ -33,10 +34,14 @@ const howItWorksSteps = [
 ];
 
 const destinations = [
-  { name: "Tbilisi", image: "https://placehold.co/400x500.png", hint: "tbilisi georgia" },
-  { name: "Batumi", image: "https://placehold.co/400x500.png", hint: "batumi georgia" },
-  { name: "Gudauri", image: "https://placehold.co/400x500.png", hint: "gudauri georgia" },
-  { name: "Kakheti", image: "https://placehold.co/400x500.png", hint: "kakheti georgia" },
+  { name: "Tbilisi", image: "https://placehold.co/400x500.png", hint: "tbilisi georgia", activities: 125 },
+  { name: "Batumi", image: "https://placehold.co/400x500.png", hint: "batumi georgia", activities: 88 },
+  { name: "Gudauri", image: "https://placehold.co/400x500.png", hint: "gudauri georgia", activities: 42 },
+  { name: "Kakheti", image: "https://placehold.co/400x500.png", hint: "kakheti georgia", activities: 95 },
+  { name: "Kazbegi", image: "https://placehold.co/400x500.png", hint: "kazbegi mountains", activities: 30 },
+  { name: "Svaneti", image: "https://placehold.co/400x500.png", hint: "svaneti landscape", activities: 15 },
+  { name: "Mtskheta", image: "https://placehold.co/400x500.png", hint: "mtskheta georgia", activities: 25 },
+  { name: "Kutaisi", image: "https://placehold.co/400x500.png", hint: "kutaisi georgia", activities: 50 },
 ];
 
 const categories = [
@@ -63,6 +68,18 @@ const categories = [
         image: "https://placehold.co/400x500.png",
         hint: "ancient monastery",
         href: "/tours?category=historical"
+    },
+    {
+        name: "Multi-Day Tours",
+        image: "https://placehold.co/400x500.png",
+        hint: "georgia road trip",
+        href: "/tours?category=multi-day"
+    },
+    {
+        name: "Adventure & Extreme",
+        image: "https://placehold.co/400x500.png",
+        hint: "paragliding georgia",
+        href: "/tours?category=adventure"
     },
 ];
 
@@ -141,24 +158,30 @@ export default async function Home() {
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
               Find the type of adventure that suits you best.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {categories.map((category) => (
-                <Link href={category.href} key={category.name} className="group relative block aspect-[3/4] overflow-hidden rounded-lg shadow-lg">
-                    <Image 
-                        src={category.image} 
-                        alt={category.name} 
+            <Carousel opts={{ align: "start" }} className="w-full">
+              <CarouselContent className="-ml-4">
+                {categories.map((category) => (
+                  <CarouselItem key={category.name} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                    <Link href={category.href} className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
+                      <Image
+                        src={category.image}
+                        alt={category.name}
                         fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         data-ai-hint={category.hint}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 p-4">
                         <h3 className="text-white text-xl font-bold font-headline">{category.name}</h3>
-                    </div>
-                </Link>
-              ))}
-            </div>
+                      </div>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
           </div>
         </section>
         
@@ -198,17 +221,34 @@ export default async function Home() {
                         From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.
                     </p>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                    {destinations.map((dest) => (
-                        <Link href="/tours" key={dest.name} className="group relative block overflow-hidden rounded-lg">
-                            <Image src={dest.image} alt={dest.name} width={400} height={500} data-ai-hint={dest.hint} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                            <div className="absolute bottom-0 left-0 p-4 md:p-6">
-                                <h3 className="text-white text-xl md:text-2xl font-bold font-headline">{dest.name}</h3>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+                 <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent className="-ml-4">
+                        {destinations.map((dest, index) => (
+                            <CarouselItem key={index} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                                <Link href="/tours" className="group block overflow-hidden rounded-lg relative aspect-[4/5] shadow-lg">
+                                    <Image
+                                        src={dest.image}
+                                        alt={dest.name}
+                                        fill
+                                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                        data-ai-hint={dest.hint}
+                                    />
+                                    <div className="absolute top-3 left-3 right-3 text-white">
+                                        <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-1.5 mb-2 shadow-lg">
+                                            <h3 className="font-bold text-lg truncate">{`${index + 1}. ${dest.name}`}</h3>
+                                        </div>
+                                        <div className="bg-white/90 backdrop-blur-sm text-gray-900 rounded-md px-3 py-1 inline-block shadow">
+                                            <p className="text-sm font-semibold">{`${dest.activities} activities`}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="hidden md:flex" />
+                    <CarouselNext className="hidden md:flex" />
+                </Carousel>
             </div>
         </section>
         
