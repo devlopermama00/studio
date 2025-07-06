@@ -1,13 +1,37 @@
 diff --git a/node_modules/react-quill/lib/index.js b/node_modules/react-quill/lib/index.js
-index 4511d61..a60be60 100644
+index 2d0615b..4139e65 100644
 --- a/node_modules/react-quill/lib/index.js
 +++ b/node_modules/react-quill/lib/index.js
-@@ -1071,7 +1071,7 @@
+@@ -1,13 +1,5 @@
+ 'use strict';
+ 
+-var _reactDom = require('react-dom');
+-
+-var _reactDom2 = _interopRequireDefault(_reactDom);
+-
+-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+-
+-/*
+-Quill-based rich text editor for React
+-*/
+-
+ var React = require('react');
+ var Quill = require('quill');
+ var QuillMixin = require('./mixin');
+@@ -16,7 +8,6 @@
+ 
+ var PropTypes = require('prop-types');
+ var createReactClass = require('create-react-class');
+-var findDOMNode = _reactDom2.default.findDOMNode;
+ 
+ var QuillMixin = {
+ 
+@@ -370,7 +361,7 @@
  	},
  
  	getEditingArea: function getEditingArea() {
--		return _reactDom2.default.findDOMNode(this.editingArea);
-+		return this.editingArea;
+-		return findDOMNode(this.editingArea);
++		return this.editingArea.current;
  	},
  
- 	getEditorContents: function getEditorContents() {
+ 	getEditor: function getEditor() {
