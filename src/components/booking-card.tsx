@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCurrency } from "@/context/currency-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -23,9 +22,15 @@ interface BookingCardProps {
 export function BookingCard({ price, tourId }: BookingCardProps) {
     const { formatCurrency } = useCurrency();
     const { toast } = useToast();
-    const [date, setDate] = useState<Date | undefined>(new Date());
+    const [date, setDate] = useState<Date | undefined>();
     const [guests, setGuests] = useState<number>(1);
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        // Set the initial date only on the client side after mounting
+        // to prevent hydration mismatch.
+        setDate(new Date());
+    }, []);
 
     const handleBooking = async () => {
         if (!date) {
@@ -124,7 +129,7 @@ export function BookingCard({ price, tourId }: BookingCardProps) {
                 </div>
             </CardContent>
             <CardFooter className="flex-col items-stretch">
-                <Button size="lg" className="w-full" onClick={handleBooking} disabled={isLoading}>
+                <Button size="lg" className="w-full" onClick={handleBooking} disabled={isLoading || !date}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Book Now
                 </Button>
