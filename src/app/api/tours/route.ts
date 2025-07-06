@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
         
         const body = await request.json();
         
-        const requiredFields = ['title', 'overview', 'country', 'city', 'place', 'price', 'durationInHours', 'category', 'tourType', 'groupSize', 'languages', 'highlights', 'inclusions', 'exclusions'];
+        const requiredFields = ['title', 'overview', 'country', 'city', 'place', 'price', 'durationInHours', 'category', 'tourType', 'groupSize', 'languages', 'highlights', 'inclusions', 'exclusions', 'images'];
         for (const field of requiredFields) {
             if (!body[field] || (Array.isArray(body[field]) && body[field].length === 0)) {
                 return NextResponse.json({ message: `Missing required field: ${field}` }, { status: 400 });
@@ -78,7 +78,6 @@ export async function POST(request: NextRequest) {
         const newTour = new Tour({
             ...body,
             createdBy: new Types.ObjectId(decoded.id),
-            images: ["https://placehold.co/800x600.png", "https://placehold.co/800x500.png", "https://placehold.co/800x400.png"], 
             approved: decoded.role === 'admin',
         });
 
