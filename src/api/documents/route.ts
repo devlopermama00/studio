@@ -39,9 +39,13 @@ export async function GET(request: NextRequest) {
 
     if (accessCheck.role === 'admin') {
         if (!providerIdFromQuery || !Types.ObjectId.isValid(providerIdFromQuery)) {
-            return NextResponse.json({ message: 'Admin must provide a valid providerId' }, { status: 400 });
+            // This case is for an admin looking at a specific provider.
+            // But for a provider looking at their own dashboard, providerId will be null.
+            // If an admin is using this endpoint without a providerId, it implies they are checking their own.
+            targetProviderId = accessCheck.id
+        } else {
+             targetProviderId = providerIdFromQuery;
         }
-        targetProviderId = providerIdFromQuery;
     } else { // Role is 'provider'
         targetProviderId = accessCheck.id;
     }
@@ -50,53 +54,11 @@ export async function GET(request: NextRequest) {
         await dbConnect();
         const document = await Document.findOne({ userId: targetProviderId });
         if (!document) {
-            return NextResponse.json(null, { status: 404 });
+            return NextResponse.json(null, { status: 200 }); // Return null but 200 OK, as not finding a doc isn't a server error
         }
         return NextResponse.json(document);
     } catch (error) {
          console.error('Error fetching document:', error);
         return NextResponse.json({ message: 'An error occurred while fetching document status.' }, { status: 500 });
-    }
-}
-
-// POST handler for a provider to submit their documents for verification
-export async function POST(request: NextRequest) {
-    const accessCheck = await verifyAccess(request);
-    if (accessCheck instanceof NextResponse) return accessCheck;
-    
-    // Only providers can submit documents
-    if (accessCheck.role !== 'provider') {
-        return NextResponse.json({ message: 'Unauthorized: Only providers can submit documents' }, { status: 403 });
-    }
-
-    try {
-        await dbConnect();
-
-        const existingDoc = await Document.findOne({ userId: accessCheck.id });
-        if (existingDoc) {
-            return NextResponse.json({ message: 'You have already submitted documents for verification.' }, { status: 400 });
-        }
-
-        // In a real app, you would handle file uploads here and get URLs
-        const placeholderLicenseUrl = "#";
-        const placeholderIdUrl = "#";
-
-        const newDocument = new Document({
-            userId: new Types.ObjectId(accessCheck.id),
-            licenseUrl: placeholderLicenseUrl,
-            idProofUrl: placeholderIdUrl,
-            status: 'pending'
-        });
-
-        await newDocument.save();
-
-        return NextResponse.json(newDocument, { status: 201 });
-
-    } catch (error) {
-        console.error('Error submitting document:', error);
-         if (error instanceof Error) {
-             return NextResponse.json({ message: 'An error occurred.', error: error.message }, { status: 500 });
-        }
-        return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
     }
 }
