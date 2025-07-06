@@ -116,8 +116,8 @@ export default function AdminApprovalsPage() {
                         </div>
                     </div>
                 </TableCell>
-                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                 <TableCell><Skeleton className="h-9 w-28" /></TableCell>
                 <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-8 w-8" /></TableCell>
             </TableRow>
@@ -138,7 +138,7 @@ export default function AdminApprovalsPage() {
             <TableRow>
               <TableHead>Provider</TableHead>
               <TableHead>Submitted On</TableHead>
-              <TableHead>Documents</TableHead>
+              <TableHead>Document</TableHead>
               <TableHead className="hidden md:table-cell">Status</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -163,14 +163,11 @@ export default function AdminApprovalsPage() {
                     </TableCell>
                     <TableCell>{format(new Date(doc.submittedAt), "PPP")}</TableCell>
                     <TableCell>
-                        <div className="flex gap-2">
-                           <Button variant="link" asChild className="p-0 h-auto">
-                                <a href={doc.licenseUrl} target="_blank" rel="noopener noreferrer">License</a>
-                            </Button>
-                             <Button variant="link" asChild className="p-0 h-auto">
-                                <a href={doc.idProofUrl} target="_blank" rel="noopener noreferrer">ID Proof</a>
-                            </Button>
-                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                            <a href={doc.licenseUrl} target="_blank" rel="noopener noreferrer">
+                                View Document
+                            </a>
+                        </Button>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                         <Badge variant="outline" className={cn({
