@@ -43,28 +43,28 @@ const UserNav = () => {
             <SidebarGroupLabel>My Account</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <Link href="/dashboard" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard"}>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
+                        <Link href="/dashboard">
                             <LayoutDashboard />
                             Dashboard
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/bookings" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/bookings"}>
+                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/bookings"}>
+                        <Link href="/dashboard/bookings">
                             <BookOpen />
                             My Bookings
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/profile" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/profile"}>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/profile"}>
+                        <Link href="/dashboard/profile">
                             <User />
                             Profile
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
@@ -78,28 +78,28 @@ const ProviderNav = () => {
             <SidebarGroupLabel>Provider Tools</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/tours" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/tours')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/tours')}>
+                        <Link href="/dashboard/tours">
                             <Map />
                             My Tours
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/analytics" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/analytics"}>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/analytics"}>
+                        <Link href="/dashboard/analytics">
                             <BarChart2 />
                             Analytics
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/documents" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/documents"}>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/documents"}>
+                        <Link href="/dashboard/documents">
                             <FileText />
                             Verification
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
@@ -113,36 +113,36 @@ const AdminNav = () => {
             <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/admin" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname === '/dashboard/admin'}>
+                    <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin'}>
+                        <Link href="/dashboard/admin">
                             <ShieldCheck />
                             Overview
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/admin/users" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/admin/users')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/users')}>
+                        <Link href="/dashboard/admin/users">
                             <Users />
                             Users
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <Link href="/dashboard/admin/tours" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/admin/tours')}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/tours')}>
+                        <Link href="/dashboard/admin/tours">
                             <Edit />
                             Tours
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                     <Link href="/dashboard/admin/approvals" passHref>
-                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/admin/approvals')}>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/approvals')}>
+                        <Link href="/dashboard/admin/approvals">
                             <ShieldCheck />
                             Approvals
-                        </SidebarMenuButton>
-                    </Link>
+                        </Link>
+                    </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
@@ -228,12 +228,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarFooter>
            <SidebarMenu>
             <SidebarMenuItem>
-                <Link href="/dashboard/profile" passHref>
-                    <SidebarMenuButton as="a">
+                <SidebarMenuButton asChild>
+                    <Link href="/dashboard/profile">
                         <Settings />
                         Settings
-                    </SidebarMenuButton>
-                </Link>
+                    </Link>
+                </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleLogout}>
