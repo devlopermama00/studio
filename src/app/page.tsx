@@ -162,7 +162,7 @@ export default async function Home() {
               <CarouselContent className="-ml-4">
                 {categories.map((category) => (
                   <CarouselItem key={category.name} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                    <Link href={category.href} className="group relative block aspect-[3/4] overflow-hidden rounded-lg shadow-lg">
+                    <Link href={category.href} className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
                       <Image
                         src={category.image}
                         alt={category.name}
@@ -217,7 +217,7 @@ export default async function Home() {
             <div className="container mx-auto px-4">
                 <div className="text-center">
                     <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">Explore by Destination</h2>
-                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-12">
+                    <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
                         From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.
                     </p>
                 </div>
