@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, role } = body;
+    const { name, email, password, role, website, currency } = body;
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
@@ -18,9 +18,7 @@ export async function POST(request: Request) {
     
     const lowercasedEmail = email.toLowerCase();
 
-    const existingUser = await User.findOne({ 
-        $or: [{ email: lowercasedEmail }, { username: lowercasedEmail }] 
-    });
+    const existingUser = await User.findOne({ email: lowercasedEmail });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
@@ -35,6 +33,8 @@ export async function POST(request: Request) {
       email: lowercasedEmail,
       passwordHash,
       role: finalRole,
+      website,
+      currency,
     });
 
     await newUser.save();

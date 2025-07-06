@@ -11,7 +11,6 @@ import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Eye, EyeOff } from "lucide-react";
@@ -26,7 +25,6 @@ const formSchema = z.object({
     .regex(/[0-9]/, { message: "Must contain at least one number." })
     .regex(/[^A-Za-z0-9]/, { message: "Must contain at least one special character." }),
   confirmPassword: z.string(),
-  role: z.enum(["user", "provider"], { required_error: "You need to select a role." }),
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -46,7 +44,6 @@ export default function RegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "user",
     },
   });
 
@@ -62,7 +59,7 @@ export default function RegisterPage() {
           name: values.name,
           email: values.email,
           password: values.password,
-          role: values.role,
+          role: 'user', // Hardcode role for user registration
         }),
       });
 
@@ -97,41 +94,11 @@ export default function RegisterPage() {
         <CardHeader className="text-center">
           <TourVistaLogo className="justify-center mb-4" />
           <CardTitle className="font-headline">Create an Account</CardTitle>
-          <CardDescription>Join TourVista to discover or provide amazing tours.</CardDescription>
+          <CardDescription>Sign up to start booking your next adventure in Georgia.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel>I want to:</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex space-x-4 pt-1"
-                      >
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <RadioGroupItem value="user" id="r1" />
-                          </FormControl>
-                          <FormLabel htmlFor="r1" className="font-normal">Travel</FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <RadioGroupItem value="provider" id="r2" />
-                          </FormControl>
-                          <FormLabel htmlFor="r2" className="font-normal">Provide Tours</FormLabel>
-                        </FormItem>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="name"
@@ -221,11 +188,22 @@ export default function RegisterPage() {
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex justify-center text-sm">
-          <p className="text-muted-foreground">Already have an account?&nbsp;</p>
-          <Link href="/login" className="text-primary hover:underline font-medium">
-            Log in
-          </Link>
+        <CardFooter className="flex flex-col gap-4 text-center text-sm">
+            <div>
+              <p className="text-muted-foreground">Already have an account?&nbsp;
+                <Link href="/login" className="text-primary hover:underline font-medium">
+                    Log in
+                </Link>
+              </p>
+            </div>
+            <Separator />
+             <div>
+              <p className="text-muted-foreground">Are you a tour provider?&nbsp;
+                <Link href="/providers" className="text-primary hover:underline font-medium">
+                    Register here
+                </Link>
+              </p>
+            </div>
         </CardFooter>
       </Card>
     </div>

@@ -58,7 +58,7 @@ export default function ProvidersPage() {
                     Share your passion for Georgia with a global audience. Join our network of trusted local guides and grow your tour business with us.
                 </p>
                 <Button asChild size="lg">
-                    <Link href="/register">Get Started for Free <ArrowRight className="ml-2" /></Link>
+                    <Link href="/register/provider">Get Started for Free <ArrowRight className="ml-2" /></Link>
                 </Button>
             </div>
         </section>
@@ -125,7 +125,7 @@ export default function ProvidersPage() {
               Join hundreds of happy providers who trust TourVista to connect them with travelers. Your next adventure in business starts here.
             </p>
             <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
-                <Link href="/register">Sign Up and Start Listing Tours</Link>
+                <Link href="/register/provider">Sign Up and Start Listing Tours</Link>
             </Button>
           </div>
         </section>
