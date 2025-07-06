@@ -1,16 +1,36 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPin, Star, Users, ShieldCheck, Award } from "lucide-react";
+import { headers } from 'next/headers';
+import { ArrowRight, Star, Users, ShieldCheck, Award, Terminal } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
 import { TourCard } from "@/components/tour-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { tours as mockTours } from "@/lib/mock-data";
+import type { Tour } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export default function Home() {
-  const featuredTours = mockTours.slice(0, 6);
+
+async function getFeaturedTours(): Promise<Tour[]> {
+    const host = headers().get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    try {
+        const res = await fetch(`${protocol}://${host}/api/public/tours`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error('Failed to fetch tours:', res.statusText);
+            return [];
+        }
+        const tours: Tour[] = await res.json();
+        return tours.slice(0, 6);
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+export default async function Home() {
+  const featuredTours = await getFeaturedTours();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -21,10 +41,11 @@ export default function Home() {
           <Image
             src="https://placehold.co/1600x900.png"
             alt="Scenic view of Georgia mountains"
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{objectFit: "cover"}}
             className="z-0"
             data-ai-hint="georgia mountains landscape"
+            priority
           />
           <div className="relative z-20 container mx-auto px-4">
             <h1 className="text-4xl md:text-6xl font-headline font-bold mb-4 drop-shadow-lg">
@@ -44,16 +65,28 @@ export default function Home() {
             <h2 className="text-3xl md:text-4xl font-headline font-semibold text-center mb-12">
               Featured Tours
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredTours.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
-              ))}
-            </div>
-            <div className="text-center mt-12">
-              <Button asChild size="lg">
-                <Link href="/tours">Explore All Tours <ArrowRight className="ml-2" /></Link>
-              </Button>
-            </div>
+             {featuredTours.length > 0 ? (
+                <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {featuredTours.map((tour) => (
+                        <TourCard key={tour.id} tour={tour} />
+                    ))}
+                    </div>
+                    <div className="text-center mt-12">
+                    <Button asChild size="lg">
+                        <Link href="/tours">Explore All Tours <ArrowRight className="ml-2" /></Link>
+                    </Button>
+                    </div>
+                </>
+            ) : (
+                 <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>No Featured Tours Yet</AlertTitle>
+                    <AlertDescription>
+                        We're busy curating the best experiences for you. Check back soon for our featured tours!
+                    </AlertDescription>
+                </Alert>
+            )}
           </div>
         </section>
 

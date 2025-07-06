@@ -2,9 +2,31 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
 import { TourCard } from "@/components/tour-card";
-import { tours as mockTours } from "@/lib/mock-data";
+import { headers } from 'next/headers';
+import type { Tour } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
-export default function ToursPage() {
+async function getTours(): Promise<Tour[]> {
+    const host = headers().get('host');
+    const protocol = host?.includes('localhost') ? 'http' : 'https';
+    try {
+        const res = await fetch(`${protocol}://${host}/api/public/tours`, { cache: 'no-store' });
+        if (!res.ok) {
+            console.error('Failed to fetch tours:', res.statusText);
+            return [];
+        }
+        return res.json();
+    } catch (error) {
+        console.error(error);
+        return [];
+    }
+}
+
+
+export default async function ToursPage() {
+  const tours = await getTours();
+
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
@@ -25,11 +47,21 @@ export default function ToursPage() {
 
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {mockTours.map((tour) => (
-                <TourCard key={tour.id} tour={tour} />
-              ))}
-            </div>
+            {tours.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                {tours.map((tour) => (
+                    <TourCard key={tour.id} tour={tour} />
+                ))}
+                </div>
+            ) : (
+                <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>No Tours Found</AlertTitle>
+                    <AlertDescription>
+                        There are currently no approved tours available. Please check back later or ask a provider to add some!
+                    </AlertDescription>
+                </Alert>
+            )}
           </div>
         </section>
       </main>
