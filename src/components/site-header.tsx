@@ -7,7 +7,7 @@ import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LayoutDashboard } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
@@ -81,7 +81,7 @@ export function SiteHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <TourVistaLogo />
-          <nav className="hidden items-center gap-6 lg:flex">
+          <nav className="hidden items-center gap-6 md:flex">
              {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -98,19 +98,23 @@ export function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-            <div className="hidden lg:flex">
+            <div className="hidden md:flex">
                 <AuthButtons />
             </div>
             
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden">
+                <Button variant="ghost" size="icon" className="md:hidden">
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[80vw] max-w-sm">
-                <TourVistaLogo className="mb-8" />
+                <SheetHeader className="p-0 text-left mb-8">
+                  <SheetTitle>
+                    <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
+                  </SheetTitle>
+                </SheetHeader>
                 <div className="flex flex-col space-y-4">
                   {navLinks.map((link) => (
                     <Link
