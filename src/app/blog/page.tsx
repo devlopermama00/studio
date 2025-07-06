@@ -9,6 +9,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
+export const dynamic = 'force-dynamic';
+
 async function getBlogPosts() {
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/blogs`, { cache: 'no-store' });
