@@ -162,7 +162,7 @@ export default async function Home() {
               <CarouselContent className="-ml-4">
                 {categories.map((category) => (
                   <CarouselItem key={category.name} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                    <Link href={category.href} className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
+                    <Link href={category.href} className="group relative block aspect-[3/4] overflow-hidden rounded-lg shadow-lg">
                       <Image
                         src={category.image}
                         alt={category.name}
@@ -179,8 +179,8 @@ export default async function Home() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
+              <CarouselPrevious className="hidden md:flex left-2 bg-background/50 hover:bg-background/80" />
+              <CarouselNext className="hidden md:flex right-2 bg-background/50 hover:bg-background/80" />
             </Carousel>
           </div>
         </section>
@@ -246,8 +246,8 @@ export default async function Home() {
                             </CarouselItem>
                         ))}
                     </CarouselContent>
-                    <CarouselPrevious className="hidden md:flex" />
-                    <CarouselNext className="hidden md:flex" />
+                    <CarouselPrevious className="hidden md:flex left-2 bg-background/50 hover:bg-background/80" />
+                    <CarouselNext className="hidden md:flex right-2 bg-background/50 hover:bg-background/80" />
                 </Carousel>
             </div>
         </section>
