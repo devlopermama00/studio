@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,7 +21,6 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -53,9 +51,10 @@ export default function LoginPage() {
 
       toast({
         title: "Login Successful!",
-        description: "Welcome back!",
+        description: "Redirecting to your dashboard...",
       });
-      router.push('/');
+      // Force a full page reload to the dashboard to ensure all states are synchronized
+      window.location.href = '/dashboard';
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -64,7 +63,6 @@ export default function LoginPage() {
         title: "Login Failed",
         description: errorMessage,
       });
-    } finally {
       setIsLoading(false);
     }
   }

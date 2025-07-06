@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LayoutDashboard, ChevronDown, LogOut } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
@@ -71,7 +71,6 @@ const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const router = useRouter();
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -98,9 +97,8 @@ export function SiteHeader() {
   
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    setUser(null); // Explicitly update client state
-    if(isMenuOpen) setIsMenuOpen(false);
-    router.refresh();
+    setUser(null);
+    window.location.href = '/'; // Force a full page reload to home
   };
 
   const AuthButtons = ({ isMobile = false }: { isMobile?: boolean }) => {
