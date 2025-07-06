@@ -1,11 +1,75 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useState } from "react";
+
 import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
+
+const formSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
+
+      toast({
+        title: "Login Successful!",
+        description: "Welcome back!",
+      });
+      router.push('/dashboard');
+      // A full page refresh is good after login to reload server components with auth state
+      router.refresh(); 
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary">
       <Card className="w-full max-w-sm">
@@ -15,26 +79,45 @@ export default function LoginPage() {
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="name@example.com" />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="name@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Your password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex items-center justify-end mt-2">
+                  <Link href="#" className="text-sm text-primary hover:underline">
+                    Forgot password?
+                  </Link>
               </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="Your password" />
-              </div>
-            </div>
-            <div className="flex items-center justify-end mt-2">
-                <Link href="#" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-            </div>
-            <Button type="submit" className="w-full mt-4">
-              Log In
-            </Button>
-          </form>
+              <Button type="submit" className="w-full mt-4" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Log In
+              </Button>
+            </form>
+          </Form>
         </CardContent>
         <CardFooter className="flex justify-center text-sm">
           <p className="text-muted-foreground">Don't have an account?&nbsp;</p>
