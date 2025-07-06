@@ -113,6 +113,14 @@ const ProviderNav = () => {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/payouts"}>
+                        <Link href="/dashboard/payouts">
+                            <DollarSign />
+                            Payout History
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/payout-settings"}>
                         <Link href="/dashboard/payout-settings">
                             <Wallet />
