@@ -12,6 +12,8 @@ export interface IUser extends Document {
   isBlocked: boolean;
   isVerified: boolean;
   wishlist: Types.ObjectId[];
+  forgotPasswordToken?: string;
+  forgotPasswordTokenExpiry?: Date;
 }
 
 const UserSchema: Schema = new Schema({
@@ -25,6 +27,8 @@ const UserSchema: Schema = new Schema({
   isBlocked: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },
   wishlist: [{ type: Schema.Types.ObjectId, ref: 'Tour' }],
+  forgotPasswordToken: { type: String },
+  forgotPasswordTokenExpiry: { type: Date },
 }, { timestamps: true });
 
 export default models.User || mongoose.model<IUser>('User', UserSchema);

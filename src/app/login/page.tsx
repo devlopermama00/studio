@@ -100,7 +100,12 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <div className="flex items-center justify-between">
+                        <FormLabel>Password</FormLabel>
+                        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                            Forgot password?
+                        </Link>
+                    </div>
                     <FormControl>
                       <Input type="password" placeholder="Your password" {...field} />
                     </FormControl>
@@ -108,12 +113,7 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex items-center justify-end mt-2">
-                  <Link href="#" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-              </div>
-              <Button type="submit" className="w-full mt-4" disabled={isLoading}>
+              <Button type="submit" className="w-full mt-6" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
               </Button>
