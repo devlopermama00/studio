@@ -46,13 +46,14 @@ export function SiteFooter() {
           <div>
             <h4 className="font-headline font-semibold mb-4">Legal</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+              <li><Link href="/cancellation" className="text-muted-foreground hover:text-primary">Cancellation Policy</Link></li>
             </ul>
           </div>
         </div>
         <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} TourVista Georgia. All rights reserved.</p>
+          <p>&copy; 2024 TourVista Georgia. All rights reserved.</p>
         </div>
       </div>
     </footer>
