@@ -7,7 +7,8 @@ export function SiteFooter() {
   return (
     <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          
           <div className="space-y-4">
             <TourVistaLogo />
             <p className="text-sm text-muted-foreground max-w-xs">
@@ -25,34 +26,37 @@ export function SiteFooter() {
               </Button>
             </div>
           </div>
-          <div>
-            <h4 className="font-headline font-semibold mb-4">Explore</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/tours" className="text-muted-foreground hover:text-primary">All Tours</Link></li>
-              <li><Link href="/destinations" className="text-muted-foreground hover:text-primary">Destinations</Link></li>
-              <li><Link href="/categories" className="text-muted-foreground hover:text-primary">Categories</Link></li>
-              <li><Link href="/deals" className="text-muted-foreground hover:text-primary">Special Offers</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-headline font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
-              <li><Link href="/providers" className="text-muted-foreground hover:text-primary">For Tour Providers</Link></li>
-              <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
-              <li><Link href="/faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-headline font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/terms" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
-              <li><Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
-              <li><Link href="/cancellation" className="text-muted-foreground hover:text-primary">Cancellation Policy</Link></li>
-            </ul>
+          
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-8">
+            <div>
+              <h4 className="font-headline font-semibold mb-4">Explore</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/tours" className="text-muted-foreground hover:text-primary">All Tours</Link></li>
+                <li><Link href="/destinations" className="text-muted-foreground hover:text-primary">Destinations</Link></li>
+                <li><Link href="/categories" className="text-muted-foreground hover:text-primary">Categories</Link></li>
+                <li><Link href="/deals" className="text-muted-foreground hover:text-primary">Special Offers</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-headline font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
+                <li><Link href="/providers" className="text-muted-foreground hover:text-primary">For Tour Providers</Link></li>
+                <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
+                <li><Link href="/faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-headline font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/terms" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                <li><Link href="/cancellation" className="text-muted-foreground hover:text-primary">Cancellation Policy</Link></li>
+              </ul>
+            </div>
           </div>
         </div>
-        <div className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
           <p>&copy; 2024 TourVista Georgia. All rights reserved.</p>
         </div>
       </div>
