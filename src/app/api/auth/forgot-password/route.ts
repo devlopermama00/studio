@@ -10,8 +10,7 @@ export async function POST(request: NextRequest) {
         await dbConnect();
         const { email } = await request.json();
 
-        // The User model will handle the lowercase comparison automatically.
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: email.toLowerCase() });
 
         if (user) {
             // Only proceed if user is found, but don't reveal if the user exists
@@ -33,9 +32,11 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('Forgot password error:', error);
-        if (error instanceof Error) {
-            return NextResponse.json({ message: error.message }, { status: 500 });
-        }
-        return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
+        const errorMessage = error instanceof Error 
+            ? error.message 
+            : (typeof error === 'object' && error !== null && 'message' in error) 
+            ? String((error as { message: unknown }).message)
+            : 'An unknown server error occurred.';
+        return NextResponse.json({ message: errorMessage }, { status: 500 });
     }
 }
