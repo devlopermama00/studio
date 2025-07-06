@@ -2,9 +2,12 @@
 'use server';
 
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
-const base = "https://api-m.sandbox.paypal.com";
+const base = process.env.NEXT_PUBLIC_PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
 
 export async function getPayPalAccessToken() {
+    if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
+        throw new Error("Missing PayPal credentials in environment variables.");
+    }
     const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
     const response = await fetch(`${base}/v1/oauth2/token`, {
         method: 'POST',
