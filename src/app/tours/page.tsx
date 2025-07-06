@@ -7,11 +7,19 @@ import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
 import { TourCard } from "@/components/tour-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Terminal } from "lucide-react";
 import { getPublicTours } from "@/lib/tours-data";
 import type { Tour } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const TOURS_PER_PAGE = 16;
 
@@ -60,28 +68,65 @@ export default function ToursPage() {
   const PaginationControls = () => {
     if (totalPages <= 1) return null;
 
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    const halfPagesToShow = Math.floor(maxPagesToShow / 2);
+
+    let startPage = Math.max(currentPage - halfPagesToShow, 1);
+    let endPage = Math.min(startPage + maxPagesToShow - 1, totalPages);
+
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(endPage - maxPagesToShow + 1, 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+    }
+    
+    const showStartEllipsis = startPage > 1;
+    const showEndEllipsis = endPage < totalPages;
+
     return (
-        <div className="flex justify-center items-center gap-4 mt-12">
-            <Button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                variant="outline"
-            >
-                Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
-            </span>
-            <Button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                variant="outline"
-            >
-                Next
-            </Button>
-        </div>
-    )
-  }
+      <Pagination className="mt-12">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              onClick={() => handlePageChange(currentPage - 1)}
+              aria-disabled={currentPage === 1}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+          {showStartEllipsis && (
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+          )}
+          {pageNumbers.map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                isActive={page === currentPage}
+                onClick={() => handlePageChange(page)}
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          {showEndEllipsis && (
+            <PaginationItem>
+              <PaginationEllipsis />
+            </PaginationItem>
+          )}
+          <PaginationItem>
+            <PaginationNext
+              onClick={() => handlePageChange(currentPage + 1)}
+              aria-disabled={currentPage === totalPages}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -112,8 +157,14 @@ export default function ToursPage() {
             ) : paginatedTours.length > 0 ? (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {paginatedTours.map((tour) => (
-                            <TourCard key={tour.id} tour={tour} />
+                        {paginatedTours.map((tour, index) => (
+                           <div 
+                                key={tour.id} 
+                                className="animate-fade-in opacity-0" 
+                                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
+                            >
+                                <TourCard tour={tour} />
+                            </div>
                         ))}
                     </div>
                     <PaginationControls />
