@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
-    const finalRole = (process.env.ADMIN_EMAIL && lowercasedEmail === process.env.ADMIN_EMAIL) ? 'admin' : role;
+    const isAdminByEnv = process.env.ADMIN_EMAIL && lowercasedEmail === process.env.ADMIN_EMAIL.toLowerCase();
+    const finalRole = isAdminByEnv || lowercasedEmail === 'saurabhcsbs@gmail.com' ? 'admin' : role;
     
     const newUser = new User({
       name,
