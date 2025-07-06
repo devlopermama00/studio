@@ -1,35 +1,30 @@
 --- a/node_modules/react-quill/lib/index.js
 +++ b/node_modules/react-quill/lib/index.js
-@@ -244,6 +244,7 @@
- 		_this.state = {
- 			generation: 0
- 		};
-+		_this.editingArea = _react2.default.createRef();
- 		return _this;
- 	}
- 
-@@ -321,7 +322,7 @@
- 	 */
- 
- 	ReactQuill.prototype.getEditingArea = function getEditingArea() {
--		return _reactDom2.default.findDOMNode(this.editingArea);
-+		return this.editingArea.current;
- 	};
- 
- 	/**
-@@ -432,14 +433,10 @@
- 		var children = this.props.children;
- 
- 		return _react2.default.createElement(
--			'div',
--			null,
--			_react2.default.createElement('div', {
-+			'div', null, _react2.default.createElement('div', {
- 				key: this.state.generation,
--				ref: function ref(el) {
--					_this2.editingArea = el;
+@@ -351,19 +351,21 @@
+ 	}, {
+ 		key: 'getEditingArea',
+ 		value: function getEditingArea() {
+-			var element = _reactDom2.default.findDOMNode(this);
+-			var editorNode = element.querySelector('.ql-editor');
+-			return editorNode;
++			return this.container.querySelector('.ql-editor');
+ 		}
+ 	}, {
+ 		key: 'render',
+ 		value: function render() {
+ 			return _react2.default.createElement(
+ 				'div',
+-				{ id: this.props.id,
++				{
++					id: this.props.id,
+ 					style: this.props.style,
+-					className: 'ql-container ' + (this.props.className || '')
 -				},
-+				ref: this.editingArea,
- 				className: 'ql-editor',
- 				dangerouslySetInnerHTML: { __html: this.getHTML() }
- 			}),
++					className: 'ql-container ' + (this.props.className || ''),
++					onKeyPress: this.onEditorKeyPress,
++					onKeyDown: this.onEditorKeyDown,
++					onKeyUp: this.onEditorKeyUp,
++					ref: (function (el) {this.container = el;}).bind(this)},
+ 				this.props.children
+ 			);
+ 		}
