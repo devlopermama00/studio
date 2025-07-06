@@ -17,6 +17,16 @@ export interface IUser extends Document {
   forgotPasswordTokenExpiry?: Date;
   currency?: string;
   companyDocumentUrl?: string;
+  payoutDetails?: {
+    paypalEmail?: string;
+    bankDetails?: {
+      accountHolderName?: string;
+      accountNumber?: string;
+      bankName?: string;
+      iban?: string;
+      swiftCode?: string;
+    };
+  };
 }
 
 const UserSchema: Schema = new Schema({
@@ -35,6 +45,16 @@ const UserSchema: Schema = new Schema({
   forgotPasswordTokenExpiry: { type: Date },
   currency: { type: String },
   companyDocumentUrl: { type: String },
+  payoutDetails: {
+    paypalEmail: { type: String },
+    bankDetails: {
+      accountHolderName: { type: String },
+      accountNumber: { type: String },
+      bankName: { type: String },
+      iban: { type: String },
+      swiftCode: { type: String },
+    },
+  }
 }, { timestamps: true });
 
 export default models.User || mongoose.model<IUser>('User', UserSchema);

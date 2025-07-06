@@ -22,7 +22,7 @@ import {
 import {
   LayoutDashboard, User, Settings, LogOut,
   Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart,
-  BookCopy, MessageSquare, LayoutList, Download, PenSquare, Star, DollarSign, Megaphone
+  BookCopy, MessageSquare, LayoutList, Download, PenSquare, Star, DollarSign, Megaphone, Wallet
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -109,6 +109,14 @@ const ProviderNav = () => {
                         <Link href="/dashboard/analytics">
                             <BarChart2 />
                             Analytics
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/payout-settings"}>
+                        <Link href="/dashboard/payout-settings">
+                            <Wallet />
+                            Payout Settings
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
