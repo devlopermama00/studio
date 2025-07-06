@@ -49,12 +49,8 @@ export default function LoginPage() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      toast({
-        title: "Login Successful!",
-        description: "Redirecting to your dashboard...",
-      });
-      // Force a full page reload to the dashboard to ensure all states are synchronized
-      window.location.href = '/dashboard';
+      // Redirect to the homepage on successful login
+      window.location.href = '/';
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
