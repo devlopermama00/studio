@@ -159,11 +159,9 @@ export default function PayoutSettingsPage() {
                                     <CardContent className="space-y-4">
                                         <FormField control={form.control} name="bankDetails.accountHolderName" render={({ field }) => (<FormItem><FormLabel>Account Holder Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                                         <FormField control={form.control} name="bankDetails.bankName" render={({ field }) => (<FormItem><FormLabel>Bank Name</FormLabel><FormControl><Input placeholder="Bank of Georgia" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                                        <div className="grid sm:grid-cols-2 gap-4">
-                                            <FormField control={form.control} name="bankDetails.iban" render={({ field }) => (<FormItem><FormLabel>IBAN</FormLabel><FormControl><Input placeholder="GE29NB0000000100100100" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                                            <FormField control={form.control} name="bankDetails.swiftCode" render={({ field }) => (<FormItem><FormLabel>SWIFT/BIC</FormLabel><FormControl><Input placeholder="BAGAGE22" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
-                                        </div>
-                                         <FormField control={form.control} name="bankDetails.accountNumber" render={({ field }) => (<FormItem><FormLabel>Account Number (if no IBAN)</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="bankDetails.iban" render={({ field }) => (<FormItem><FormLabel>IBAN</FormLabel><FormControl><Input placeholder="GE29NB0000000100100100" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="bankDetails.swiftCode" render={({ field }) => (<FormItem><FormLabel>SWIFT/BIC</FormLabel><FormControl><Input placeholder="BAGAGE22" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
+                                        <FormField control={form.control} name="bankDetails.accountNumber" render={({ field }) => (<FormItem><FormLabel>Account Number (if no IBAN)</FormLabel><FormControl><Input {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                                     </CardContent>
                                 </Card>
                             </TabsContent>
