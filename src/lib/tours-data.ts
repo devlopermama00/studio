@@ -8,12 +8,32 @@ import Review from '@/models/Review';
 import User from '@/models/User';
 import { Types } from 'mongoose';
 import type { Tour as PublicTourType, Review as ReviewType } from '@/lib/types';
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
 
 // This is needed to ensure the models are registered with Mongoose before use.
 Category;
 Review;
 User;
 Tour;
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
+
+interface DecodedToken {
+    id: string;
+    role: 'user' | 'provider' | 'admin';
+}
+
+async function verifyToken(token: string): Promise<DecodedToken | null> {
+    if (!token) return null;
+    try {
+        const { payload } = await jwtVerify(token, JWT_SECRET);
+        return payload as DecodedToken;
+    } catch (error) {
+        // It's okay for this to fail silently if the token is invalid or expired
+        return null;
+    }
+}
 
 async function transformTour(tourDoc: any): Promise<PublicTourType | null> {
     try {
@@ -70,7 +90,7 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
     }
     
     try {
-        let query = Tour.find({ approved: true })
+        let query = Tour.find({ approved: true, blocked: false })
             .populate('category', 'name')
             .populate('createdBy', 'name')
             .sort({ createdAt: -1 });
@@ -100,13 +120,28 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         if (!Types.ObjectId.isValid(id)) {
             return null;
         }
+        
+        const cookieStore = cookies();
+        const token = cookieStore.get('token')?.value || '';
+        const user = await verifyToken(token);
 
         const tourDoc = await Tour.findById(id)
-            .where('approved').equals(true)
             .populate('category', 'name')
             .populate('createdBy', 'name');
 
         if (!tourDoc) {
+            return null;
+        }
+
+        // If tour is not approved, only its creator or an admin can see it.
+        if (!tourDoc.approved) {
+            if (!user || (user.role !== 'admin' && tourDoc.createdBy._id.toString() !== user.id)) {
+                return null;
+            }
+        }
+        
+        // Blocked tours are hidden from everyone except admins
+        if (tourDoc.blocked && user?.role !== 'admin') {
             return null;
         }
 
@@ -121,7 +156,6 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
             .sort({ createdAt: -1 });
         
         transformedTour.reviews = tourReviews.map((r: any): ReviewType | null => {
-            // If a review's user was deleted, r.userId will be null. Skip it gracefully.
             if (!r.userId) return null;
             
             return {
@@ -137,7 +171,7 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
                     day: 'numeric',
                 }),
             }
-        }).filter((r): r is ReviewType => r !== null); // Filter out null reviews
+        }).filter((r): r is ReviewType => r !== null);
         
         return transformedTour;
     } catch (error) {

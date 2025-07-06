@@ -183,7 +183,11 @@ export default function ProviderToursPage() {
                       data-ai-hint="tour destination"
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{tour.title}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/tours/${tour._id}`} className="hover:underline" target="_blank">
+                      {tour.title}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={tour.approved ? "default" : "secondary"} className={cn(status.className)}>
                       {status.text}
