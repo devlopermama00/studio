@@ -19,13 +19,22 @@ export async function GET(request: NextRequest) {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-        
+        const { searchParams } = new URL(request.url);
+        const providerIdForAdmin = searchParams.get('providerId');
+
         await dbConnect();
 
-        let query = {};
-        if (decoded.role === 'provider') {
-            query = { createdBy: decoded.id };
-        } else if (decoded.role !== 'admin') {
+        let query: any = {};
+        if (decoded.role === 'admin' && providerIdForAdmin) {
+            if (!Types.ObjectId.isValid(providerIdForAdmin)) {
+                return NextResponse.json({ message: 'Invalid provider ID' }, { status: 400 });
+            }
+            query.createdBy = providerIdForAdmin;
+        } else if (decoded.role === 'admin') {
+            // No providerId specified, admin gets all tours
+        } else if (decoded.role === 'provider') {
+            query.createdBy = decoded.id;
+        } else {
              return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
 
