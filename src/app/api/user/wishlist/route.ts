@@ -34,27 +34,22 @@ export async function GET(request: NextRequest) {
 
     try {
         await dbConnect();
-        const user = await User.findById(userId)
-            .populate({
-                path: 'wishlist',
-                model: Tour,
-                populate: [
-                    { path: 'category', model: Category },
-                    { path: 'createdBy', model: User, select: 'name' }
-                ]
-            })
-            .select('wishlist')
-            .lean();
+        const user = await User.findById(userId).select('wishlist').lean();
 
-        if (!user) {
-            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        if (!user || !user.wishlist || user.wishlist.length === 0) {
+            return NextResponse.json([]);
         }
         
-        if (!user.wishlist || user.wishlist.length === 0) {
+        const tours = await Tour.find({ '_id': { $in: user.wishlist } })
+            .populate('category', 'name')
+            .populate('createdBy', 'name')
+            .lean();
+
+        if (!tours || tours.length === 0) {
             return NextResponse.json([]);
         }
 
-        const tourIds = user.wishlist.map((t: any) => t._id);
+        const tourIds = tours.map(t => t._id);
 
         const ratings = await Review.aggregate([
             { $match: { tourId: { $in: tourIds } } },
@@ -63,7 +58,7 @@ export async function GET(request: NextRequest) {
 
         const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
 
-        const formattedWishlist = user.wishlist.map((tour: any) => {
+        const formattedWishlist = tours.map((tour: any) => {
              const rating = ratingsMap.get(tour._id.toString()) || 0;
              return {
                 id: tour._id.toString(),
@@ -76,7 +71,7 @@ export async function GET(request: NextRequest) {
                 images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
                 providerName: tour.createdBy?.name || 'Unknown Provider',
                 rating: parseFloat(rating.toFixed(1)),
-                itinerary: [],
+                itinerary: tour.itinerary || [],
                 providerId: tour.createdBy?._id.toString() || '',
                 reviews: [],
                 approved: tour.approved,

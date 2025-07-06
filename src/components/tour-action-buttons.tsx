@@ -30,7 +30,7 @@ export function TourActionButtons({ tourId, tourTitle }: TourActionButtonsProps)
         }
         if (response.ok) {
           const wishlist = await response.json();
-          setIsWishlisted(wishlist.some((item: any) => item._id === tourId));
+          setIsWishlisted(wishlist.some((item: any) => item.id === tourId));
         }
       } catch (error) {
         console.error("Could not fetch wishlist status", error);
