@@ -39,17 +39,16 @@ export async function GET(request: NextRequest) {
         const totalUsersPromise = User.countDocuments({});
         const totalProvidersPromise = User.countDocuments({ role: 'provider' });
         const totalToursPromise = Tour.countDocuments({});
+        const totalBookingsPromise = Booking.countDocuments({});
         
         const pendingProviderApprovalsPromise = Document.countDocuments({ status: 'pending' });
         const pendingTourApprovalsPromise = Tour.countDocuments({ approved: false });
 
-        // Total Revenue
         const revenueDataPromise = Booking.aggregate([
             { $match: { status: { $in: ['confirmed', 'completed'] } } },
             { $group: { _id: null, total: { $sum: '$totalPrice' } } }
         ]);
         
-        // Monthly Revenue for the last 6 months
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -63,23 +62,36 @@ export async function GET(request: NextRequest) {
             },
             { $sort: { '_id.year': 1, '_id.month': 1 } }
         ]);
+
+        const topToursPromise = Booking.aggregate([
+            { $group: { _id: '$tourId', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 5 },
+            { $lookup: { from: 'tours', localField: '_id', foreignField: '_id', as: 'tourData' } },
+            { $unwind: '$tourData' },
+            { $project: { _id: 0, title: '$tourData.title', bookings: '$count' } }
+        ]);
         
         const [
             totalUsers,
             totalProviders,
             totalTours,
+            totalBookings,
             pendingProviderApprovals,
             pendingTourApprovals,
             revenueData,
-            monthlyRevenueData
+            monthlyRevenueData,
+            topTours
         ] = await Promise.all([
             totalUsersPromise,
             totalProvidersPromise,
             totalToursPromise,
+            totalBookingsPromise,
             pendingProviderApprovalsPromise,
             pendingTourApprovalsPromise,
             revenueDataPromise,
-            monthlyRevenueDataPromise
+            monthlyRevenueDataPromise,
+            topToursPromise,
         ]);
 
         const totalPendingApprovals = pendingProviderApprovals + pendingTourApprovals;
@@ -103,16 +115,17 @@ export async function GET(request: NextRequest) {
             });
         }
 
-
         return NextResponse.json({
             totalRevenue,
             totalUsers,
             totalProviders,
             totalTours,
+            totalBookings,
             totalPendingApprovals,
             pendingProviderApprovals,
             pendingTourApprovals,
-            monthlyRevenue
+            monthlyRevenue,
+            topTours,
         });
 
     } catch (error) {

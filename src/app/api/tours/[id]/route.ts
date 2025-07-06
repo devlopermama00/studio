@@ -10,8 +10,8 @@ interface DecodedToken {
     role: 'user' | 'provider' | 'admin';
 }
 
-// Helper to verify admin role
-async function verifyAdmin(request: NextRequest): Promise<NextResponse | DecodedToken> {
+// Helper to verify admin or provider role
+async function verifyEditor(request: NextRequest): Promise<NextResponse | DecodedToken> {
     const token = request.cookies.get('token')?.value;
     if (!token) {
         return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
@@ -19,8 +19,8 @@ async function verifyAdmin(request: NextRequest): Promise<NextResponse | Decoded
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
-        if (decoded.role !== 'admin') {
-             return NextResponse.json({ message: 'Unauthorized: Admins only' }, { status: 403 });
+        if (decoded.role !== 'admin' && decoded.role !== 'provider') {
+             return NextResponse.json({ message: 'Unauthorized: Admins or Providers only' }, { status: 403 });
         }
         return decoded;
     } catch (error) {
@@ -28,14 +28,108 @@ async function verifyAdmin(request: NextRequest): Promise<NextResponse | Decoded
     }
 }
 
+// GET a single tour for editing
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const editorCheck = await verifyEditor(request);
+    if (editorCheck instanceof NextResponse) return editorCheck;
 
-// PATCH - Approve a tour
+    try {
+        await dbConnect();
+        
+        const tourId = params.id;
+        if (!Types.ObjectId.isValid(tourId)) {
+            return NextResponse.json({ message: 'Invalid tour ID' }, { status: 400 });
+        }
+
+        const tour = await Tour.findById(tourId);
+
+        if (!tour) {
+            return NextResponse.json({ message: 'Tour not found' }, { status: 404 });
+        }
+
+        // Security check: ensure the provider owns the tour, or it's an admin
+        if (editorCheck.role === 'provider' && tour.createdBy.toString() !== editorCheck.id) {
+            return NextResponse.json({ message: 'Forbidden: You do not own this tour' }, { status: 403 });
+        }
+
+        return NextResponse.json(tour);
+
+    } catch (error) {
+        console.error('Error fetching tour for edit:', error);
+        if (error instanceof Error) {
+            return NextResponse.json({ message: 'An error occurred while fetching the tour.', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
+    }
+}
+
+
+// PUT - Update a tour
+export async function PUT(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const editorCheck = await verifyEditor(request);
+    if (editorCheck instanceof NextResponse) return editorCheck;
+
+    try {
+        await dbConnect();
+
+        const tourId = params.id;
+        if (!Types.ObjectId.isValid(tourId)) {
+            return NextResponse.json({ message: 'Invalid tour ID' }, { status: 400 });
+        }
+
+        const tourToUpdate = await Tour.findById(tourId);
+        if (!tourToUpdate) {
+            return NextResponse.json({ message: 'Tour not found' }, { status: 404 });
+        }
+        
+        if (editorCheck.role === 'provider' && tourToUpdate.createdBy.toString() !== editorCheck.id) {
+            return NextResponse.json({ message: 'Forbidden: You can only edit your own tours.' }, { status: 403 });
+        }
+
+        const body = await request.json();
+
+        // Admin can approve, provider cannot change approval status directly
+        if (editorCheck.role === 'provider') {
+            delete body.approved;
+        }
+
+        const updatedTour = await Tour.findByIdAndUpdate(
+            tourId,
+            body,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedTour) {
+            return NextResponse.json({ message: 'Tour not found during update' }, { status: 404 });
+        }
+
+        return NextResponse.json(updatedTour);
+    } catch (error) {
+        console.error('Error updating tour:', error);
+        if (error instanceof Error) {
+            return NextResponse.json({ message: 'An error occurred while updating the tour.', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
+    }
+}
+
+
+// PATCH - Approve a tour (Admin only)
 export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const adminCheck = await verifyAdmin(request);
-    if (adminCheck instanceof NextResponse) return adminCheck;
+    const token = request.cookies.get('token')?.value;
+    if (!token) return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
+    if (decoded.role !== 'admin') return NextResponse.json({ message: 'Unauthorized: Admins only' }, { status: 403 });
+
 
     try {
         await dbConnect();
@@ -66,7 +160,7 @@ export async function PATCH(
 
         return NextResponse.json(updatedTour);
     } catch (error) {
-        console.error('Error updating tour:', error);
+        console.error('Error updating tour approval:', error);
         if (error instanceof Error) {
             return NextResponse.json({ message: 'An error occurred while updating the tour.', error: error.message }, { status: 500 });
         }
@@ -74,13 +168,15 @@ export async function PATCH(
     }
 }
 
-// DELETE - Delete a tour
+// DELETE - Delete a tour (Admin only)
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
-    const adminCheck = await verifyAdmin(request);
-    if (adminCheck instanceof NextResponse) return adminCheck;
+    const token = request.cookies.get('token')?.value;
+    if (!token) return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
+    if (decoded.role !== 'admin') return NextResponse.json({ message: 'Unauthorized: Admins only' }, { status: 403 });
 
     try {
         await dbConnect();

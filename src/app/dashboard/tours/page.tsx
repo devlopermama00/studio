@@ -3,7 +3,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Edit, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -136,9 +136,7 @@ export default function ProviderToursPage() {
               <TableHead className="hidden md:table-cell">
                 Rating
               </TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -163,21 +161,12 @@ export default function ProviderToursPage() {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">${tour.price}</TableCell>
                   <TableCell className="hidden md:table-cell">N/A</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>View Bookings</DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  <TableCell className="text-right">
+                    <Button asChild variant="outline" size="icon">
+                        <Link href={`/dashboard/tours/${tour._id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                        </Link>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

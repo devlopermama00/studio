@@ -21,7 +21,8 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, User, Settings, LogOut,
-  Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart
+  Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart,
+  BookCopy, MessageSquare, LayoutList, Download
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -121,9 +122,9 @@ const AdminNav = () => {
             <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin'}>
+                    <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin' || pathname === '/dashboard/admin'}>
                         <Link href="/dashboard/admin">
-                            <ShieldCheck />
+                            <LayoutDashboard />
                             Overview
                         </Link>
                     </SidebarMenuButton>
@@ -136,10 +137,18 @@ const AdminNav = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/bookings')}>
+                        <Link href="/dashboard/admin/bookings">
+                            <BookCopy />
+                            Bookings
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/tours')}>
                         <Link href="/dashboard/admin/tours">
-                            <Edit />
+                            <Map />
                             Tours
                         </Link>
                     </SidebarMenuButton>
@@ -149,6 +158,38 @@ const AdminNav = () => {
                         <Link href="/dashboard/admin/approvals">
                             <ShieldCheck />
                             Approvals
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/reviews')}>
+                        <Link href="/dashboard/admin/reviews">
+                            <MessageSquare />
+                            Reviews
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/categories')}>
+                        <Link href="/dashboard/admin/categories">
+                            <LayoutList />
+                            Categories
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/reports')}>
+                        <Link href="/dashboard/admin/reports">
+                            <Download />
+                            Reports
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/settings')}>
+                        <Link href="/dashboard/admin/settings">
+                            <Settings />
+                            Site Settings
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -222,6 +263,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null; 
   }
   
+  const getPageTitle = () => {
+    const segments = pathname.split('/').filter(Boolean);
+    if (segments.length > 1) {
+        const lastSegment = segments[segments.length - 1];
+        if (lastSegment === 'admin' && segments.length > 2) {
+             return segments[segments.length-2].replace('-', ' ');
+        }
+        if (lastSegment.match(/^[0-9a-fA-F]{24}$/)) { // Check if it's a likely ObjectId
+            return segments[segments.length - 2].replace('-', ' ');
+        }
+        return lastSegment.replace('-', ' ');
+    }
+    return 'Dashboard';
+  }
+
   return (
     <SidebarProvider open={open} onOpenChange={setOpen} defaultOpen>
       <Sidebar>
@@ -267,10 +323,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
             <SidebarTrigger className="md:hidden" />
             <h1 className="flex-1 text-xl font-headline font-semibold capitalize">
-                {pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard'}
+                {getPageTitle()}
             </h1>
         </header>
-        <main className="flex-1 p-4 sm:px-6 sm:py-0">
+        <main className="flex-1 p-4 sm:px-6 sm:py-6">
           {children}
         </main>
       </SidebarInset>
