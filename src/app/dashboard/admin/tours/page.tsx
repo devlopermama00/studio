@@ -61,15 +61,15 @@ export default function AdminToursPage() {
     fetchTours();
   }, [toast]);
 
-  const handleFilterChange = (status: string) => {
+  const handleFilterChange = (status: string, sourceTours: PopulatedAdminTour[] = tours) => {
     if (status === 'all') {
-      setFilteredTours(tours);
+      setFilteredTours(sourceTours);
     } else if (status === 'approved') {
-      setFilteredTours(tours.filter(t => t.approved && !t.blocked));
+      setFilteredTours(sourceTours.filter(t => t.approved && !t.blocked));
     } else if (status === 'pending') {
-      setFilteredTours(tours.filter(t => !t.approved && !t.blocked));
+      setFilteredTours(sourceTours.filter(t => !t.approved && !t.blocked));
     } else if (status === 'blocked') {
-        setFilteredTours(tours.filter(t => t.blocked));
+        setFilteredTours(sourceTours.filter(t => t.blocked));
     }
   };
 
@@ -84,9 +84,9 @@ export default function AdminToursPage() {
       if (!response.ok) throw new Error('Failed to update tour');
       
       const updatedTour = await response.json();
-      const updatedTours = tours.map(t => t._id === tourId ? { ...t, approved: updatedTour.approved } : t);
+      const updatedTours = tours.map(t => t._id === tourId ? updatedTour : t);
       setTours(updatedTours);
-      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all');
+      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all', updatedTours);
       toast({ title: "Success", description: `Tour has been ${approved ? 'approved' : 'un-approved'}.` });
     } catch (error) {
       toast({ variant: "destructive", title: "Update Failed", description: "Could not update tour status." });
@@ -106,9 +106,9 @@ export default function AdminToursPage() {
       if (!response.ok) throw new Error('Failed to update tour');
       
       const updatedTour = await response.json();
-      const updatedTours = tours.map(t => t._id === tourId ? { ...t, blocked: updatedTour.blocked } : t);
+      const updatedTours = tours.map(t => t._id === tourId ? updatedTour : t);
       setTours(updatedTours);
-      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all');
+      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all', updatedTours);
       toast({ title: "Success", description: `Tour has been ${blocked ? 'blocked' : 'un-blocked'}.` });
     } catch (error) {
       toast({ variant: "destructive", title: "Update Failed", description: "Could not update tour status." });
@@ -131,7 +131,8 @@ export default function AdminToursPage() {
         
         const remainingTours = tours.filter(t => t._id !== tourToDelete._id);
         setTours(remainingTours);
-        setFilteredTours(remainingTours);
+        const activeTabValue = document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all';
+        handleFilterChange(activeTabValue, remainingTours);
         toast({ title: "Success", description: "Tour deleted successfully." });
     } catch (error) {
         toast({ variant: "destructive", title: "Deletion Failed", description: "Could not delete tour." });
@@ -158,7 +159,7 @@ export default function AdminToursPage() {
   return (
     <>
     <Card>
-        <Tabs defaultValue="all" onValueChange={handleFilterChange}>
+        <Tabs defaultValue="all" onValueChange={(value) => handleFilterChange(value, tours)}>
             <CardHeader>
                 <CardTitle>Tour Management</CardTitle>
                 <CardDescription>Approve, reject, and manage all tours on the platform.</CardDescription>
