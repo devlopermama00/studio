@@ -1,8 +1,9 @@
 import Image from "next/image";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldCheck, CalendarCheck, Sparkles, Globe, MousePointerClick } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ShieldCheck, CalendarCheck, Sparkles, Globe, MousePointerClick, Star } from "lucide-react";
 
 const features = [
   {
@@ -31,6 +32,44 @@ const features = [
     description: "Our online platform is user-friendly and secure, and our team is available 24/7 to assist with planning, booking, and any questions along the way."
   }
 ];
+
+const testimonials = [
+  {
+    name: "Alex Johnson",
+    location: "New York, USA",
+    avatar: "https://placehold.co/100x100.png",
+    rating: 5,
+    comment: "Absolutely breathtaking! The guide was incredibly knowledgeable and friendly. A must-do tour in Tbilisi.",
+    tour: "Old Tbilisi Walking Tour"
+  },
+  {
+    name: "Maria Garcia",
+    location: "Madrid, Spain",
+    avatar: "https://placehold.co/100x100.png",
+    rating: 5,
+    comment: "A journey through history with stunning views. The Kazbegi tour exceeded all my expectations. Highly recommended!",
+    tour: "Kazbegi Mountain Adventure"
+  },
+  {
+    name: "Kenichi Tanaka",
+    location: "Tokyo, Japan",
+    avatar: "https://placehold.co/100x100.png",
+    rating: 4,
+    comment: "The Kakheti wine tour was a delight for the senses. Wonderful wine, delicious food, and beautiful scenery.",
+    tour: "Kakheti Wine Region Tour"
+  }
+];
+
+const StarRating = ({ rating }: { rating: number }) => (
+    <div className="flex items-center">
+        {[...Array(5)].map((_, i) => (
+        <Star
+            key={i}
+            className={`w-5 h-5 ${i < rating ? "text-amber-500 fill-amber-500" : "text-gray-300"}`}
+        />
+        ))}
+    </div>
+);
 
 export default function AboutPage() {
   return (
@@ -66,7 +105,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="pb-16 md:pb-24 bg-background">
+        <section className="pb-16 md:pb-24 bg-secondary">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">What Makes Us Different?</h2>
@@ -87,6 +126,42 @@ export default function AboutPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        <section className="py-16 md:py-24 bg-background">
+            <div className="container mx-auto px-4">
+                <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">What Our Travelers Say</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Real stories from adventurers who explored Georgia with us.
+                </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {testimonials.map((testimonial, index) => (
+                    <Card key={index} className="flex flex-col">
+                    <CardContent className="p-6 flex-1 flex flex-col">
+                        <div className="flex items-center mb-4">
+                        <Avatar className="h-12 w-12 mr-4">
+                            <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                            <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold">{testimonial.name}</p>
+                            <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                        </div>
+                        </div>
+                        <StarRating rating={testimonial.rating} />
+                        <blockquote className="text-muted-foreground italic mt-4 flex-1">
+                        "{testimonial.comment}"
+                        </blockquote>
+                    </CardContent>
+                    <CardFooter className="bg-secondary p-4 text-sm mt-auto">
+                        <p className="text-muted-foreground">On the <span className="font-semibold text-foreground">{testimonial.tour}</span></p>
+                    </CardFooter>
+                    </Card>
+                ))}
+                </div>
+            </div>
         </section>
         
         <section className="py-16 md:py-24 bg-secondary">
