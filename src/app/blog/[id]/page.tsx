@@ -3,16 +3,13 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { Calendar, User } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
 
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-
-const HtmlRenderer = ({ content }: { content: string }) => (
-    <div className="prose prose-lg dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
-);
 
 async function getBlogPost(id: string) {
     // In a real app, you'd fetch this from your API
@@ -69,7 +66,9 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
                 priority
             />
 
-            <HtmlRenderer content={post.content} />
+            <div className="prose prose-lg dark:prose-invert max-w-none">
+                <ReactMarkdown>{post.content}</ReactMarkdown>
+            </div>
 
             <Separator className="my-12"/>
 

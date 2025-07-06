@@ -11,13 +11,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import RichTextEditor from "@/components/rich-text-editor";
 
 interface Category {
     _id: string;
@@ -144,7 +144,25 @@ export default function EditBlogPostPage() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
             <FormField name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-            <FormField name="content" render={({ field }) => (<FormItem><FormLabel>Content</FormLabel><FormControl><RichTextEditor value={field.value} onChange={field.onChange} /></FormControl><FormMessage /></FormItem>)} />
+            <FormField 
+                name="content" 
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Content</FormLabel>
+                        <FormControl>
+                            <Textarea 
+                                placeholder="Write your content here. You can use Markdown for formatting." 
+                                className="min-h-[250px]"
+                                {...field} 
+                            />
+                        </FormControl>
+                        <FormDescription>
+                            Supports Markdown for rich text formatting.
+                        </FormDescription>
+                        <FormMessage />
+                    </FormItem>
+                )} 
+            />
             
              <div className="grid sm:grid-cols-2 gap-4">
                  <FormField
