@@ -1,28 +1,50 @@
+
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Construction } from "lucide-react";
+import { TourCard } from "@/components/tour-card";
+import { getPublicTours } from "@/lib/tours-data";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal, Percent } from "lucide-react";
+import type { Tour } from "@/lib/types";
 
-export default function DealsPage() {
+export default async function DealsPage() {
+  const deals: Tour[] = await getPublicTours(3);
+
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
-      <main className="flex-1 bg-secondary">
-        <div className="container mx-auto px-4 py-16 md:py-24 flex items-center justify-center">
-          <Card className="w-full max-w-lg text-center">
-            <CardHeader>
-              <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit mb-4">
-                <Construction className="w-10 h-10" />
-              </div>
-              <CardTitle className="font-headline text-3xl">Special Offers</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-lg">
-                We're working on some amazing deals for you. This page is coming soon, so keep an eye out!
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
+      <main className="flex-1">
+         <section className="py-12 bg-secondary text-center">
+          <div className="container mx-auto px-4">
+            <Percent className="mx-auto h-12 w-12 text-primary mb-4" />
+            <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">
+              Exclusive Deals & Special Offers
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Save on your next adventure with our handpicked selection of discounted tours. Book now before they're gone!
+            </p>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24 bg-background">
+          <div className="container mx-auto px-4">
+             {deals.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {deals.map((tour) => (
+                    <TourCard key={tour.id} tour={tour} />
+                ))}
+                </div>
+            ) : (
+                <Alert>
+                    <Terminal className="h-4 w-4" />
+                    <AlertTitle>No Deals Available Right Now</AlertTitle>
+                    <AlertDescription>
+                        We're currently not running any special offers, but please check back soon!
+                    </AlertDescription>
+                </Alert>
+            )}
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>
