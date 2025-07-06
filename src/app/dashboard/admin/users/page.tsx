@@ -1,7 +1,7 @@
 
 "use client"
 
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 
@@ -48,6 +48,7 @@ interface User {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -75,6 +76,34 @@ export default function AdminUsersPage() {
 
     fetchUsers();
   }, [toast]);
+
+  const handleToggleBlock = async (user: User) => {
+    setIsUpdating(user._id);
+    try {
+      const response = await fetch(`/api/admin/users/${user._id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isBlocked: !user.isBlocked }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update user status');
+      }
+
+      const updatedUser = await response.json();
+      setUsers(users.map(u => u._id === user._id ? { ...u, isBlocked: updatedUser.isBlocked } : u));
+      toast({
+        title: "Success",
+        description: `User ${user.isBlocked ? 'unblocked' : 'blocked'} successfully.`,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+      toast({ variant: "destructive", title: "Update Failed", description: errorMessage });
+    } finally {
+      setIsUpdating(null);
+    }
+  };
 
   const UserListSkeleton = () => (
       Array.from({ length: 5 }).map((_, index) => (
@@ -134,7 +163,7 @@ export default function AdminUsersPage() {
                         <TableCell>
                             <div className="flex items-center gap-3">
                                 <Avatar className="hidden h-9 w-9 sm:flex">
-                                    <AvatarImage src={user.profilePhoto} alt={user.name} />
+                                    <AvatarImage src={user.profilePhoto || "https://placehold.co/100x100.png"} alt={user.name} />
                                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-0.5">
@@ -155,18 +184,22 @@ export default function AdminUsersPage() {
                         <TableCell>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
+                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isUpdating === user._id}>
+                               {isUpdating === user._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
                                 <span className="sr-only">Toggle menu</span>
                             </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem>View Profile</DropdownMenuItem>
-                            <DropdownMenuItem>
-                                {user.isBlocked ? "Unblock User" : "Block User"}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                            {user.role !== 'admin' && (
+                                <DropdownMenuItem onClick={() => handleToggleBlock(user)}>
+                                    {user.isBlocked ? "Unblock User" : "Block User"}
+                                </DropdownMenuItem>
+                            )}
+                            {user.role !== 'admin' && (
+                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                            )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
