@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -76,7 +76,7 @@ export function SiteHeader() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchUser() {
       setIsLoading(true);
       try {
@@ -98,6 +98,7 @@ export function SiteHeader() {
   
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
+    setUser(null); // Explicitly update client state
     if(isMenuOpen) setIsMenuOpen(false);
     router.refresh();
   };
