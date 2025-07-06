@@ -7,22 +7,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Trash2, PlusCircle, X } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2, PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { currencies } from "@/context/currency-context";
-import { uploadFile } from "@/services/fileUploader";
 
 interface Category {
     _id: string;
@@ -81,10 +78,7 @@ export default function EditTourPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingData, setIsFetchingData] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
-  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
-
+  
   const form = useForm<TourFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -131,7 +125,6 @@ export default function EditTourPage() {
                 inclusions: Array.isArray(tourData.inclusions) ? tourData.inclusions.join('\n') : '',
                 exclusions: Array.isArray(tourData.exclusions) ? tourData.exclusions.join('\n') : '',
             });
-            setExistingImages(tourData.images || []);
 
             if (!catRes.ok) throw new Error('Failed to fetch categories');
             const catData = await catRes.json();
@@ -146,40 +139,12 @@ export default function EditTourPage() {
     fetchTourAndCategories();
   }, [tourId, form, toast]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setNewImageFiles(prev => [...prev, ...files]);
-
-    const previews = files.map(file => URL.createObjectURL(file));
-    setNewImagePreviews(prev => [...prev, ...previews]);
-  };
-  
-  const removeExistingImage = (indexToRemove: number) => {
-    setExistingImages(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-  
-  const removeNewImage = (indexToRemove: number) => {
-    URL.revokeObjectURL(newImagePreviews[indexToRemove]);
-    setNewImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
-    setNewImageFiles(prev => prev.filter((_, index) => index !== indexToRemove));
-  };
-
 
   async function onSubmit(values: TourFormValues) {
-    if (existingImages.length + newImageFiles.length < 3) {
-      toast({ variant: "destructive", title: "Validation Error", description: "A minimum of 3 images is required." });
-      return;
-    }
     setIsLoading(true);
     try {
-        const newImageUrls = await Promise.all(
-          newImageFiles.map(file => uploadFile(file, 'tour-images'))
-        );
-        const finalImageUrls = [...existingImages, ...newImageUrls];
-
         const payload = {
             ...values,
-            images: finalImageUrls,
             languages: values.languages.split('\n').map(item => item.trim()).filter(Boolean),
             highlights: values.highlights.split('\n').map(item => item.trim()).filter(Boolean),
             inclusions: values.inclusions.split('\n').map(item => item.trim()).filter(Boolean),
@@ -239,32 +204,6 @@ export default function EditTourPage() {
 
             <FormField name="overview" render={({ field }) => (<FormItem><FormLabel>Overview of Tour</FormLabel><FormControl><Textarea className="min-h-[120px]" {...field} /></FormControl><FormMessage /></FormItem>)} />
             
-            <div className="space-y-2">
-                <Label>Tour Photos</Label>
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-                    {existingImages.map((src, index) => (
-                        <div key={src} className="relative group aspect-square">
-                            <Image src={src} alt={`Existing Image ${index + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="rounded-md object-cover" />
-                            <Button type="button" size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeExistingImage(index)}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
-                    {newImagePreviews.map((src, index) => (
-                        <div key={src} className="relative group aspect-square">
-                            <Image src={src} alt={`New Preview ${index + 1}`} fill sizes="(max-width: 768px) 50vw, 25vw" className="rounded-md object-cover" />
-                            <Button type="button" size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeNewImage(index)}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-                <FormControl>
-                    <Input type="file" multiple accept="image/*" onChange={handleFileChange} />
-                </FormControl>
-                <FormDescription>Minimum 3 photos required. Upload new images to add to the existing ones.</FormDescription>
-            </div>
-
             <Separator />
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -364,5 +303,3 @@ export default function EditTourPage() {
     </Card>
   );
 }
-
-    

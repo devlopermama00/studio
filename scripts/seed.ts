@@ -133,43 +133,43 @@ const toursData = [
 const seedDatabase = async () => {
     try {
         await dbConnect();
-
         console.log('Connected to database.');
 
-        console.log('Deleting existing tours...');
-        await Tour.deleteMany({});
-        console.log('Existing tours deleted.');
-
-        const transformedTours = toursData.map(tour => ({
-            title: tour.tour_name,
-            country: tour.country,
-            city: tour.city,
-            place: tour.place_area,
-            overview: tour.overview,
-            images: tour.photos,
-            durationInHours: tour.duration_hours,
-            price: tour.price,
-            currency: tour.currency,
-            groupSize: tour.max_group_size,
-            category: new mongoose.Types.ObjectId(tour.category_id),
-            tourType: (tour.tour_type as string).toLowerCase(),
-            languages: tour.languages,
-            highlights: tour.highlights,
-            inclusions: tour.whats_included,
-            exclusions: tour.whats_not_included,
-            importantInformation: tour.important_info,
-            createdBy: new mongoose.Types.ObjectId(tour.created_by),
-            itinerary: tour.itinerary.map(item => ({
-                title: item.title,
-                description: item.description,
-            })),
-            approved: true, // Approve tours by default for seeding
-            blocked: false,
-        }));
-        
-        console.log('Inserting new tours...');
-        await Tour.insertMany(transformedTours);
-        console.log('New tours inserted successfully!');
+        const tourCount = await Tour.countDocuments();
+        if (tourCount > 0) {
+            console.log('Tours collection is not empty. Skipping seeding.');
+        } else {
+            console.log('Seeding tours...');
+            const transformedTours = toursData.map(tour => ({
+                title: tour.tour_name,
+                country: tour.country,
+                city: tour.city,
+                place: tour.place_area,
+                overview: tour.overview,
+                images: tour.photos,
+                durationInHours: tour.duration_hours,
+                price: tour.price,
+                currency: tour.currency,
+                groupSize: tour.max_group_size,
+                category: new mongoose.Types.ObjectId(tour.category_id),
+                tourType: (tour.tour_type as string).toLowerCase(),
+                languages: tour.languages,
+                highlights: tour.highlights,
+                inclusions: tour.whats_included,
+                exclusions: tour.whats_not_included,
+                importantInformation: tour.important_info,
+                createdBy: new mongoose.Types.ObjectId(tour.created_by),
+                itinerary: tour.itinerary.map(item => ({
+                    title: item.title,
+                    description: item.description,
+                })),
+                approved: true, // Approve tours by default for seeding
+                blocked: false,
+            }));
+            
+            await Tour.insertMany(transformedTours);
+            console.log('Tours seeded successfully!');
+        }
 
     } catch (error) {
         console.error('Error seeding database:', error);
