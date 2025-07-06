@@ -1,11 +1,17 @@
+
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Clock, Star } from "lucide-react";
+import { MapPin, Star } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { Tour } from "@/lib/types";
+import { useCurrency } from "@/context/currency-context";
 
 export function TourCard({ tour }: { tour: Tour }) {
+  const { formatCurrency } = useCurrency();
+
   return (
     <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl">
       <CardHeader className="p-0 relative">
@@ -20,7 +26,7 @@ export function TourCard({ tour }: { tour: Tour }) {
           />
         </Link>
         <Badge variant="secondary" className="absolute top-3 right-3 text-base">
-          ${tour.price}
+          {formatCurrency(tour.price)}
         </Badge>
       </CardHeader>
       <CardContent className="p-4 flex-1 flex flex-col">

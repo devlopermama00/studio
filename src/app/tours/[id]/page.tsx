@@ -1,18 +1,17 @@
+
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Star, MapPin, Clock, Users, MessageSquare } from "lucide-react";
 import { getPublicTourById } from "@/lib/tours-data";
+import { BookingCard } from "@/components/booking-card";
 
 
 export default async function TourDetailPage({ params }: { params: { id: string } }) {
@@ -149,27 +148,7 @@ export default async function TourDetailPage({ params }: { params: { id: string 
 
             {/* Right/Sticky Column */}
             <div className="lg:col-span-1">
-              <Card className="sticky top-24">
-                <CardHeader>
-                  <CardTitle className="font-headline text-2xl">
-                    From <span className="text-primary">${tour.price}</span> / person
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="date">Date</Label>
-                    <Input id="date" type="date" />
-                  </div>
-                  <div>
-                    <Label htmlFor="guests">Number of guests</Label>
-                    <Input id="guests" type="number" min="1" defaultValue="1" />
-                  </div>
-                </CardContent>
-                <CardFooter className="flex-col items-stretch">
-                  <Button size="lg" className="w-full">Book Now</Button>
-                  <p className="text-xs text-muted-foreground text-center mt-2">Free cancellation up to 24 hours before</p>
-                </CardFooter>
-              </Card>
+              <BookingCard price={tour.price} />
             </div>
           </div>
         </div>

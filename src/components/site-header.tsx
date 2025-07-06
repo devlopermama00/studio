@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LayoutDashboard } from "lucide-react";
+import { Menu, LayoutDashboard, ChevronDown } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
+import { useCurrency } from "@/context/currency-context";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
   { href: "/tours", label: "Tours" },
@@ -24,6 +26,48 @@ interface AuthUser {
   email: string;
   role: "user" | "provider" | "admin";
 }
+
+const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
+  const { currency, currencies, setCurrency } = useCurrency();
+  
+  if (isMobile) {
+    return (
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-sm">Currency</p>
+        <div className="grid grid-cols-3 gap-2">
+          {currencies.map((c) => (
+            <Button
+              key={c.code}
+              variant={currency.code === c.code ? 'default' : 'outline'}
+              onClick={() => setCurrency(c.code)}
+            >
+              {c.code}
+            </Button>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost">
+          {currency.code}
+          <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {currencies.map((c) => (
+          <DropdownMenuItem key={c.code} onClick={() => setCurrency(c.code)}>
+            {c.name} ({c.code})
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -80,8 +124,8 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <TourVistaLogo />
-          <nav className="hidden items-center gap-6 md:flex">
+          <TourVistaLogo onClick={() => isMenuOpen && setIsMenuOpen(false)} />
+          <nav className="hidden items-center gap-6 lg:flex">
              {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -98,20 +142,21 @@ export function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-            <div className="hidden md:flex">
+            <div className="hidden lg:flex items-center">
+                <CurrencySelector />
                 <AuthButtons />
             </div>
             
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="lg:hidden">
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[80vw] max-w-sm">
                 <SheetHeader className="p-0 text-left mb-8">
-                  <SheetTitle>
+                  <SheetTitle asChild>
                     <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
                   </SheetTitle>
                 </SheetHeader>
@@ -129,6 +174,8 @@ export function SiteHeader() {
                       {link.label}
                     </Link>
                   ))}
+                  <Separator className="my-2" />
+                  <CurrencySelector isMobile={true}/>
                   <Separator className="my-2" />
                   <AuthButtons isMobile={true} />
                 </div>
