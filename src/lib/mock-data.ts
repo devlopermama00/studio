@@ -195,6 +195,407 @@ export const tours: Tour[] = [
     rating: 5.0,
     reviews: [],
     approved: true,
+  },
+  {
+    id: "7",
+    title: "Martvili Canyon & Prometheus Cave Tour",
+    location: "Kutaisi",
+    category: "Adventure & Extreme",
+    price: 75,
+    duration: "Full Day",
+    description: "Explore two of Georgia's most stunning natural wonders. Take a boat ride through the emerald waters of Martvili Canyon and marvel at the breathtaking formations in Prometheus Cave.",
+    itinerary: [
+      { title: "Prometheus Cave", description: "Walk through the 1.4km long cave with its stunning stalactites and stalagmites." },
+      { title: "Martvili Canyon", description: "Enjoy a boat trip between the high rocks of the canyon." },
+      { title: "Okatse Canyon", description: "Walk on the thrilling skywalk bridge for panoramic views." }
+    ],
+    images: ["https://placehold.co/800x600.png", "https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.8,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "8",
+    title: "Vardzia Cave Monastery Day Trip",
+    location: "Vardzia",
+    category: "Historical & Cultural",
+    price: 110,
+    duration: "Full Day",
+    description: "Journey to the spectacular cave monastery of Vardzia, a sprawling complex carved into the Erusheti Mountain. A true marvel of medieval Georgian architecture.",
+    itinerary: [
+      { title: "Rabati Castle", description: "Stop at the impressive fortress in Akhaltsikhe." },
+      { title: "Khertvisi Fortress", description: "Photo stop at one of Georgia's oldest fortresses." },
+      { title: "Vardzia Cave City", description: "Explore the ancient cave dwellings, churches, and tunnels." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.9,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "9",
+    title: "Gori, Uplistsikhe & Mtskheta Private Tour",
+    location: "Gori",
+    category: "Historical & Cultural",
+    price: 130,
+    duration: "Full Day",
+    description: "A deep dive into Georgian history, from the ancient cave town of Uplistsikhe to Mtskheta, the spiritual heart of Georgia, and Gori, the birthplace of Stalin.",
+    itinerary: [
+      { title: "Stalin Museum", description: "Visit the controversial museum dedicated to Joseph Stalin." },
+      { title: "Uplistsikhe", description: "Explore the rock-hewn town." },
+      { title: "Jvari & Svetitskhoveli", description: "Visit the UNESCO sites in Mtskheta." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.6,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "10",
+    title: "Chiatura Cable Cars & Katskhi Pillar",
+    location: "Chiatura",
+    category: "Adventure & Extreme",
+    price: 90,
+    duration: "Full Day",
+    description: "An off-the-beaten-path adventure to the Soviet-era mining town of Chiatura with its famous network of cable cars and the mysterious Katskhi Pillar monastery.",
+    itinerary: [
+      { title: "Katskhi Pillar", description: "Marvel at the monastery perched atop a 40-meter high limestone monolith." },
+      { title: "Chiatura Cable Cars", description: "Ride the 'iron coffins' - a unique and thrilling experience." },
+      { title: "Mgvimevi Monastery", description: "Visit a monastery partially carved into a cliff." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.7,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "11",
+    title: "Racha, the Switzerland of Georgia",
+    location: "Racha",
+    category: "Multi-Day Tours",
+    price: 280,
+    duration: "2 Days",
+    description: "Explore the stunningly beautiful and tranquil Racha region, known for its pristine nature, alpine lakes, and the famous Khvanchkara wine.",
+    itinerary: [
+      { title: "Shaori Lake", description: "Enjoy the views of the largest lake in Racha." },
+      { title: "Nikortsminda Cathedral", description: "Admire the richly decorated 11th-century cathedral." },
+      { title: "Khvanchkara Wine Tasting", description: "Taste the semi-sweet red wine in its home region." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.9,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "12",
+    title: "Tbilisi Food & Wine Walking Tour",
+    location: "Tbilisi",
+    category: "Wine & Gastronomy",
+    price: 65,
+    duration: "3 Hours",
+    description: "A delicious journey through Tbilisi's culinary scene. Taste traditional dishes like Khinkali and Khachapuri, and sample local wines at a cozy cellar.",
+    itinerary: [
+      { title: "Local Market Visit", description: "See fresh Georgian produce and ingredients." },
+      { title: "Khinkali Making Class", description: "Learn to make the famous Georgian dumplings." },
+      { title: "Wine Cellar Tasting", description: "Sample several types of Georgian wine." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.8,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "13",
+    title: "Paragliding in Gudauri",
+    location: "Gudauri",
+    category: "Adventure & Extreme",
+    price: 150,
+    duration: "20-30 Minutes Flight",
+    description: "Soar like an eagle over the breathtaking Caucasus mountains with a tandem paragliding flight in Gudauri. An unforgettable adrenaline rush!",
+    itinerary: [
+      { title: "Safety Briefing", description: "Receive instructions from your certified pilot." },
+      { title: "Tandem Flight", description: "Enjoy a 20-30 minute flight over the Gudauri ski resort and mountains." },
+      { title: "Photo/Video", description: "Get stunning photos and videos of your flight (optional extra)." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 5.0,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "14",
+    title: "David Gareja Monastery & Rainbow Mountains",
+    location: "David Gareja",
+    category: "Historical & Cultural",
+    price: 70,
+    duration: "Full Day",
+    description: "Visit the ancient David Gareja cave monastery complex located in the semi-desert and witness the stunning, colorful landscapes of the 'Rainbow Mountains'.",
+    itinerary: [
+      { title: "Lavra Monastery", description: "Explore the main complex of David Gareja." },
+      { title: "Udabno Monastery Hike", description: "Hike up to see the ancient frescoes (requires moderate fitness)." },
+      { title: "Rainbow Mountains", description: "Photo stop at the colorful striped hills." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.7,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "15",
+    title: "Kutaisi City Tour",
+    location: "Kutaisi",
+    category: "City Tours",
+    price: 40,
+    duration: "4 hours",
+    description: "Discover the ancient city of Kutaisi, one of the oldest continuously inhabited cities in the world. Visit its UNESCO World Heritage sites and bustling market.",
+    itinerary: [
+      { title: "Bagrati Cathedral", description: "Visit the 11th-century cathedral overlooking the city." },
+      { title: "Gelati Monastery", description: "Explore the medieval monastery complex, a UNESCO site." },
+      { title: "Green Bazaar", description: "Experience the vibrant local market." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.6,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "16",
+    title: "Hiking to Ushba Glacier",
+    location: "Svaneti",
+    category: "Mountain & Hiking",
+    price: 100,
+    duration: "7-8 hours",
+    description: "A challenging and rewarding hike in the heart of Svaneti to the foot of the mighty Ushba glacier. For experienced hikers seeking epic mountain views.",
+    itinerary: [
+      { title: "Start from Becho", description: "The hike starts from a village in the Svaneti region." },
+      { title: "Forest & Alpine Meadows", description: "Trek through diverse landscapes." },
+      { title: "Ushba Glacier View", description: "Reach the viewpoint for stunning views of the glacier and surrounding peaks." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.9,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "17",
+    title: "Tbilisi Night Tour",
+    location: "Tbilisi",
+    category: "City Tours",
+    price: 35,
+    duration: "2 Hours",
+    description: "See Tbilisi in a new light! This tour showcases the beautifully illuminated landmarks of the capital city after dark.",
+    itinerary: [
+      { title: "Bridge of Peace", description: "Walk across the modern, illuminated bridge." },
+      { title: "Rike Park", description: "See the dancing fountains and modern architecture." },
+      { title: "Mtatsminda Park", description: "Take the funicular up for a stunning panoramic view of the sparkling city." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.7,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "18",
+    title: "Dashbashi Canyon & Tsalka Lake",
+    location: "Tsalka",
+    category: "Adventure & Extreme",
+    price: 85,
+    duration: "Full Day",
+    description: "Visit the impressive Dashbashi Canyon and walk across its new 240-meter-long glass bridge for thrilling views of the waterfall below.",
+    itinerary: [
+      { title: "Tsalka Lake", description: "Photo stop at the largest reservoir in Georgia." },
+      { title: "Dashbashi Canyon", description: "Hike down to the canyon and see the waterfalls." },
+      { title: "Glass Bridge", description: "Experience the adrenaline of walking on the transparent bridge." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.8,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "19",
+    title: "Bakuriani Ski Resort Day Trip",
+    location: "Bakuriani",
+    category: "Mountain & Hiking",
+    price: 110,
+    duration: "Full Day",
+    description: "Enjoy a day of winter fun at Bakuriani, one of Georgia's most popular ski resorts. Perfect for families and skiers of all levels.",
+    itinerary: [
+      { title: "Travel to Bakuriani", description: "Scenic drive from Tbilisi or Borjomi." },
+      { title: "Skiing/Snowboarding", description: "Enjoy the slopes (equipment rental not included)." },
+      { title: "Free Time", description: "Explore the resort town and enjoy the winter atmosphere." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.5,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "20",
+    title: "Georgian Cooking Class in Tbilisi",
+    location: "Tbilisi",
+    category: "Wine & Gastronomy",
+    price: 70,
+    duration: "4 Hours",
+    description: "Learn the secrets of delicious Georgian cuisine in a hands-on cooking class. Prepare classic dishes and enjoy a feast with your creations.",
+    itinerary: [
+      { title: "Market Tour", description: "Shop for fresh ingredients at a local bazaar." },
+      { title: "Cooking Session", description: "Learn to make Khachapuri, Pkhali, and more." },
+      { title: "Supra (Feast)", description: "Enjoy the meal you prepared, accompanied by Georgian wine." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.9,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "21",
+    title: "Ananuri, Gudauri, and Kazbegi Group Tour",
+    location: "Kazbegi",
+    category: "Mountain & Hiking",
+    price: 60,
+    duration: "Full Day",
+    description: "An affordable group tour along the Georgian Military Highway, covering the must-see spots of Ananuri, Gudauri, and Gergeti Trinity Church.",
+    itinerary: [
+      { title: "Zhinvali Reservoir", description: "Photo stop at the stunning turquoise lake." },
+      { title: "Ananuri Fortress", description: "Explore the medieval castle." },
+      { title: "Gudauri Friendship Monument", description: "Enjoy panoramic mountain views." },
+      { title: "Gergeti Trinity Church", description: "Visit the iconic church with Mount Kazbek in the background." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.7,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "22",
+    title: "Horse Riding in Tusheti National Park",
+    location: "Tusheti",
+    category: "Multi-Day Tours",
+    price: 450,
+    duration: "4 Days",
+    description: "An epic horse riding adventure through the remote and wild landscapes of Tusheti National Park. For adventurous travelers seeking an authentic experience.",
+    itinerary: [
+      { title: "Abano Pass", description: "Drive over one of the highest mountain passes in the Caucasus." },
+      { title: "Dartlo & Omalo", description: "Explore ancient villages with defensive towers." },
+      { title: "Horse Riding Treks", description: "Daily horse rides through stunning valleys and ridges." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 5.0,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "23",
+    title: "Tbilisi History Museum & Art Galleries",
+    location: "Tbilisi",
+    category: "Historical & Cultural",
+    price: 50,
+    duration: "4 Hours",
+    description: "A cultural tour of Tbilisi, focusing on its rich history and vibrant art scene. Visit the National Museum and contemporary art galleries.",
+    itinerary: [
+      { title: "Georgian National Museum", description: "See the Archaeological Treasury." },
+      { title: "Dry Bridge Flea Market", description: "Browse for Soviet memorabilia and local art." },
+      { title: "Contemporary Art Gallery", description: "Visit a gallery showcasing modern Georgian artists." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.5,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "24",
+    title: "Rafting on the Aragvi River",
+    location: "Aragvi River",
+    category: "Adventure & Extreme",
+    price: 65,
+    duration: "Half Day",
+    description: "Get your adrenaline pumping with a thrilling rafting experience on the Pshavi's Aragvi River, surrounded by beautiful green mountains.",
+    itinerary: [
+      { title: "Safety Instructions", description: "Get geared up and briefed by professional instructors." },
+      { title: "Rafting Trip", description: "Enjoy an hour-long descent down the river." },
+      { title: "Riverside Lunch", description: "Enjoy a picnic lunch after your adventure." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.8,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "25",
+    title: "Borjomi-Kharagauli National Park Hiking",
+    location: "Borjomi",
+    category: "Mountain & Hiking",
+    price: 75,
+    duration: "Full Day",
+    description: "Explore one of the largest national parks in Europe. This guided hike takes you through pristine forests and offers stunning views of the Lesser Caucasus.",
+    itinerary: [
+      { title: "Visitor Center", description: "Start at the park's visitor center for an introduction." },
+      { title: "Guided Hike", description: "Choose from several trails of varying difficulty." },
+      { title: "Picnic Lunch", description: "Enjoy lunch in the heart of nature." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.7,
+    reviews: [],
+    approved: true
+  },
+  {
+    id: "26",
+    title: "Telavi & Tsinandali Estate Tour",
+    location: "Kakheti",
+    category: "Wine & Gastronomy",
+    price: 85,
+    duration: "Full Day",
+    description: "A tour focused on the heart of Kakheti, visiting the regional capital Telavi, the historic Tsinandali Estate, and a family-run qvevri winery.",
+    itinerary: [
+      { title: "Telavi Market", description: "Experience the bustling farmers' market." },
+      { title: "Tsinandali Estate", description: "Tour the historic home of Prince Alexander Chavchavadze and its winery." },
+      { title: "Family Winery", description: "Enjoy a home-cooked meal and wine tasting at a local family's winery." }
+    ],
+    images: ["https://placehold.co/800x600.png"],
+    providerId: "user-2",
+    providerName: "Georgia Wonders",
+    rating: 4.8,
+    reviews: [],
+    approved: true
   }
 ];
 
