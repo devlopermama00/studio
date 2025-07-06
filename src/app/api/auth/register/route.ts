@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server';
 import bcryptjs from 'bcryptjs';
 import dbConnect from '@/lib/db';
@@ -18,12 +19,15 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
+    
+    // Assign 'admin' role if the email matches the designated admin email
+    const finalRole = email === 'admin@tourvista.ge' ? 'admin' : role;
 
     const newUser = new User({
       name,
       email,
       passwordHash,
-      role,
+      role: finalRole,
     });
 
     await newUser.save();
