@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -54,7 +55,7 @@ export default function LoginPage() {
         title: "Login Successful!",
         description: "Welcome back!",
       });
-      router.push('/dashboard');
+      router.push('/');
       // A full page refresh is good after login to reload server components with auth state
       router.refresh(); 
 
