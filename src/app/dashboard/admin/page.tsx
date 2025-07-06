@@ -1,19 +1,85 @@
+
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, Map, DollarSign, ShieldAlert, BarChart } from "lucide-react";
+import { Users, UserCheck, Map, DollarSign, ShieldAlert } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { useState, useEffect } from 'react';
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const monthlyRevenue = [
-    { month: "Jan", revenue: 11200 },
-    { month: "Feb", revenue: 15500 },
-    { month: "Mar", revenue: 12800 },
-    { month: "Apr", revenue: 18900 },
-    { month: "May", revenue: 22300 },
-    { month: "Jun", revenue: 25000 },
-];
+interface AdminStats {
+    totalRevenue: number;
+    totalUsers: number;
+    totalProviders: number;
+    totalTours: number;
+    totalPendingApprovals: number;
+    pendingProviderApprovals: number;
+    pendingTourApprovals: number;
+    monthlyRevenue: { month: string; revenue: number }[];
+}
+
+
+const DashboardSkeleton = () => (
+     <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+                <Skeleton className="h-28" />
+            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-[350px]" />
+                </CardContent>
+            </Card>
+    </div>
+)
 
 export default function AdminDashboardPage() {
+    const [stats, setStats] = useState<AdminStats | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                setIsLoading(true);
+                const response = await fetch('/api/admin/stats');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch dashboard data');
+                }
+                const data = await response.json();
+                setStats(data);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: errorMessage
+                })
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, [toast]);
+
+    if (isLoading) {
+        return <DashboardSkeleton />;
+    }
+
+    if (!stats) {
+        return <Card><CardHeader><CardTitle>Error</CardTitle></CardHeader><CardContent>Could not load dashboard data. Please try again later.</CardContent></Card>;
+    }
+
+    const { totalRevenue, totalUsers, totalProviders, totalTours, totalPendingApprovals, pendingProviderApprovals, pendingTourApprovals, monthlyRevenue } = stats;
+
     return (
         <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -23,8 +89,8 @@ export default function AdminDashboardPage() {
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">$128,450.20</div>
-                        <p className="text-xs text-muted-foreground">+15.2% this month</p>
+                        <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+                        <p className="text-xs text-muted-foreground">From confirmed bookings</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -33,8 +99,8 @@ export default function AdminDashboardPage() {
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">10,234</div>
-                        <p className="text-xs text-muted-foreground">+120 this week</p>
+                        <div className="text-2xl font-bold">{totalUsers}</div>
+                        <p className="text-xs text-muted-foreground">All user roles</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -43,8 +109,8 @@ export default function AdminDashboardPage() {
                         <UserCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">152</div>
-                        <p className="text-xs text-muted-foreground">+5 this month</p>
+                        <div className="text-2xl font-bold">{totalProviders}</div>
+                         <p className="text-xs text-muted-foreground">Verified & unverified</p>
                     </CardContent>
                 </Card>
                 <Card>
@@ -53,8 +119,8 @@ export default function AdminDashboardPage() {
                         <Map className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">489</div>
-                        <p className="text-xs text-muted-foreground">32 new tours this month</p>
+                        <div className="text-2xl font-bold">{totalTours}</div>
+                        <p className="text-xs text-muted-foreground">Approved & pending</p>
                     </CardContent>
                 </Card>
                 <Card className="bg-amber-100 dark:bg-amber-900/50 border-amber-500">
@@ -63,8 +129,8 @@ export default function AdminDashboardPage() {
                         <ShieldAlert className="h-4 w-4 text-amber-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">12</div>
-                        <p className="text-xs text-amber-700 dark:text-amber-400">5 providers, 7 tours</p>
+                        <div className="text-2xl font-bold">{totalPendingApprovals}</div>
+                        <p className="text-xs text-amber-700 dark:text-amber-400">{pendingProviderApprovals} providers, {pendingTourApprovals} tours</p>
                     </CardContent>
                 </Card>
             </div>
@@ -89,7 +155,13 @@ export default function AdminDashboardPage() {
                                 axisLine={false}
                                 tickFormatter={(value) => `$${value / 1000}k`}
                             />
-                            <Tooltip cursor={{ fill: "hsl(var(--secondary))" }} />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'hsl(var(--background))',
+                                    borderColor: 'hsl(var(--border))',
+                                }}
+                                cursor={{ fill: "hsl(var(--secondary))" }}
+                            />
                             <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                         </RechartsBarChart>
                     </ResponsiveContainer>
