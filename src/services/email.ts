@@ -4,13 +4,18 @@
 import { Resend } from 'resend';
 import { ResetPasswordEmail } from '@/components/emails/reset-password-email';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export const sendPasswordResetEmail = async (email: string, name: string, token: string) => {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     if (!appUrl) {
         throw new Error('NEXT_PUBLIC_APP_URL is not defined in your environment variables. This is required to generate password reset links.');
     }
+    
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+        throw new Error('RESEND_API_KEY is not defined in your environment variables. This is required to send emails.');
+    }
+
+    const resend = new Resend(resendApiKey);
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
     try {
