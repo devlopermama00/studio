@@ -25,6 +25,7 @@ interface AuthUser {
   name: string;
   email: string;
   role: "user" | "provider" | "admin";
+  profilePhoto?: string;
 }
 
 const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
