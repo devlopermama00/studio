@@ -9,6 +9,7 @@ export interface IUser extends Document {
   phone?: string;
   profilePhoto?: string;
   isBlocked: boolean;
+  isVerified: boolean;
 }
 
 const UserSchema: Schema = new Schema({
@@ -20,6 +21,7 @@ const UserSchema: Schema = new Schema({
   phone: { type: String },
   profilePhoto: { type: String },
   isBlocked: { type: Boolean, default: false },
+  isVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default models.User || mongoose.model<IUser>('User', UserSchema);
