@@ -235,9 +235,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </SidebarFooter>
       </Sidebar>
       <SidebarInset className="bg-secondary">
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
             <SidebarTrigger className="md:hidden" />
-            <h1 className="text-2xl font-headline font-semibold capitalize">
+            <h1 className="flex-1 text-xl font-headline font-semibold capitalize">
                 {pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard'}
             </h1>
         </header>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React from "react";
+import React, { useState } from "react";
 import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { usePathname } from "next/navigation";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LayoutDashboard } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { Separator } from "./ui/separator";
 
 const navLinks = [
   { href: "/tours", label: "Tours" },
@@ -27,6 +28,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   React.useEffect(() => {
     async function fetchUser() {
@@ -47,51 +49,26 @@ export function SiteHeader() {
     }
     fetchUser();
   }, [pathname]);
-
-  const NavLinks = ({ className }: { className?: string }) => (
-    <nav className={cn("items-center space-x-4 lg:space-x-6 hidden md:flex", className)}>
-      {navLinks.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            "text-sm font-medium transition-colors hover:text-primary",
-            pathname === link.href ? "text-primary" : "text-muted-foreground"
-          )}
-        >
-          {link.label}
-        </Link>
-      ))}
-    </nav>
-  );
-
-  const AuthButtons = ({ mobile = false }: { mobile?: boolean }) => {
-    if (isLoading) {
-      if (mobile) {
-        return (
-          <div className="flex flex-col space-y-2 pt-4">
-            <Skeleton className="h-10 w-full" />
-          </div>
-        );
-      }
-      return <Skeleton className="h-10 w-32" />;
+  
+  const AuthButtons = ({ isMobile = false }: { isMobile?: boolean }) => {
+     if (isLoading) {
+      return <Skeleton className={cn("h-10", isMobile ? "w-full" : "w-32")} />;
     }
 
     if (user) {
-      const button = (
-        <Button asChild className={cn(mobile && "w-full")}>
-          <Link href="/dashboard"><LayoutDashboard className="mr-2" />Dashboard</Link>
+      return (
+        <Button asChild className={cn(isMobile && "w-full")} onClick={() => isMobile && setIsMenuOpen(false)}>
+          <Link href="/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Dashboard</Link>
         </Button>
       );
-      return mobile ? <div className="flex flex-col space-y-2 pt-4">{button}</div> : button;
     }
 
     return (
-      <div className={cn("items-center space-x-2", mobile ? "flex flex-col space-y-2 pt-4 space-x-0" : "hidden md:flex")}>
-        <Button variant={mobile ? "outline" : "ghost"} asChild className={cn(mobile && "w-full")}>
+      <div className={cn("flex items-center gap-2", isMobile && "flex-col w-full")}>
+        <Button variant={isMobile ? "outline" : "ghost"} asChild className={cn(isMobile && "w-full")} onClick={() => isMobile && setIsMenuOpen(false)}>
           <Link href="/login">Log in</Link>
         </Button>
-        <Button asChild className={cn(mobile && "w-full")}>
+        <Button asChild className={cn(isMobile && "w-full")} onClick={() => isMobile && setIsMenuOpen(false)}>
           <Link href="/register">Sign up</Link>
         </Button>
       </div>
@@ -100,37 +77,58 @@ export function SiteHeader() {
   
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-        <TourVistaLogo />
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <NavLinks />
-          <AuthButtons />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" className="md:hidden">
-                <Menu />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <TourVistaLogo className="mb-8" />
-              <div className="flex flex-col space-y-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      "text-lg font-medium transition-colors hover:text-primary",
-                      pathname === link.href ? "text-primary" : "text-muted-foreground"
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                <AuthButtons mobile />
-              </div>
-            </SheetContent>
-          </Sheet>
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center gap-6">
+          <TourVistaLogo />
+          <nav className="hidden items-center gap-6 md:flex">
+             {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary",
+                  pathname === link.href ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-2">
+            <div className="hidden md:flex">
+                <AuthButtons />
+            </div>
+            
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[80vw] max-w-sm">
+                <TourVistaLogo className="mb-8" />
+                <div className="flex flex-col space-y-4">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsMenuOpen(false)}
+                      className={cn(
+                        "text-lg font-medium transition-colors hover:text-primary",
+                        pathname === link.href ? "text-primary" : "text-muted-foreground"
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  <Separator className="my-2" />
+                  <AuthButtons isMobile={true} />
+                </div>
+              </SheetContent>
+            </Sheet>
         </div>
       </div>
     </header>
