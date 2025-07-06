@@ -23,7 +23,7 @@ export function TourActionButtons({ tourId, tourTitle }: TourActionButtonsProps)
   useEffect(() => {
     const checkWishlistStatus = async () => {
       try {
-        const response = await fetch('/api/user/wishlist');
+        const response = await fetch('/api/user/wishlist', { cache: 'no-store' });
         if (response.status === 401) {
             // User not logged in, do nothing.
             return;

@@ -33,7 +33,7 @@ export default function WishlistPage() {
         const fetchWishlist = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch('/api/user/wishlist');
+                const response = await fetch('/api/user/wishlist', { cache: 'no-store' });
                 if (response.ok) {
                     const data = await response.json();
                     setWishlist(data);
