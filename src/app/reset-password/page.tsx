@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Loader2, CheckCircle } from "lucide-react";
+import { Loader2, CheckCircle, Eye, EyeOff } from "lucide-react";
 
 import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,8 @@ export default function ResetPasswordPage() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -96,7 +98,23 @@ export default function ResetPasswordPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>New Password</FormLabel>
-                      <FormControl><Input type="password" {...field} /></FormControl>
+                      <FormControl>
+                        <div className="relative">
+                           <Input
+                            type={showPassword ? "text" : "password"}
+                            {...field}
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                          >
+                            {showPassword ? <EyeOff /> : <Eye />}
+                          </Button>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -107,7 +125,23 @@ export default function ResetPasswordPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Confirm New Password</FormLabel>
-                      <FormControl><Input type="password" {...field} /></FormControl>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            {...field}
+                          />
+                           <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                          >
+                            {showConfirmPassword ? <EyeOff /> : <Eye />}
+                          </Button>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
