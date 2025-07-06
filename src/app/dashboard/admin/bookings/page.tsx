@@ -25,7 +25,7 @@ interface PopulatedBooking {
     totalPrice: number;
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'cancellation-requested';
     createdAt: string;
-    stripePaymentId: string;
+    paymentId: string;
     cancellationDetails?: {
         refundEligible?: boolean;
     }
@@ -145,7 +145,7 @@ export default function AdminBookingsPage() {
                             <TableCell>${booking.totalPrice.toFixed(2)}</TableCell>
                             <TableCell>
                                 <Button asChild variant="outline" size="icon">
-                                    <a href={`https://dashboard.stripe.com/payments/${booking.stripePaymentId}`} target="_blank" rel="noopener noreferrer">
+                                    <a href={`https://www.sandbox.paypal.com/activity/payment/${booking.paymentId}`} target="_blank" rel="noopener noreferrer">
                                         <LinkIcon className="h-4 w-4" />
                                     </a>
                                 </Button>

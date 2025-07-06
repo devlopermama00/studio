@@ -8,7 +8,7 @@ export interface IBooking extends Document {
   guests: number;
   totalPrice: number;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'cancellation-requested';
-  stripePaymentId: string;
+  paymentId: string;
   payoutStatus: 'unpaid' | 'processing' | 'paid';
   paidOutAt?: Date;
   cancellationDetails?: {
@@ -29,7 +29,7 @@ const BookingSchema: Schema = new Schema({
   guests: { type: Number, required: true, min: 1 },
   totalPrice: { type: Number, required: true },
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed', 'cancellation-requested'], default: 'pending' },
-  stripePaymentId: { type: String, required: true },
+  paymentId: { type: String, required: true },
   payoutStatus: { type: String, enum: ['unpaid', 'processing', 'paid'], default: 'unpaid' },
   paidOutAt: { type: Date },
   cancellationDetails: {
