@@ -208,7 +208,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarFooter>
            <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/settings">
+                <SidebarMenuButton href="/dashboard/profile">
                     <Settings />
                     Settings
                 </SidebarMenuButton>
