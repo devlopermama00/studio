@@ -7,7 +7,11 @@ import { ResetPasswordEmail } from '@/components/emails/reset-password-email';
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendPasswordResetEmail = async (email: string, name: string, token: string) => {
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+        throw new Error('NEXT_PUBLIC_APP_URL is not defined in your environment variables. This is required to generate password reset links.');
+    }
+    const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
     try {
         await resend.emails.send({
