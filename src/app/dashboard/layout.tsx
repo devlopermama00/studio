@@ -1,7 +1,8 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   SidebarProvider,
   Sidebar,
@@ -13,74 +14,84 @@ import {
   SidebarMenuButton,
   SidebarInset,
   SidebarTrigger,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
   SidebarSeparator,
   SidebarGroup,
   SidebarGroupLabel,
 } from "@/components/ui/sidebar";
 import {
-  LayoutDashboard, User, Settings, LogOut, LifeBuoy, CreditCard, Star, Map,
-  FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen
+  LayoutDashboard, User, Settings, LogOut,
+  Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { cn } from "@/lib/utils";
-import React from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 
-// Mock user role
-const userRole: "user" | "provider" | "admin" = "admin";
+interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: "user" | "provider" | "admin";
+  profilePhoto?: string;
+}
 
-const UserNav = () => (
-  <SidebarGroup>
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton href="/dashboard" isActive={usePathname() === "/dashboard"}>
-          <LayoutDashboard />
-          Dashboard
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton href="/dashboard/bookings" isActive={usePathname() === "/dashboard/bookings"}>
-          <BookOpen />
-          My Bookings
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton href="/dashboard/profile" isActive={usePathname() === "/dashboard/profile"}>
-          <User />
-          Profile
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
-  </SidebarGroup>
-);
+const UserNav = () => {
+    const pathname = usePathname();
+    return (
+        <SidebarGroup>
+            <SidebarGroupLabel>My Account</SidebarGroupLabel>
+            <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="/dashboard" isActive={pathname === "/dashboard"}>
+                <LayoutDashboard />
+                Dashboard
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="/dashboard/bookings" isActive={pathname === "/dashboard/bookings"}>
+                <BookOpen />
+                My Bookings
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="/dashboard/profile" isActive={pathname === "/dashboard/profile"}>
+                <User />
+                Profile
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarGroup>
+    );
+};
 
-const ProviderNav = () => (
-  <SidebarGroup>
-    <SidebarGroupLabel>Provider Tools</SidebarGroupLabel>
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton href="/dashboard/tours" isActive={usePathname().startsWith('/dashboard/tours')}>
-          <Map />
-          My Tours
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton href="/dashboard/analytics" isActive={usePathname() === "/dashboard/analytics"}>
-          <BarChart2 />
-          Analytics
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton href="/dashboard/documents" isActive={usePathname() === "/dashboard/documents"}>
-          <FileText />
-          Verification
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
-  </SidebarGroup>
-);
+const ProviderNav = () => {
+    const pathname = usePathname();
+    return (
+        <SidebarGroup>
+            <SidebarGroupLabel>Provider Tools</SidebarGroupLabel>
+            <SidebarMenu>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="/dashboard/tours" isActive={pathname.startsWith('/dashboard/tours')}>
+                <Map />
+                My Tours
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="/dashboard/analytics" isActive={pathname === "/dashboard/analytics"}>
+                <BarChart2 />
+                Analytics
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton href="/dashboard/documents" isActive={pathname === "/dashboard/documents"}>
+                <FileText />
+                Verification
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            </SidebarMenu>
+        </SidebarGroup>
+    );
+};
 
 const AdminNav = () => {
     const pathname = usePathname();
@@ -117,10 +128,72 @@ const AdminNav = () => {
     )
 };
 
-
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = React.useState(true);
+  const [user, setUser] = React.useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/auth/me');
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          router.push('/login');
+        }
+      } catch (error) {
+        console.error("Failed to fetch user, redirecting to login", error);
+        router.push('/login');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUser();
+  }, [router]);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/login');
+    router.refresh();
+  };
+
+  if (isLoading) {
+      return (
+          <div className="flex min-h-screen">
+              <div className="hidden md:flex flex-col p-2 space-y-2 bg-sidebar h-screen w-64 border-r border-sidebar-border">
+                <div className="p-2"><Skeleton className="h-8 w-32 bg-sidebar-accent" /></div>
+                <div className="flex-1 p-2 space-y-2">
+                    <Skeleton className="h-8 w-full bg-sidebar-accent" />
+                    <Skeleton className="h-8 w-full bg-sidebar-accent" />
+                    <Skeleton className="h-8 w-full bg-sidebar-accent" />
+                </div>
+                <div className="p-2 space-y-2">
+                    <Skeleton className="h-8 w-full bg-sidebar-accent" />
+                    <Separator className="my-2 bg-sidebar-border" />
+                    <div className="flex items-center gap-2">
+                        <Skeleton className="h-10 w-10 rounded-full bg-sidebar-accent" />
+                        <div className="space-y-1">
+                            <Skeleton className="h-4 w-24 bg-sidebar-accent" />
+                            <Skeleton className="h-3 w-32 bg-sidebar-accent" />
+                        </div>
+                    </div>
+                </div>
+              </div>
+              <div className="flex-1 p-6 bg-secondary">
+                <Skeleton className="h-8 w-48 mb-6 bg-background" />
+                <Skeleton className="w-full h-96 bg-background" />
+              </div>
+          </div>
+      )
+  }
+
+  if (!user) {
+    return null; 
+  }
   
   return (
     <SidebarProvider open={open} onOpenChange={setOpen} defaultOpen>
@@ -130,8 +203,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </SidebarHeader>
         <SidebarContent className="p-2">
             <UserNav />
-            {(userRole === 'provider' || userRole === 'admin') && <ProviderNav />}
-            {userRole === 'admin' && <AdminNav />}
+            {(user.role === 'provider' || user.role === 'admin') && <ProviderNav />}
+            {user.role === 'admin' && <AdminNav />}
         </SidebarContent>
         <SidebarFooter>
            <SidebarMenu>
@@ -142,21 +215,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton onClick={handleLogout}>
                     <LogOut />
                     Logout
                 </SidebarMenuButton>
             </SidebarMenuItem>
            </SidebarMenu>
-           <Separator className="my-2" />
+           <Separator className="my-2 bg-sidebar-border" />
             <div className="p-2 flex items-center gap-2">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src="https://placehold.co/100x100.png" />
-                    <AvatarFallback>AU</AvatarFallback>
+                    <AvatarImage src={user.profilePhoto || "https://placehold.co/100x100.png"} alt={user.name} />
+                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="group-data-[collapsible=icon]:hidden transition-opacity duration-200">
-                    <p className="font-semibold">Admin User</p>
-                    <p className="text-xs text-muted-foreground">admin@tourvista.com</p>
+                    <p className="font-semibold">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
             </div>
         </SidebarFooter>
@@ -165,7 +238,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
             <SidebarTrigger className="md:hidden" />
             <h1 className="text-2xl font-headline font-semibold capitalize">
-                {pathname.split('/').pop()?.replace('-', ' ')}
+                {pathname.split('/').pop()?.replace('-', ' ') || 'Dashboard'}
             </h1>
         </header>
         <main className="flex-1 p-4 sm:px-6 sm:py-0">
