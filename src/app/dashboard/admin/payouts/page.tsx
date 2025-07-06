@@ -9,26 +9,37 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2 } from "lucide-react"
+import { Loader2, CheckCircle } from "lucide-react"
 
 // This is mock data. In a real application, you'd fetch this from your API.
-const mockPayouts = [
+const mockPayoutsData = [
     { providerId: '1', providerName: 'Kazbegi Guides', pendingBalance: 1250.75, lastPayout: new Date('2023-10-01'), status: 'due' },
-    { providerId: '2', providerName: 'Tbilisi Treks', pendingBalance: 875.20, lastPayout: new Date('2023-10-02'), status: 'due' },
+    { providerId: '2', providerName: 'Tbilisi Treks', pendingBalance: 875.20, lastPayout: new Date('2023-10-02'), status: 'processing' },
     { providerId: '3', providerName: 'Wine Tours Georgia', pendingBalance: 0, lastPayout: new Date('2023-10-15'), status: 'paid' },
     { providerId: '4', providerName: 'Batumi Adventures', pendingBalance: 245.50, lastPayout: new Date('2023-09-28'), status: 'due' },
 ];
 
+type PayoutStatus = 'due' | 'processing' | 'paid';
+
+interface Payout {
+    providerId: string;
+    providerName: string;
+    pendingBalance: number;
+    lastPayout: Date;
+    status: PayoutStatus;
+}
+
+
 export default function AdminPayoutsPage() {
-  const [payouts, setPayouts] = useState(mockPayouts);
-  const [isProcessing, setIsProcessing] = useState<string | null>(null);
+  const [payouts, setPayouts] = useState<Payout[]>(mockPayoutsData);
+  const [activeActionId, setActiveActionId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleProcessPayout = (providerId: string) => {
-    setIsProcessing(providerId);
+    setActiveActionId(providerId);
     toast({
         title: "Processing Payout...",
-        description: "This is a placeholder action. In a real app, this would trigger the payment via your payment provider.",
+        description: "In a real app, this would trigger a payment API.",
     });
 
     // Simulate API call
@@ -36,11 +47,64 @@ export default function AdminPayoutsPage() {
         setPayouts(payouts.map(p => p.providerId === providerId ? { ...p, status: 'processing' } : p));
         toast({
             title: "Payout Initiated!",
-            description: `Payout for ${payouts.find(p=>p.providerId === providerId)?.providerName} is being processed.`,
+            description: `${payouts.find(p=>p.providerId === providerId)?.providerName}'s payout is processing.`,
         });
-        setIsProcessing(null);
-    }, 2000);
+        setActiveActionId(null);
+    }, 1500);
   };
+  
+  const handleMarkAsPaid = (providerId: string) => {
+    setActiveActionId(providerId);
+    toast({
+        title: "Confirming Payment...",
+        description: "Marking this payout as complete.",
+    });
+
+    // Simulate API call and update local state
+    setTimeout(() => {
+        setPayouts(payouts.map(p => 
+            p.providerId === providerId 
+            ? { ...p, status: 'paid', pendingBalance: 0, lastPayout: new Date() } 
+            : p
+        ));
+        toast({
+            title: "Payout Complete!",
+            description: `Payout for ${payouts.find(p=>p.providerId === providerId)?.providerName} marked as paid.`,
+        });
+        setActiveActionId(null);
+    }, 1500);
+  };
+
+  const renderActions = (payout: Payout) => {
+      const isActionRunning = activeActionId === payout.providerId;
+
+      switch (payout.status) {
+          case 'due':
+              return (
+                  <Button size="sm" onClick={() => handleProcessPayout(payout.providerId)} disabled={isActionRunning || payout.pendingBalance <= 0}>
+                      {isActionRunning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Process Payout
+                  </Button>
+              );
+          case 'processing':
+              return (
+                  <Button size="sm" variant="outline" onClick={() => handleMarkAsPaid(payout.providerId)} disabled={isActionRunning}>
+                       {isActionRunning && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Mark as Paid
+                  </Button>
+              );
+          case 'paid':
+               return (
+                   <Button size="sm" variant="secondary" disabled>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Paid
+                    </Button>
+               );
+          default:
+              return null;
+      }
+  }
+
 
   return (
     <Card>
@@ -73,14 +137,7 @@ export default function AdminPayoutsPage() {
                         </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                        <Button 
-                            size="sm" 
-                            onClick={() => handleProcessPayout(payout.providerId)} 
-                            disabled={payout.status !== 'due' || isProcessing === payout.providerId}
-                        >
-                            {isProcessing === payout.providerId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Process Payout
-                        </Button>
+                        {renderActions(payout)}
                     </TableCell>
                 </TableRow>
             ))}
