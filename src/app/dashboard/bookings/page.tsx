@@ -17,6 +17,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 import type { Booking } from "@/lib/types";
 
 
@@ -39,34 +41,62 @@ const BookingListSkeleton = () => (
 export default function BookingsPage() {
     const [bookings, setBookings] = useState<Booking[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isCancelling, setIsCancelling] = useState<string | null>(null);
     const { toast } = useToast();
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch('/api/user/bookings');
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || "Failed to fetch bookings");
-                }
-                const data = await response.json();
-                setBookings(data);
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
-                toast({
-                    variant: "destructive",
-                    title: "Error fetching bookings",
-                    description: errorMessage,
-                })
-            } finally {
-                setIsLoading(false);
+    const fetchBookings = async () => {
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/user/bookings');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Failed to fetch bookings");
             }
-        };
+            const data = await response.json();
+            setBookings(data);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            toast({
+                variant: "destructive",
+                title: "Error fetching bookings",
+                description: errorMessage,
+            })
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchBookings();
     }, [toast]);
 
-
+    const handleCancelRequest = async (bookingId: string) => {
+        setIsCancelling(bookingId);
+        try {
+            const response = await fetch(`/api/user/bookings/${bookingId}/cancel`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to request cancellation');
+            }
+            toast({
+                title: "Cancellation Requested",
+                description: "Your cancellation request has been submitted for review."
+            });
+            fetchBookings(); // Refresh the list
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: errorMessage,
+            });
+        } finally {
+            setIsCancelling(null);
+        }
+    };
+    
   return (
     <Card>
         <CardHeader>
@@ -86,9 +116,7 @@ export default function BookingsPage() {
                     <TableHead className="hidden md:table-cell">
                     Booking Date
                     </TableHead>
-                    <TableHead>
-                    <span className="sr-only">Actions</span>
-                    </TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -114,17 +142,41 @@ export default function BookingsPage() {
                                 "text-blue-600 border-blue-600": booking.status === "completed",
                                 "text-red-600 border-red-600": booking.status === "cancelled",
                                 "text-amber-600 border-amber-600": booking.status === "pending",
+                                "text-purple-600 border-purple-600": booking.status === "cancellation-requested",
                             })}
                             >
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            {booking.status.replace('-', ' ').charAt(0).toUpperCase() + booking.status.replace('-', ' ').slice(1)}
                             </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">${booking.totalPrice.toFixed(2)}</TableCell>
                         <TableCell className="hidden md:table-cell">
                             {new Date(booking.bookingDate).toLocaleDateString()}
                         </TableCell>
-                        <TableCell>
-                            <Button size="sm" variant="outline">View Details</Button>
+                        <TableCell className="text-right">
+                            {booking.status === 'confirmed' ? (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button size="sm" variant="destructive" disabled={isCancelling === booking.id}>
+                                            {isCancelling === booking.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            Cancel
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Are you sure you want to cancel?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Cancellations within 24 hours of the tour are non-refundable. Please review our cancellation policy.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Back</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleCancelRequest(booking.id)}>Request Cancellation</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            ) : (
+                                <Button size="sm" variant="outline" disabled>View Details</Button>
+                            )}
                         </TableCell>
                         </TableRow>
                     ))

@@ -1,3 +1,4 @@
+
 import mongoose, { Schema, Document, models, Types } from 'mongoose';
 
 export interface IBooking extends Document {
@@ -6,8 +7,17 @@ export interface IBooking extends Document {
   bookingDate: Date;
   guests: number;
   totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'cancellation-requested';
   stripePaymentId: string;
+  cancellationDetails?: {
+      cancelledBy?: 'user' | 'provider' | 'admin';
+      cancelledAt?: Date;
+      refundRequestedAt?: Date;
+      refundProcessedAt?: Date;
+      cancellationReason?: string;
+      refundEligible?: boolean;
+      refundStatus?: 'pending' | 'approved' | 'rejected';
+  }
 }
 
 const BookingSchema: Schema = new Schema({
@@ -16,8 +26,17 @@ const BookingSchema: Schema = new Schema({
   bookingDate: { type: Date, required: true },
   guests: { type: Number, required: true, min: 1 },
   totalPrice: { type: Number, required: true },
-  status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed', 'cancellation-requested'], default: 'pending' },
   stripePaymentId: { type: String, required: true },
+  cancellationDetails: {
+      cancelledBy: { type: String, enum: ['user', 'provider', 'admin'] },
+      cancelledAt: { type: Date },
+      refundRequestedAt: { type: Date },
+      refundProcessedAt: { type: Date },
+      cancellationReason: { type: String },
+      refundEligible: { type: Boolean },
+      refundStatus: { type: String, enum: ['pending', 'approved', 'rejected'] }
+  }
 }, { timestamps: true });
 
 export default models.Booking || mongoose.model<IBooking>('Booking', BookingSchema);

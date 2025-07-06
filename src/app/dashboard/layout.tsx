@@ -22,7 +22,7 @@ import {
 import {
   LayoutDashboard, User, Settings, LogOut,
   Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart,
-  BookCopy, MessageSquare, LayoutList, Download
+  BookCopy, MessageSquare, LayoutList, Download, PenSquare
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -66,6 +66,14 @@ const UserNav = ({ user }: { user: AuthUser }) => {
                         <Link href="/dashboard/wishlist">
                             <Heart />
                             Wishlist
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/chat"}>
+                        <Link href="/dashboard/chat">
+                            <MessageSquare />
+                            Support Chat
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -152,6 +160,14 @@ const AdminNav = () => {
                         <Link href="/dashboard/admin/tours">
                             <Map />
                             Tours
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/blogs')}>
+                        <Link href="/dashboard/admin/blogs">
+                            <PenSquare />
+                            Blog
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -270,14 +286,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (segments.length > 1) {
         const lastSegment = segments[segments.length - 1];
         if (lastSegment === 'admin' && segments.length > 2) {
-             return segments[segments.length-2].replace('-', ' ');
+             const title = segments[segments.length - 2];
+             return title === 'dashboard' ? 'Overview' : title.replace('-', ' ');
         }
         if (lastSegment.match(/^[0-9a-fA-F]{24}$/)) { // Check if it's a likely ObjectId
             return segments[segments.length - 2].replace('-', ' ');
         }
         return lastSegment.replace('-', ' ');
     }
-    return 'Dashboard';
+    return user.role === 'admin' ? 'Overview' : 'Dashboard';
   }
 
   return (
@@ -287,9 +304,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <TourVistaLogo />
         </SidebarHeader>
         <SidebarContent className="p-2">
-            <UserNav user={user} />
-            {(user.role === 'provider' || user.role === 'admin') && <ProviderNav />}
-            {user.role === 'admin' && <AdminNav />}
+            {user.role === 'admin' ? <AdminNav /> : <UserNav user={user} />}
+            {user.role === 'provider' && <ProviderNav />}
         </SidebarContent>
         <SidebarFooter>
            <SidebarMenu>

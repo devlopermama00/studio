@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 const navLinks = [
   { href: "/tours", label: "Tours" },
   { href: "/destinations", label: "Destinations" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About Us" },
 ];
 
@@ -94,10 +95,11 @@ export function SiteHeader() {
       }
     }
     fetchUser();
-  }, []);
+  }, [pathname]); // Re-fetch user on path change to ensure state is fresh
   
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
+    setUser(null);
     window.location.href = '/'; // Force a full page reload to home
   };
 

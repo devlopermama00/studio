@@ -1,0 +1,92 @@
+
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { format } from "date-fns";
+import { Calendar, User } from "lucide-react";
+
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+
+// This is a placeholder for a markdown renderer
+const MarkdownRenderer = ({ content }: { content: string }) => (
+    <div className="prose prose-lg dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
+);
+
+async function getBlogPost(id: string) {
+    // In a real app, you'd fetch this from your API
+    // For now, we return mock data or handle not found
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/blogs/${id}`, { cache: 'no-store' });
+        if (!res.ok) return null;
+        return res.json();
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+
+export default async function BlogPostPage({ params }: { params: { id: string } }) {
+  const post = await getBlogPost(params.id);
+
+  if (!post) {
+    notFound();
+  }
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <SiteHeader />
+      <main className="flex-1">
+        <article className="container relative max-w-3xl mx-auto py-12 px-4">
+            <div className="text-center mb-8">
+                {post.category && <Badge>{post.category.name}</Badge>}
+                <h1 className="text-4xl font-headline font-extrabold tracking-tight lg:text-5xl mt-4">
+                    {post.title}
+                </h1>
+                <div className="flex justify-center items-center gap-6 mt-4 text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <User className="h-4 w-4"/>
+                        <span>{post.author.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4"/>
+                        <time dateTime={post.publishedAt}>
+                            {format(new Date(post.publishedAt), "MMMM d, yyyy")}
+                        </time>
+                    </div>
+                </div>
+            </div>
+            
+            <Image
+                src={post.featureImage}
+                alt={post.title}
+                width={1200}
+                height={600}
+                className="w-full rounded-lg shadow-lg mb-8 aspect-video object-cover"
+                data-ai-hint="blog topic"
+                priority
+            />
+
+            <MarkdownRenderer content={post.content} />
+
+            <Separator className="my-12"/>
+
+            <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16">
+                    <AvatarImage src={post.author.profilePhoto} alt={post.author.name} />
+                    <AvatarFallback>{post.author.name.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <p className="font-semibold text-lg">Written by {post.author.name}</p>
+                    <p className="text-muted-foreground">Author at TourVista Georgia</p>
+                </div>
+            </div>
+        </article>
+      </main>
+      <SiteFooter />
+    </div>
+  );
+}

@@ -49,5 +49,5 @@ export type Booking = {
   bookingDate: string;
   guests: number;
   totalPrice: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "cancellation-requested";
 };
