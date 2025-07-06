@@ -15,14 +15,11 @@ export async function POST(request: Request) {
     }
 
     const existingUser = await User.findOne({
-      $or: [
-        { email: { $regex: `^${email}$`, $options: 'i' } },
-        { username: { $regex: `^${email}$`, $options: 'i' } }
-      ]
+      email: { $regex: `^${email}$`, $options: 'i' }
     });
     
     if (existingUser) {
-      return NextResponse.json({ message: 'A user with this email or username already exists.' }, { status: 409 });
+      return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
@@ -31,7 +28,6 @@ export async function POST(request: Request) {
     const finalRole = (process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL) ? 'admin' : role;
 
     const newUser = new User({
-      username: email,
       name,
       email,
       passwordHash,
@@ -52,7 +48,7 @@ export async function POST(request: Request) {
 
     if (error instanceof Error) {
         if (error.message.includes('E11000')) {
-             return NextResponse.json({ message: 'A user with this email or username already exists.' }, { status: 409 });
+             return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
         }
         if (error.message.includes('timed out') || error.message.includes('querySrv ESERVFAIL')) {
              return NextResponse.json({ message: 'Database connection failed. Please ensure your MongoDB Atlas IP access list allows connections from all IPs (0.0.0.0/0).' }, { status: 500 });
