@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 // To prevent TypeScript errors on the global object
@@ -17,15 +18,15 @@ if (!cached) {
 }
 
 async function dbConnect() {
-  if (!MONGODB_URI) {
-    console.warn(
-      'MONGODB_URI not found. The app will use mock data. Please define the MONGODB_URI environment variable inside .env.local for full functionality.'
-    );
-    return null;
-  }
-
   if (cached.conn) {
     return cached.conn;
+  }
+  
+  if (!MONGODB_URI || !(MONGODB_URI.startsWith('mongodb://') || MONGODB_URI.startsWith('mongodb+srv://'))) {
+    console.warn(
+      'MONGODB_URI not found or is invalid. Please ensure it starts with "mongodb://" or "mongodb+srv://". The app will use mock data where possible.'
+    );
+    return null;
   }
 
   if (!cached.promise) {
@@ -33,7 +34,7 @@ async function dbConnect() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       return mongoose;
     });
   }
