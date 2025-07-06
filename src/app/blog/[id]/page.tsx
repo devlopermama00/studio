@@ -10,9 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 
-// This is a placeholder for a markdown renderer
-const MarkdownRenderer = ({ content }: { content: string }) => (
-    <div className="prose prose-lg dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, '<br />') }} />
+const HtmlRenderer = ({ content }: { content: string }) => (
+    <div className="prose prose-lg dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: content }} />
 );
 
 async function getBlogPost(id: string) {
@@ -70,7 +69,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
                 priority
             />
 
-            <MarkdownRenderer content={post.content} />
+            <HtmlRenderer content={post.content} />
 
             <Separator className="my-12"/>
 

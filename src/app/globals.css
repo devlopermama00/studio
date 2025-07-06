@@ -82,3 +82,35 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* React Quill Styles */
+.ql-toolbar {
+    @apply rounded-t-lg border-input bg-transparent;
+}
+
+.ql-container {
+    @apply rounded-b-lg border-input text-base;
+    min-height: 250px;
+}
+
+.dark .ql-toolbar {
+    @apply border-input;
+}
+.dark .ql-container {
+    @apply border-input;
+}
+.dark .ql-editor {
+    @apply text-foreground;
+}
+.dark .ql-snow .ql-stroke {
+    @apply !stroke-foreground;
+}
+.dark .ql-snow .ql-picker-label {
+    @apply !text-foreground;
+}
+.dark .ql-snow .ql-fill, .dark .ql-snow .ql-stroke.ql-fill {
+    @apply !fill-foreground;
+}
+.dark .ql-snow .ql-picker-options {
+    @apply bg-background border-input;
+}
