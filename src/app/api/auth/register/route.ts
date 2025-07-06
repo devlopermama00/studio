@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 import bcryptjs from 'bcryptjs';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
-import mongoose from 'mongoose';
+import Document from '@/models/Document';
+import mongoose, { Types } from 'mongoose';
 
 export async function POST(request: Request) {
   try {
@@ -43,6 +44,18 @@ export async function POST(request: Request) {
     });
 
     await newUser.save();
+
+    // If the new user is a provider, create a pending verification document
+    if (finalRole === 'provider') {
+        const newDocument = new Document({
+            userId: new Types.ObjectId(newUser._id),
+            // Using the single doc url for both as per the current form
+            licenseUrl: companyDocumentUrl,
+            idProofUrl: companyDocumentUrl,
+            status: 'pending'
+        });
+        await newDocument.save();
+    }
 
     return NextResponse.json({ message: 'User created successfully', userId: newUser._id }, { status: 201 });
 
