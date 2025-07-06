@@ -27,22 +27,27 @@ export const ResetPasswordEmail = ({
     <Preview>Reset your password for TourVista Georgia</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={heading}>Hi {userName},</Heading>
+        <Heading style={heading}>Reset Your Password</Heading>
         <Text style={paragraph}>
-          Someone recently requested a password change for your TourVista account.
-          If this was you, you can set a new password here:
+          Hello {userName},
         </Text>
-        <Section style={{ textAlign: 'center' }}>
+        <Text style={paragraph}>
+          We received a request to reset the password for your TourVista account. 
+          To proceed, please click the button below. This link is valid for one hour.
+        </Text>
+        <Section style={{ textAlign: 'center', margin: '32px 0' }}>
             <Button style={button} href={resetUrl}>
                 Reset Password
             </Button>
         </Section>
         <Text style={paragraph}>
-          If you don't want to change your password or didn't request this, you can
-          ignore and delete this message.
+          If you did not request a password reset, you can safely ignore this email.
+          Your password will not be changed.
         </Text>
-        <Text style={paragraph}>
-          — The TourVista Team
+        <Text style={{ ...paragraph, marginTop: '24px' }}>
+          Thank you,
+          <br />
+          The TourVista Team
         </Text>
       </Container>
     </Body>
@@ -68,23 +73,24 @@ const heading = {
   fontWeight: 'bold',
   marginTop: '48px',
   textAlign: 'center' as const,
+  color: '#333'
 };
 
 const paragraph = {
   fontSize: '16px',
-  lineHeight: '24px',
-  padding: '0 20px',
+  lineHeight: '26px',
+  padding: '0 40px',
   color: '#525f7f'
 };
 
 const button = {
     backgroundColor: '#21AEEB',
-    borderRadius: '5px',
+    borderRadius: '6px',
     color: '#fff',
     fontSize: '16px',
     fontWeight: 'bold',
     textDecoration: 'none',
     textAlign: 'center' as const,
     display: 'inline-block',
-    padding: '12px 20px',
+    padding: '14px 24px',
 };

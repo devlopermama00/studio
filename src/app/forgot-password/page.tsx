@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
           {isSubmitted ? (
             <div className="text-center space-y-4">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-              <p className="text-muted-foreground">If an account with that email exists, a password reset link has been sent. For testing, the link is also logged in the server console.</p>
+              <p className="text-muted-foreground">If an account with that email exists, a password reset link has been sent. Please check your inbox and spam folder.</p>
               <Button asChild variant="outline">
                 <Link href="/login">
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back to Login
