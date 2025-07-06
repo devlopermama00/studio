@@ -3,7 +3,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { MoreHorizontal, PlusCircle, Edit, Trash2 } from "lucide-react"
+import { PlusCircle, Edit } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -17,13 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   Table,
   TableBody,
   TableCell,
@@ -31,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -40,6 +34,7 @@ interface PopulatedTour {
     title: string;
     price: number;
     approved: boolean;
+    blocked: boolean;
     images: string[];
     category: {
         _id: string;
@@ -49,6 +44,7 @@ interface PopulatedTour {
 
 export default function ProviderToursPage() {
   const [tours, setTours] = useState<PopulatedTour[]>([]);
+  const [filteredTours, setFilteredTours] = useState<PopulatedTour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -63,6 +59,7 @@ export default function ProviderToursPage() {
         }
         const data = await response.json();
         setTours(data);
+        setFilteredTours(data);
       } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
           toast({
@@ -78,6 +75,28 @@ export default function ProviderToursPage() {
     fetchTours();
   }, [toast]);
   
+  const handleFilterChange = (status: string) => {
+    if (status === 'all') {
+      setFilteredTours(tours);
+    } else if (status === 'active') {
+      setFilteredTours(tours.filter(t => t.approved && !t.blocked));
+    } else if (status === 'requested') {
+      setFilteredTours(tours.filter(t => !t.approved && !t.blocked));
+    } else if (status === 'blocked') {
+      setFilteredTours(tours.filter(t => t.blocked));
+    }
+  };
+
+  const getStatus = (tour: PopulatedTour) => {
+    if (tour.blocked) {
+      return { text: "Blocked", className: "bg-red-500 hover:bg-red-500" };
+    }
+    if (tour.approved) {
+      return { text: "Active", className: "bg-green-500 hover:bg-green-500" };
+    }
+    return { text: "Requested", className: "bg-amber-500 hover:bg-amber-500" };
+  };
+  
   const TourListSkeleton = () => (
       Array.from({ length: 3 }).map((_, index) => (
           <TableRow key={index}>
@@ -88,7 +107,7 @@ export default function ProviderToursPage() {
                 <Skeleton className="h-5 w-48" />
             </TableCell>
               <TableCell>
-                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-6 w-20" />
             </TableCell>
               <TableCell className="hidden md:table-cell">
                 <Skeleton className="h-5 w-12" />
@@ -96,8 +115,8 @@ export default function ProviderToursPage() {
               <TableCell className="hidden md:table-cell">
                 <Skeleton className="h-5 w-12" />
             </TableCell>
-            <TableCell>
-                <Skeleton className="h-8 w-8" />
+            <TableCell className="text-right">
+                <Skeleton className="h-8 w-8 ml-auto" />
             </TableCell>
           </TableRow>
       ))
@@ -124,6 +143,15 @@ export default function ProviderToursPage() {
         </div>
       </CardHeader>
       <CardContent>
+        <Tabs defaultValue="all" onValueChange={handleFilterChange} className="mb-4">
+          <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="requested">Requested</TabsTrigger>
+              <TabsTrigger value="blocked">Blocked</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
         <Table>
           <TableHeader>
             <TableRow>
@@ -140,8 +168,10 @@ export default function ProviderToursPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? <TourListSkeleton /> : tours.length > 0 ? (
-              tours.map(tour => (
+            {isLoading ? <TourListSkeleton /> : filteredTours.length > 0 ? (
+              filteredTours.map(tour => {
+                const status = getStatus(tour);
+                return (
                 <TableRow key={tour._id}>
                   <TableCell className="hidden sm:table-cell">
                     <Image
@@ -155,25 +185,26 @@ export default function ProviderToursPage() {
                   </TableCell>
                   <TableCell className="font-medium">{tour.title}</TableCell>
                   <TableCell>
-                    <Badge variant={tour.approved ? "default" : "secondary"} className={cn({"bg-green-500": tour.approved, "bg-amber-500": !tour.approved})}>
-                      {tour.approved ? "Approved" : "Pending"}
+                    <Badge variant={tour.approved ? "default" : "secondary"} className={cn(status.className)}>
+                      {status.text}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">${tour.price}</TableCell>
                   <TableCell className="hidden md:table-cell">N/A</TableCell>
                   <TableCell className="text-right">
-                    <Button asChild variant="outline" size="icon">
+                    <Button asChild variant="outline" size="icon" disabled={tour.blocked}>
                         <Link href={`/dashboard/tours/${tour._id}/edit`}>
                             <Edit className="h-4 w-4" />
                         </Link>
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))
+                )
+              })
             ) : (
                 <TableRow>
                     <TableCell colSpan={6} className="text-center h-24">
-                        You haven't created any tours yet.
+                        You haven't created any tours for this filter.
                     </TableCell>
                 </TableRow>
             )}
@@ -182,7 +213,7 @@ export default function ProviderToursPage() {
       </CardContent>
       <CardFooter>
         <div className="text-xs text-muted-foreground">
-          Showing <strong>{tours.length}</strong> of <strong>{tours.length}</strong> tours
+          Showing <strong>{filteredTours.length}</strong> of <strong>{tours.length}</strong> tours
         </div>
       </CardFooter>
     </Card>
