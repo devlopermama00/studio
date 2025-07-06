@@ -6,9 +6,9 @@ import React, { useState } from "react";
 import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LayoutDashboard, ChevronDown } from "lucide-react";
+import { Menu, LayoutDashboard, ChevronDown, LogOut } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
 import { useCurrency } from "@/context/currency-context";
@@ -71,6 +71,7 @@ const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -95,16 +96,32 @@ export function SiteHeader() {
     fetchUser();
   }, [pathname]);
   
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    if(isMenuOpen) setIsMenuOpen(false);
+    router.refresh();
+  };
+
   const AuthButtons = ({ isMobile = false }: { isMobile?: boolean }) => {
      if (isLoading) {
-      return <Skeleton className={cn("h-10", isMobile ? "w-full" : "w-32")} />;
+      return <Skeleton className={cn("h-10", isMobile ? "w-full" : "w-40")} />;
     }
 
     if (user) {
       return (
-        <Button asChild className={cn(isMobile && "w-full")} onClick={() => isMobile && setIsMenuOpen(false)}>
-          <Link href="/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Dashboard</Link>
-        </Button>
+        <div className={cn("flex items-center gap-2", isMobile && "flex-col w-full items-start")}>
+            <Button variant="ghost" asChild className={cn("w-full", isMobile && "justify-start text-lg")} onClick={() => isMobile && setIsMenuOpen(false)}>
+              <Link href="/dashboard"><LayoutDashboard className="mr-2 h-5 w-5" />Dashboard</Link>
+            </Button>
+            <Button
+                variant={isMobile ? 'outline' : 'ghost'}
+                onClick={handleLogout}
+                className={cn("w-full", isMobile && "justify-start text-lg")}
+            >
+              <LogOut className="mr-2 h-5 w-5" />
+              Logout
+            </Button>
+        </div>
       );
     }
 
