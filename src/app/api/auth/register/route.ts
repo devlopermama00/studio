@@ -18,8 +18,8 @@ export async function POST(request: Request) {
 
     const lowercasedEmail = email.toLowerCase();
     
-    // Use a case-insensitive collation to robustly check for existing users
-    const existingUser = await User.findOne({ email: lowercasedEmail }).collation({ locale: 'en', strength: 2 });
+    // Use a case-insensitive regex for a more robust check
+    const existingUser = await User.findOne({ email: new RegExp(`^${lowercasedEmail}$`, 'i') });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
