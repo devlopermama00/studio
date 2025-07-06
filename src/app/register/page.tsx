@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -20,7 +21,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
   password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-  role: z.enum(["traveler", "provider"], { required_error: "You need to select a role." }),
+  role: z.enum(["user", "provider"], { required_error: "You need to select a role." }),
 });
 
 export default function RegisterPage() {
@@ -34,7 +35,7 @@ export default function RegisterPage() {
       name: "",
       email: "",
       password: "",
-      role: "traveler",
+      role: "user",
     },
   });
 
@@ -50,8 +51,7 @@ export default function RegisterPage() {
           name: values.name,
           email: values.email,
           password: values.password,
-          // The form uses 'traveler', but the backend expects 'user'.
-          role: values.role === 'traveler' ? 'user' : 'provider',
+          role: values.role,
         }),
       });
 
@@ -105,7 +105,7 @@ export default function RegisterPage() {
                       >
                         <FormItem className="flex items-center space-x-2">
                           <FormControl>
-                            <RadioGroupItem value="traveler" id="r1" />
+                            <RadioGroupItem value="user" id="r1" />
                           </FormControl>
                           <FormLabel htmlFor="r1" className="font-normal">Travel</FormLabel>
                         </FormItem>
