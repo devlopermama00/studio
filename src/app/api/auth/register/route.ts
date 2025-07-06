@@ -14,9 +14,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({
+      $or: [
+        { email: { $regex: `^${email}$`, $options: 'i' } },
+        { username: { $regex: `^${email}$`, $options: 'i' } }
+      ]
+    });
+    
     if (existingUser) {
-      return NextResponse.json({ message: 'User with this email already exists' }, { status: 409 });
+      return NextResponse.json({ message: 'A user with this email or username already exists.' }, { status: 409 });
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
