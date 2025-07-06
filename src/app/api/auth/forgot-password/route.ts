@@ -10,9 +10,8 @@ export async function POST(request: NextRequest) {
         await dbConnect();
         const { email } = await request.json();
 
-        const lowercasedEmail = email.toLowerCase();
-        
-        const user = await User.findOne({ email: lowercasedEmail });
+        // The User model will handle the lowercase comparison automatically.
+        const user = await User.findOne({ email: email });
 
         if (user) {
             // Only proceed if user is found, but don't reveal if the user exists

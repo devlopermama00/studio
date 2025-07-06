@@ -15,22 +15,20 @@ export async function POST(request: Request) {
     }
 
     await dbConnect();
-
-    const lowercasedEmail = email.toLowerCase();
     
-    // Simplest possible check: find a user where the email exactly matches the lowercased version.
-    const existingUser = await User.findOne({ email: lowercasedEmail });
+    // The User model now handles converting email to lowercase automatically.
+    const existingUser = await User.findOne({ email: email });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
-    const finalRole = (process.env.ADMIN_EMAIL && lowercasedEmail === process.env.ADMIN_EMAIL) ? 'admin' : role;
+    const finalRole = (process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL) ? 'admin' : role;
     
     const newUser = new User({
       name,
-      email: lowercasedEmail,
+      email, // Mongoose will automatically convert this to lowercase due to the schema
       passwordHash,
       role: finalRole,
     });

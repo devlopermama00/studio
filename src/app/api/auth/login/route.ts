@@ -14,9 +14,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Missing email or password' }, { status: 400 });
     }
     
-    const lowercasedEmail = email.toLowerCase();
-
-    const user = await User.findOne({ email: lowercasedEmail });
+    // The User model will handle the lowercase comparison automatically.
+    const user = await User.findOne({ email: email });
 
     if (!user) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
