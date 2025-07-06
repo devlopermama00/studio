@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 import dbConnect from '@/lib/db';
 import Tour from '@/models/Tour';
-import { paypal } from '@/lib/paypal';
+import { getPayPalAccessToken } from '@/lib/paypal';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 const base = process.env.NEXT_PUBLIC_PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
         const totalPrice = tour.price * guests;
         
-        const accessToken = await paypal.getAccessToken();
+        const accessToken = await getPayPalAccessToken();
         const url = `${base}/v2/checkout/orders`;
 
         const response = await fetch(url, {
