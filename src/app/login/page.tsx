@@ -49,8 +49,16 @@ export default function LoginPage() {
         throw new Error(data.message || 'Something went wrong');
       }
 
-      // Redirect to the homepage on successful login
-      window.location.href = '/';
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+
+      // Redirect to the homepage after a short delay to allow toast to be seen
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1500);
+
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
