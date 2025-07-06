@@ -173,28 +173,30 @@ export function SiteHeader() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[80vw] max-w-sm">
-                <SheetHeader className="p-0 text-left mb-8">
-                  <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                  <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
-                </SheetHeader>
-                <div className="flex flex-col space-y-4">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setIsMenuOpen(false)}
-                      className={cn(
-                        "text-lg font-medium transition-colors hover:text-primary",
-                        pathname === link.href ? "text-primary" : "text-muted-foreground"
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
-                  <Separator className="my-2" />
-                  <CurrencySelector isMobile={true}/>
-                  <Separator className="my-2" />
-                  <AuthButtons isMobile={true} />
+                <div key={user?.id ?? 'logged-out'}>
+                  <SheetHeader className="p-0 text-left mb-8">
+                    <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                    <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
+                  </SheetHeader>
+                  <div className="flex flex-col space-y-4">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setIsMenuOpen(false)}
+                        className={cn(
+                          "text-lg font-medium transition-colors hover:text-primary",
+                          pathname === link.href ? "text-primary" : "text-muted-foreground"
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                    <Separator className="my-2" />
+                    <CurrencySelector isMobile={true}/>
+                    <Separator className="my-2" />
+                    <AuthButtons isMobile={true} />
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
