@@ -156,9 +156,8 @@ export function SiteHeader() {
               </SheetTrigger>
               <SheetContent side="right" className="w-[80vw] max-w-sm">
                 <SheetHeader className="p-0 text-left mb-8">
-                  <SheetTitle asChild>
-                    <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
-                  </SheetTitle>
+                  <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
+                  <SheetTitle className="sr-only">Main Menu</SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col space-y-4">
                   {navLinks.map((link) => (
