@@ -47,8 +47,6 @@ export async function GET(request: NextRequest) {
             return NextResponse.json([]);
         }
 
-        // IMPORTANT FIX: Filter out any null values that can result from populating
-        // a tour reference that has been deleted from the database.
         const populatedWishlist: any[] = user.wishlist.filter(Boolean);
 
         if (populatedWishlist.length === 0) {
@@ -78,7 +76,7 @@ export async function GET(request: NextRequest) {
                 providerName: tourDoc.createdBy?.name || 'Unknown Provider',
                 rating: parseFloat(rating.toFixed(1)),
                 itinerary: tourDoc.itinerary || [],
-                providerId: tourDoc.createdBy?._id.toString() || '',
+                providerId: tourDoc.createdBy?._id?.toString() || '',
                 reviews: [],
                 approved: tourDoc.approved,
             }
