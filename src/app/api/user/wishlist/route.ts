@@ -47,7 +47,14 @@ export async function GET(request: NextRequest) {
             return NextResponse.json([]);
         }
 
-        const populatedWishlist: any[] = user.wishlist;
+        // IMPORTANT FIX: Filter out any null values that can result from populating
+        // a tour reference that has been deleted from the database.
+        const populatedWishlist: any[] = user.wishlist.filter(Boolean);
+
+        if (populatedWishlist.length === 0) {
+            return NextResponse.json([]);
+        }
+
         const tourIds = populatedWishlist.map(t => t._id);
 
         const ratings = await Review.aggregate([
