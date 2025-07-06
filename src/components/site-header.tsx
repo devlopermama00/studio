@@ -93,11 +93,10 @@ export function SiteHeader() {
       }
     }
     fetchUser();
-  }, [pathname]);
+  }, []);
   
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    setUser(null);
     window.location.href = '/'; // Force a full page reload to home
   };
 
