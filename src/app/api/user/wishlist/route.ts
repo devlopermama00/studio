@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
             model: Tour,
             populate: [
                 { path: 'category', model: Category, select: 'name' },
-                { path: 'createdBy', model: User, select: 'name' }
+                { path: 'createdBy', model: User, select: 'name profilePhoto' }
             ]
         });
 
@@ -63,29 +63,34 @@ export async function GET(request: NextRequest) {
         const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
 
         const formattedWishlist = populatedWishlist.map((tourDoc: any) => {
-             const rating = ratingsMap.get(tourDoc._id.toString()) || 0;
-             return {
-                id: tourDoc._id.toString(),
-                title: tourDoc.title,
-                location: tourDoc.location,
-                category: tourDoc.category?.name || 'Uncategorized',
-                price: tourDoc.price,
-                duration: tourDoc.duration,
-                description: tourDoc.description,
-                images: tourDoc.images && tourDoc.images.length > 0 ? tourDoc.images : ["https://placehold.co/800x600.png"],
-                providerName: tourDoc.createdBy?.name || 'Unknown Provider',
-                rating: parseFloat(rating.toFixed(1)),
-                itinerary: tourDoc.itinerary || [],
-                providerId: tourDoc.createdBy?._id?.toString() || '',
-                reviews: [],
-                approved: tourDoc.approved,
+            try {
+                const rating = ratingsMap.get(tourDoc._id.toString()) || 0;
+                return {
+                    id: tourDoc._id.toString(),
+                    title: tourDoc.title,
+                    location: tourDoc.location,
+                    category: tourDoc.category?.name || 'Uncategorized',
+                    price: tourDoc.price,
+                    duration: tourDoc.duration,
+                    description: tourDoc.description,
+                    images: tourDoc.images && tourDoc.images.length > 0 ? tourDoc.images : ["https://placehold.co/800x600.png"],
+                    providerName: tourDoc.createdBy?.name || 'Unknown Provider',
+                    rating: parseFloat(rating.toFixed(1)),
+                    itinerary: tourDoc.itinerary || [],
+                    providerId: tourDoc.createdBy?._id?.toString() || '',
+                    reviews: [],
+                    approved: tourDoc.approved,
+                };
+            } catch (e) {
+                console.error(`Error formatting tour with ID ${tourDoc?._id}:`, e);
+                return null;
             }
-        });
+        }).filter(Boolean); // Filter out any tours that failed to format
 
         return NextResponse.json(formattedWishlist);
     } catch (error) {
         console.error('Error fetching wishlist:', error);
-        return NextResponse.json({ message: 'Error fetching wishlist' }, { status: 500 });
+        return NextResponse.json({ message: 'An error occurred while fetching wishlist.', error: error instanceof Error ? error.message : String(error) }, { status: 500 });
     }
 }
 
@@ -138,3 +143,4 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ message: 'Error removing from wishlist' }, { status: 500 });
     }
 }
+    
