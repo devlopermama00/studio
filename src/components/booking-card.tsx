@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useCurrency } from "@/context/currency-context";
@@ -13,7 +14,7 @@ interface BookingCardProps {
 }
 
 export function BookingCard({ price }: BookingCardProps) {
-    const { formatCurrency } = useCurrency();
+    const { currency, formatCurrency } = useCurrency();
 
     return (
         <Card className="sticky top-24">

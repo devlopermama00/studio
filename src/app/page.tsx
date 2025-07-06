@@ -1,4 +1,5 @@
 
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Star, Compass, Lock, Smile, Ticket, Mail, Search } from "lucide-react";

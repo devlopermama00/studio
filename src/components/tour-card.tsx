@@ -37,17 +37,17 @@ export function TourCard({ tour }: { tour: Tour }) {
           </Link>
         </CardTitle>
         <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-          {tour.description}
+          {tour.overview}
         </p>
       </CardContent>
       <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
-          <span>{tour.location}</span>
+          <span>{tour.city}</span>
         </div>
         <div className="flex items-center gap-1">
           <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-          <span className="font-semibold">{tour.rating}</span>
+          <span className="font-semibold">{tour.rating.toFixed(1)}</span>
         </div>
       </CardFooter>
     </Card>

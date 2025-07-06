@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -45,6 +46,7 @@ export default function ToursPage() {
   );
 
   const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
@@ -78,10 +80,6 @@ export default function ToursPage() {
     if (endPage - startPage + 1 < maxPagesToShow) {
         startPage = Math.max(endPage - maxPagesToShow + 1, 1);
     }
-
-    for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-    }
     
     const showStartEllipsis = startPage > 1;
     const showEndEllipsis = endPage < totalPages;
@@ -93,10 +91,15 @@ export default function ToursPage() {
             <PaginationPrevious
               onClick={() => handlePageChange(currentPage - 1)}
               aria-disabled={currentPage === 1}
-              className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
             />
           </PaginationItem>
           {showStartEllipsis && (
+             <PaginationItem>
+              <PaginationLink onClick={() => handlePageChange(1)}>1</PaginationLink>
+            </PaginationItem>
+          )}
+          {showStartEllipsis && startPage > 2 && (
             <PaginationItem>
               <PaginationEllipsis />
             </PaginationItem>
@@ -106,21 +109,27 @@ export default function ToursPage() {
               <PaginationLink
                 isActive={page === currentPage}
                 onClick={() => handlePageChange(page)}
+                className="cursor-pointer"
               >
                 {page}
               </PaginationLink>
             </PaginationItem>
           ))}
-          {showEndEllipsis && (
+          {showEndEllipsis && endPage < totalPages - 1 && (
             <PaginationItem>
               <PaginationEllipsis />
+            </PaginationItem>
+          )}
+           {showEndEllipsis && (
+             <PaginationItem>
+              <PaginationLink onClick={() => handlePageChange(totalPages)}>{totalPages}</PaginationLink>
             </PaginationItem>
           )}
           <PaginationItem>
             <PaginationNext
               onClick={() => handlePageChange(currentPage + 1)}
               aria-disabled={currentPage === totalPages}
-              className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
             />
           </PaginationItem>
         </PaginationContent>

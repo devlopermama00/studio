@@ -98,6 +98,8 @@ export async function PUT(
         if (editorCheck.role === 'provider') {
             delete body.approved;
             delete body.blocked;
+            // Tour is sent for re-approval on edit by provider
+            body.approved = false;
         }
 
         const updatedTour = await Tour.findByIdAndUpdate(

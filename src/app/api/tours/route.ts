@@ -67,18 +67,19 @@ export async function POST(request: NextRequest) {
         }
         
         const body = await request.json();
-        const { title, description, location, price, duration, category } = body;
-
-        if (!title || !description || !location || !price || !duration || !category) {
-            return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+        
+        const requiredFields = ['title', 'overview', 'country', 'city', 'place', 'price', 'durationInHours', 'category', 'tourType', 'groupSize', 'languages', 'highlights', 'inclusions', 'exclusions'];
+        for (const field of requiredFields) {
+            if (!body[field] || (Array.isArray(body[field]) && body[field].length === 0)) {
+                return NextResponse.json({ message: `Missing required field: ${field}` }, { status: 400 });
+            }
         }
 
         const newTour = new Tour({
             ...body,
             createdBy: new Types.ObjectId(decoded.id),
-            images: ["https://placehold.co/800x600.png"], 
+            images: ["https://placehold.co/800x600.png", "https://placehold.co/800x500.png", "https://placehold.co/800x400.png"], 
             approved: decoded.role === 'admin',
-            itinerary: [],
         });
 
         await newTour.save();

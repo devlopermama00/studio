@@ -1,4 +1,5 @@
 
+
 export type User = {
   id: string;
   name: string;
@@ -26,13 +27,23 @@ export type Review = {
 export type Tour = {
   id: string;
   title: string;
-  location: string;
-  category: string;
-  price: number;
-  duration: string; // e.g., "8 hours", "Full Day"
-  description: string;
-  itinerary: { title: string; description: string }[];
+  country: string;
+  city: string;
+  place: string;
   images: string[];
+  durationInHours: number;
+  currency: string;
+  price: number;
+  tourType: 'public' | 'private';
+  category: string;
+  groupSize: number;
+  overview: string;
+  languages: string[];
+  highlights: string[];
+  inclusions: string[];
+  exclusions: string[];
+  importantInformation?: string;
+  itinerary: { title: string; description: string }[];
   providerId: string;
   providerName: string;
   rating: number;
