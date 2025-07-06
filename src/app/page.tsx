@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star, Compass, Lock, Smile, Ticket, Mail, Search } from "lucide-react";
+import { ArrowRight, Star, Compass, Lock, Smile, Ticket, Mail, Globe, Mountain, GlassWater, Landmark } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getPublicTours } from "@/lib/tours-data";
-import { Input } from "@/components/ui/input";
 import { Terminal } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 const howItWorksSteps = [
   {
@@ -37,6 +37,33 @@ const destinations = [
   { name: "Batumi", image: "https://placehold.co/400x500.png", hint: "batumi georgia" },
   { name: "Gudauri", image: "https://placehold.co/400x500.png", hint: "gudauri georgia" },
   { name: "Kakheti", image: "https://placehold.co/400x500.png", hint: "kakheti georgia" },
+];
+
+const categories = [
+    {
+        name: "City Tours",
+        description: "Explore vibrant streets and historic landmarks.",
+        icon: Globe,
+        href: "/tours?category=city"
+    },
+    {
+        name: "Mountain & Hiking",
+        description: "Trek through breathtaking Caucasus landscapes.",
+        icon: Mountain,
+        href: "/tours?category=hiking"
+    },
+    {
+        name: "Wine & Gastronomy",
+        description: "Indulge in ancient traditions of Georgian winemaking.",
+        icon: GlassWater,
+        href: "/tours?category=wine"
+    },
+    {
+        name: "Historical & Cultural",
+        description: "Discover ancient monasteries, fortresses, and more.",
+        icon: Landmark,
+        href: "/tours?category=historical"
+    },
 ];
 
 export default async function Home() {
@@ -105,8 +132,37 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 3. How It Works Section */}
+        {/* 3. Browse by Category Section */}
         <section className="py-16 md:py-24 bg-secondary">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-headline font-semibold text-center mb-2">
+              Browse by Category
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
+              Find the type of adventure that suits you best.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {categories.map((category) => (
+                <Link href={category.href} key={category.name}>
+                    <Card className="text-center flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-transform">
+                        <CardHeader>
+                            <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
+                            <category.icon className="w-8 h-8" />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <CardTitle className="mb-2 text-xl font-headline">{category.name}</CardTitle>
+                            <p className="text-muted-foreground text-sm">{category.description}</p>
+                        </CardContent>
+                    </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+        
+        {/* 4. How It Works Section */}
+        <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="text-center">
               <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">How It Works</h2>
@@ -132,8 +188,8 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 4. Explore by Destination Section */}
-        <section className="py-16 md:py-24 bg-background">
+        {/* 5. Explore by Destination Section */}
+        <section className="py-16 md:py-24 bg-secondary">
             <div className="container mx-auto px-4">
                 <div className="text-center">
                     <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">Explore by Destination</h2>
@@ -155,8 +211,8 @@ export default async function Home() {
             </div>
         </section>
         
-        {/* 5. Offers Section */}
-        <section className="py-16 md:py-24">
+        {/* 6. Offers Section */}
+        <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="bg-accent text-accent-foreground rounded-lg p-8 md:p-12 lg:p-16 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-8">
                 <div className="flex items-center gap-6">
@@ -173,7 +229,7 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 6. Newsletter Section */}
+        {/* 7. Newsletter Section */}
         <section className="py-16 md:py-24 bg-secondary">
             <div className="container mx-auto px-4 max-w-3xl text-center">
                  <Mail className="mx-auto h-12 w-12 text-primary mb-4" />
