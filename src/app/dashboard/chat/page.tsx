@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Send, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// Mock data for chat UI foundation
+// Mock data for chat UI foundation with roles
 const mockConversations = [
-  { id: 1, name: "Admin Support", lastMessage: "Yes, we can help with that.", unread: 0, avatar: "https://placehold.co/100x100.png" },
-  { id: 2, name: "Kazbegi Tour Provider", lastMessage: "Your booking is confirmed!", unread: 2, avatar: "https://placehold.co/100x100.png" },
-  { id: 3, name: "Tbilisi Walking Tour", lastMessage: "See you tomorrow at 10 AM.", unread: 0, avatar: "https://placehold.co/100x100.png" },
+  { id: 1, name: "Alex Johnson (User)", role: "user", lastMessage: "Yes, we can help with that.", unread: 0, avatar: "https://placehold.co/100x100.png" },
+  { id: 2, name: "Kazbegi Guides (Provider)", role: "provider", lastMessage: "Your booking is confirmed!", unread: 2, avatar: "https://placehold.co/100x100.png" },
+  { id: 3, name: "Tbilisi Treks (Provider)", role: "provider", lastMessage: "See you tomorrow at 10 AM.", unread: 0, avatar: "https://placehold.co/100x100.png" },
+  { id: 4, name: "Maria Garcia (User)", role: "user", lastMessage: "I have a question about my booking.", unread: 1, avatar: "https://placehold.co/100x100.png" },
 ];
 
 const mockMessages = {
@@ -22,20 +24,37 @@ const mockMessages = {
     { sender: "other", text: "Hello! I have a question about my booking." },
     { sender: "me", text: "Hi there, what can I help you with?" },
     { sender: "other", text: "I need to change the date of my tour." },
-    { sender: "other", text: "Is it possible to move it to next Friday?" },
-    { sender: "me", text: "Let me check that for you." },
-    { sender: "other", text: "Yes, we can help with that." },
   ],
   2: [
     { sender: "other", text: "Your booking is confirmed!" },
   ],
   3: [
      { sender: "other", text: "See you tomorrow at 10 AM." },
+  ],
+  4: [
+      { sender: "other", text: "I have a question about my booking." },
   ]
 };
 
 export default function ChatPage() {
-  const [selectedConversation, setSelectedConversation] = useState(mockConversations[0]);
+  const [selectedConversation, setSelectedConversation] = useState<any>(mockConversations[0]);
+  const [filteredConversations, setFilteredConversations] = useState(mockConversations);
+
+  const handleFilterChange = (filter: "all" | "user" | "provider") => {
+      if (filter === "all") {
+          setFilteredConversations(mockConversations);
+      } else {
+          setFilteredConversations(mockConversations.filter(c => c.role === filter));
+      }
+  };
+
+  useEffect(() => {
+    // If the selected conversation is not in the filtered list, select the first one from the filtered list, or null if empty
+    if (!filteredConversations.find(c => c.id === selectedConversation?.id)) {
+        setSelectedConversation(filteredConversations[0] || null);
+    }
+  }, [filteredConversations, selectedConversation]);
+
 
   return (
     <Card className="h-[calc(100vh-10rem)] flex flex-col">
@@ -48,17 +67,24 @@ export default function ChatPage() {
       <CardContent className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 overflow-hidden p-0">
         {/* Conversation List */}
         <div className="flex flex-col border-r">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-4">
                 <Input placeholder="Search conversations..." />
+                <Tabs defaultValue="all" onValueChange={(value) => handleFilterChange(value as any)}>
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="user">Users</TabsTrigger>
+                        <TabsTrigger value="provider">Providers</TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
             <ScrollArea className="flex-1">
-                 {mockConversations.map(conv => (
+                 {filteredConversations.map(conv => (
                     <div
                         key={conv.id}
                         onClick={() => setSelectedConversation(conv)}
                         className={cn(
                             "flex items-center gap-3 p-4 cursor-pointer hover:bg-secondary",
-                            selectedConversation.id === conv.id && "bg-secondary"
+                            selectedConversation?.id === conv.id && "bg-secondary"
                         )}
                     >
                         <Avatar>
@@ -91,7 +117,7 @@ export default function ChatPage() {
                 </div>
                  <ScrollArea className="flex-1 p-6">
                     <div className="space-y-4">
-                        {(mockMessages as any)[selectedConversation.id].map((msg: any, index: number) => (
+                        {(mockMessages as any)[selectedConversation.id]?.map((msg: any, index: number) => (
                             <div
                                 key={index}
                                 className={cn(
@@ -108,7 +134,7 @@ export default function ChatPage() {
                                     <p>{msg.text}</p>
                                 </div>
                             </div>
-                        ))}
+                        )) ?? <p className="text-center text-muted-foreground">No messages in this conversation.</p>}
                     </div>
                 </ScrollArea>
                 <div className="p-4 border-t">
