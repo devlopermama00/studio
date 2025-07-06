@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json([]);
         }
 
+        // Filter out any tours that might have been deleted and are now null
         const populatedWishlist: any[] = user.wishlist.filter(Boolean);
 
         if (populatedWishlist.length === 0) {
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
 
         const tourIds = populatedWishlist.map(t => t._id);
 
+        // Batch fetch ratings for all tours in the wishlist
         const ratings = await Review.aggregate([
             { $match: { tourId: { $in: tourIds } } },
             { $group: { _id: '$tourId', avgRating: { $avg: '$rating' } } }
@@ -62,6 +64,7 @@ export async function GET(request: NextRequest) {
 
         const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
 
+        // Format the tours into the public-facing type, gracefully handling potential errors
         const formattedWishlist = populatedWishlist.map((tourDoc: any) => {
             try {
                 const rating = ratingsMap.get(tourDoc._id.toString()) || 0;
@@ -83,7 +86,7 @@ export async function GET(request: NextRequest) {
                 };
             } catch (e) {
                 console.error(`Error formatting tour with ID ${tourDoc?._id}:`, e);
-                return null;
+                return null; // Return null if a tour fails to format
             }
         }).filter(Boolean); // Filter out any tours that failed to format
 
@@ -109,7 +112,7 @@ export async function POST(request: NextRequest) {
 
         await dbConnect();
         await User.findByIdAndUpdate(userId, {
-            $addToSet: { wishlist: tourId }
+            $addToSet: { wishlist: new Types.ObjectId(tourId) }
         });
 
         return NextResponse.json({ message: 'Tour added to wishlist' }, { status: 200 });
@@ -134,7 +137,7 @@ export async function DELETE(request: NextRequest) {
 
         await dbConnect();
         await User.findByIdAndUpdate(userId, {
-            $pull: { wishlist: tourId }
+            $pull: { wishlist: new Types.ObjectId(tourId) }
         });
 
         return NextResponse.json({ message: 'Tour removed from wishlist' }, { status: 200 });
@@ -143,4 +146,3 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ message: 'Error removing from wishlist' }, { status: 500 });
     }
 }
-    
