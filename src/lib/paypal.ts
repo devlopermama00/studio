@@ -4,7 +4,7 @@
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
 const base = "https://api-m.sandbox.paypal.com";
 
-export async function getPayPalAccessToken() {
+async function getPayPalAccessToken() {
     const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64');
     const response = await fetch(`${base}/v1/oauth2/token`, {
         method: 'POST',
@@ -25,7 +25,7 @@ export async function getPayPalAccessToken() {
     return data.access_token;
 }
 
-export async function capturePayPalOrder(orderId: string) {
+async function capturePayPalOrder(orderId: string) {
     const accessToken = await getPayPalAccessToken();
     const url = `${base}/v2/checkout/orders/${orderId}/capture`;
     
@@ -45,3 +45,8 @@ export async function capturePayPalOrder(orderId: string) {
     
     return response.json();
 }
+
+export const paypal = {
+    getAccessToken: getPayPalAccessToken,
+    captureOrder: capturePayPalOrder,
+};

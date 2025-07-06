@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import dbConnect from '@/lib/db';
 import Booking from '@/models/Booking';
-import { capturePayPalOrder } from '@/lib/paypal';
+import { paypal } from '@/lib/paypal';
 import { Types } from 'mongoose';
 import { jwtVerify } from 'jose';
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Booking already processed for this payment.', bookingId: existingBooking._id }, { status: 200 });
         }
 
-        const captureData = await capturePayPalOrder(orderId);
+        const captureData = await paypal.captureOrder(orderId);
         
         if (captureData.status !== 'COMPLETED') {
             return NextResponse.json({ message: 'Payment could not be completed.' }, { status: 402 });
