@@ -8,7 +8,6 @@ import Review from '@/models/Review';
 import User from '@/models/User';
 import { Types } from 'mongoose';
 import type { Tour as PublicTourType, Review as ReviewType } from '@/lib/types';
-import { tours as mockTours } from '@/lib/mock-data';
 
 // This is needed to ensure the models are registered with Mongoose before use.
 Category;
@@ -56,9 +55,8 @@ async function transformTour(tourDoc: any): Promise<PublicTourType | null> {
 export async function getPublicTours(limit?: number): Promise<PublicTourType[]> {
     const connection = await dbConnect();
     if (!connection) {
-        console.log("No DB connection, returning mock tours.");
-        const approvedMocks = mockTours.filter(t => t.approved);
-        return limit ? approvedMocks.slice(0, limit) : approvedMocks;
+        console.log("No DB connection, returning empty array.");
+        return [];
     }
     
     try {
@@ -84,9 +82,8 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
 export async function getPublicTourById(id: string): Promise<PublicTourType | null> {
     const connection = await dbConnect();
     if (!connection) {
-        console.log("No DB connection, returning mock tour.");
-        const tour = mockTours.find(t => t.id === id && t.approved);
-        return tour || null;
+        console.log("No DB connection, returning null.");
+        return null;
     }
     
     try {

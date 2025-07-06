@@ -12,7 +12,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getPublicTours } from "@/lib/tours-data";
 import { Input } from "@/components/ui/input";
 import { Terminal } from "lucide-react";
-import { seedDatabase } from "@/lib/seed-db";
 
 const howItWorksSteps = [
   {
@@ -40,7 +39,6 @@ const destinations = [
 ];
 
 export default async function Home() {
-  await seedDatabase();
   const featuredTours = await getPublicTours(8);
 
   return (
