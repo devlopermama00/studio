@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
             createdBy: new Types.ObjectId(decoded.id),
             images: ["https://placehold.co/800x600.png"], 
             approved: decoded.role === 'admin',
+            itinerary: [],
         });
 
         await newTour.save();

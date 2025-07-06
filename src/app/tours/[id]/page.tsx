@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { headers } from 'next/headers';
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -13,27 +12,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Star, MapPin, Clock, Users, MessageSquare } from "lucide-react";
-import type { Tour } from "@/lib/types";
-
-
-async function getTourById(id: string): Promise<Tour | null> {
-    const host = headers().get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
-    try {
-        const res = await fetch(`${protocol}://${host}/api/public/tours/${id}`, { cache: 'no-store' });
-        if (!res.ok) {
-            return null;
-        }
-        return res.json();
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
+import { getPublicTourById } from "@/lib/tours-data";
 
 
 export default async function TourDetailPage({ params }: { params: { id: string } }) {
-  const tour = await getTourById(params.id);
+  const tour = await getPublicTourById(params.id);
 
   if (!tour) {
     notFound();

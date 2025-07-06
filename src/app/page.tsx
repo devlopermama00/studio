@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { headers } from 'next/headers';
 import { ArrowRight, Star, Users, ShieldCheck, Award, Terminal } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,29 +7,12 @@ import { TourSearchForm } from "@/components/tour-search-form";
 import { TourCard } from "@/components/tour-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Tour } from "@/lib/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { getPublicTours } from "@/lib/tours-data";
 
-
-async function getFeaturedTours(): Promise<Tour[]> {
-    const host = headers().get('host');
-    const protocol = host?.includes('localhost') ? 'http' : 'https';
-    try {
-        const res = await fetch(`${protocol}://${host}/api/public/tours`, { cache: 'no-store' });
-        if (!res.ok) {
-            console.error('Failed to fetch tours:', res.statusText);
-            return [];
-        }
-        const tours: Tour[] = await res.json();
-        return tours.slice(0, 6);
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
 
 export default async function Home() {
-  const featuredTours = await getFeaturedTours();
+  const featuredTours = await getPublicTours(6);
 
   return (
     <div className="flex flex-col min-h-screen">
