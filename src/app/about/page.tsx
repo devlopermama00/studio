@@ -112,13 +112,13 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {features.map((feature, index) => (
-                <Card key={index} className="text-center">
+                <Card key={index} className="text-center flex flex-col">
                   <CardHeader>
                     <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit">
                       <feature.icon className="w-8 h-8" />
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="flex-1">
                     <CardTitle className="mb-2 text-xl font-headline">{feature.title}</CardTitle>
                     <p className="text-muted-foreground">{feature.description}</p>
                   </CardContent>
