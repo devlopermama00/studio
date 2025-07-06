@@ -13,7 +13,7 @@ export function TourCard({ tour }: { tour: Tour }) {
   const { formatCurrency } = useCurrency();
 
   return (
-    <Card className="flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl">
+    <Card className="flex flex-col h-full overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl">
       <CardHeader className="p-0 relative">
         <Link href={`/tours/${tour.id}`} className="block">
           <Image
