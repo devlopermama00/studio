@@ -16,19 +16,23 @@ export async function POST(request: Request) {
 
     await dbConnect();
     
-    // The User model now handles converting email to lowercase automatically.
-    const existingUser = await User.findOne({ email: email });
+    const lowercasedEmail = email.toLowerCase();
+
+    const existingUser = await User.findOne({ 
+        $or: [{ email: lowercasedEmail }, { username: lowercasedEmail }] 
+    });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
     }
 
     const passwordHash = await bcryptjs.hash(password, 10);
-    const finalRole = (process.env.ADMIN_EMAIL && email.toLowerCase() === process.env.ADMIN_EMAIL) ? 'admin' : role;
+    const finalRole = (process.env.ADMIN_EMAIL && lowercasedEmail === process.env.ADMIN_EMAIL) ? 'admin' : role;
     
     const newUser = new User({
       name,
-      email, // Mongoose will automatically convert this to lowercase due to the schema
+      username: lowercasedEmail,
+      email: lowercasedEmail,
       passwordHash,
       role: finalRole,
     });
@@ -41,7 +45,8 @@ export async function POST(request: Request) {
     console.error('Full registration error:', JSON.stringify(error, null, 2));
 
     if (error.code === 11000) {
-      return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
+      const field = Object.keys(error.keyPattern)[0];
+      return NextResponse.json({ message: `A user with this ${field} already exists.` }, { status: 409 });
     }
     
     if (error instanceof mongoose.Error.MongooseServerSelectionError || error.name === 'MongoNetworkError') {
