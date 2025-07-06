@@ -73,7 +73,22 @@ export async function PUT(
         }
         
         const body = await request.json();
+        const existingPost = await Blog.findById(blogId);
+
+        if (!existingPost) {
+            return NextResponse.json({ message: 'Blog post not found for update' }, { status: 404 });
+        }
         
+        // Only set publishedAt if the status is changing from false to true
+        if (body.published && !existingPost.published) {
+            body.publishedAt = new Date();
+        } else if (!body.published) {
+            body.publishedAt = null;
+        } else {
+            // Keep existing publishedAt if it's already published and we're just editing
+            body.publishedAt = existingPost.publishedAt;
+        }
+
         const updatedPost = await Blog.findByIdAndUpdate(
             blogId,
             body,

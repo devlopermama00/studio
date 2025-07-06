@@ -29,7 +29,7 @@ const formSchema = z.object({
   content: z.string().min(50, { message: "Content must be at least 50 characters." }),
   category: z.string().optional(),
   tags: z.string().optional(),
-  published: z.boolean().default(false),
+  published: z.boolean().default(true),
 });
 
 export default function AddBlogPostPage() {
@@ -60,7 +60,7 @@ export default function AddBlogPostPage() {
     defaultValues: {
       title: "",
       content: "",
-      published: false,
+      published: true,
       category: "",
       tags: "",
     },

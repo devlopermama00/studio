@@ -103,7 +103,6 @@ export default function EditBlogPostPage() {
         const payload = {
             ...values,
             tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
-            publishedAt: values.published ? new Date() : null,
         };
 
         const response = await fetch(`/api/admin/blogs/${postId}`, {

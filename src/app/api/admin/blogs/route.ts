@@ -55,18 +55,20 @@ export async function POST(request: NextRequest) {
         await dbConnect();
         
         const body = await request.json();
-        const { title, content } = body;
+        const { title, content, published } = body;
 
         if (!title || !content) {
             return NextResponse.json({ message: 'Title and content are required' }, { status: 400 });
         }
+        
+        const isPublished = published || false;
 
         const newPost = new Blog({
             ...body,
+            published: isPublished,
             author: adminCheck.id,
-            // Use placeholder if no image provided
             featureImage: body.featureImage || 'https://placehold.co/1200x600.png',
-            publishedAt: body.published ? new Date() : null,
+            publishedAt: isPublished ? new Date() : null,
         });
 
         await newPost.save();
