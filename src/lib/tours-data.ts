@@ -13,6 +13,7 @@ import { tours as mockTours } from '@/lib/mock-data';
 Category;
 Review;
 User;
+Tour;
 
 async function transformTour(tourDoc: any): Promise<PublicTourType> {
     const tour = tourDoc.toObject ? tourDoc.toObject() : tourDoc;

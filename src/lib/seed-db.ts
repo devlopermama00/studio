@@ -17,27 +17,36 @@ export async function seedDatabase() {
       return;
     }
 
-    const userCount = await User.countDocuments();
-    if (userCount > 0) {
-      // console.log('Database already seeded. Skipping.');
+    // Check for tours instead of users to decide whether to seed.
+    const tourCount = await Tour.countDocuments();
+    if (tourCount > 0) {
+      // console.log('Database has tours, skipping seed.');
       return;
     }
 
-    console.log('Starting database seed...');
+    console.log('No tours found. Starting database seed...');
 
-    // 1. Seed Users
-    const passwordHash = await bcryptjs.hash('Password123', 10);
-    const usersToSeed = mockUsersData.map(user => ({
-      ...user,
-      passwordHash,
-      isVerified: user.role === 'provider'
-    }));
-    await User.insertMany(usersToSeed.map(({id, ...rest}) => rest));
-    console.log('Users seeded.');
+    // 1. Seed Users (if needed)
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+        console.log('Seeding Users...');
+        const passwordHash = await bcryptjs.hash('Password123', 10);
+        const usersToSeed = mockUsersData.map(user => ({
+          ...user,
+          passwordHash,
+          isVerified: user.role === 'provider'
+        }));
+        await User.insertMany(usersToSeed.map(({id, ...rest}) => rest));
+        console.log('Users seeded.');
+    }
 
-    // 2. Seed Categories
-    await Category.insertMany(mockCategoriesData.map(({id, ...rest}) => rest));
-    console.log('Categories seeded.');
+    // 2. Seed Categories (if needed)
+    const categoryCount = await Category.countDocuments();
+    if (categoryCount === 0) {
+        console.log('Seeding Categories...');
+        await Category.insertMany(mockCategoriesData.map(({id, ...rest}) => rest));
+        console.log('Categories seeded.');
+    }
 
     // 3. Prepare maps for relationships
     const seededUsers = await User.find({}).lean();
