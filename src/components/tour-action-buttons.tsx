@@ -22,22 +22,31 @@ export function TourActionButtons({ tourId, tourTitle }: TourActionButtonsProps)
 
   useEffect(() => {
     const checkWishlistStatus = async () => {
+      setIsLoading(true);
       try {
         const response = await fetch('/api/user/wishlist', { cache: 'no-store' });
+        
         if (response.status === 401) {
-            // User not logged in, do nothing.
+            setIsWishlisted(false);
             return;
         }
+        
         if (response.ok) {
-          const wishlist = await response.json();
-          setIsWishlisted(wishlist.some((item: any) => item.id === tourId));
+          const wishlist: { id: string }[] = await response.json();
+          if (wishlist.some((item) => item.id === tourId)) {
+            setIsWishlisted(true);
+          } else {
+            setIsWishlisted(false);
+          }
         }
       } catch (error) {
         console.error("Could not fetch wishlist status", error);
+        setIsWishlisted(false);
       } finally {
         setIsLoading(false);
       }
     };
+    
     checkWishlistStatus();
   }, [tourId]);
 

@@ -37,9 +37,13 @@ export default function WishlistPage() {
                 if (response.ok) {
                     const data = await response.json();
                     setWishlist(data);
+                } else {
+                   console.error("Failed to fetch wishlist data");
+                   setWishlist([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch wishlist", error);
+                setWishlist([]);
             } finally {
                 setIsLoading(false);
             }
