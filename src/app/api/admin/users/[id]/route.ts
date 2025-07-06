@@ -73,3 +73,46 @@ export async function PATCH(
         return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
     }
 }
+
+
+export async function DELETE(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const adminCheck = await verifyAdmin(request);
+    if (adminCheck instanceof NextResponse) return adminCheck;
+    const adminUserId = adminCheck.id;
+
+    try {
+        await dbConnect();
+
+        const userIdToDelete = params.id;
+        if (!Types.ObjectId.isValid(userIdToDelete)) {
+            return NextResponse.json({ message: 'Invalid user ID' }, { status: 400 });
+        }
+        
+        if (adminUserId === userIdToDelete) {
+            return NextResponse.json({ message: 'Administrators cannot delete their own account.' }, { status: 403 });
+        }
+
+        const userToDelete = await User.findById(userIdToDelete);
+        if (!userToDelete) {
+            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
+
+        if (userToDelete.role === 'admin') {
+            return NextResponse.json({ message: 'Administrators cannot be deleted.' }, { status: 403 });
+        }
+
+        await User.findByIdAndDelete(userIdToDelete);
+
+        return NextResponse.json({ message: 'User deleted successfully' }, { status: 200 });
+
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        if (error instanceof Error) {
+            return NextResponse.json({ message: 'An error occurred while deleting the user.', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
+    }
+}

@@ -30,6 +30,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -49,6 +59,8 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -105,6 +117,35 @@ export default function AdminUsersPage() {
     }
   };
 
+  const openDeleteDialog = (user: User) => {
+    setUserToDelete(user);
+    setIsAlertOpen(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    setIsUpdating(userToDelete._id);
+    try {
+        const response = await fetch(`/api/admin/users/${userToDelete._id}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to delete user');
+        }
+        setUsers(users.filter(u => u._id !== userToDelete._id));
+        toast({ title: "Success", description: "User deleted successfully." });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({ variant: "destructive", title: "Deletion Failed", description: errorMessage });
+    } finally {
+        setIsUpdating(null);
+        setIsAlertOpen(false);
+        setUserToDelete(null);
+    }
+  };
+
+
   const UserListSkeleton = () => (
       Array.from({ length: 5 }).map((_, index) => (
           <TableRow key={index}>
@@ -134,6 +175,7 @@ export default function AdminUsersPage() {
   );
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>User Management</CardTitle>
@@ -198,7 +240,7 @@ export default function AdminUsersPage() {
                                 </DropdownMenuItem>
                             )}
                             {user.role !== 'admin' && (
-                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600" onClick={() => openDeleteDialog(user)}>Delete</DropdownMenuItem>
                             )}
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -221,5 +263,23 @@ export default function AdminUsersPage() {
         </div>
       </CardFooter>
     </Card>
+    <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the user account for "{userToDelete?.name}".
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isUpdating === userToDelete?._id}>
+                {isUpdating === userToDelete?._id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Delete
+            </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }
