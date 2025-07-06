@@ -56,8 +56,6 @@ export default function LoginPage() {
         description: "Welcome back!",
       });
       router.push('/');
-      // A full page refresh is good after login to reload server components with auth state
-      router.refresh(); 
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
