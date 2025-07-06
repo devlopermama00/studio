@@ -31,6 +31,39 @@ async function verifyAdmin(request: NextRequest): Promise<NextResponse | Decoded
     }
 }
 
+// GET a single user
+export async function GET(
+    request: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const adminCheck = await verifyAdmin(request);
+    if (adminCheck instanceof NextResponse) return adminCheck;
+
+    try {
+        await dbConnect();
+
+        const userId = params.id;
+        if (!Types.ObjectId.isValid(userId)) {
+            return NextResponse.json({ message: 'Invalid user ID' }, { status: 400 });
+        }
+        
+        const user = await User.findById(userId).select('-passwordHash');
+        if (!user) {
+            return NextResponse.json({ message: 'User not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(user);
+
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        if (error instanceof Error) {
+            return NextResponse.json({ message: 'An error occurred while fetching the user.', error: error.message }, { status: 500 });
+        }
+        return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
+    }
+}
+
+
 export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string } }

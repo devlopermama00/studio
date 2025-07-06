@@ -20,7 +20,7 @@ async function verifyProvider(request: NextRequest): Promise<NextResponse | Deco
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
         if (decoded.role !== 'provider' && decoded.role !== 'admin') {
-             return NextResponse.json({ message: 'Unauthorized: Providers only' }, { status: 403 });
+             return NextResponse.json({ message: 'Unauthorized: Providers or Admins only' }, { status: 403 });
         }
         return decoded;
     } catch (error) {
@@ -31,12 +31,25 @@ async function verifyProvider(request: NextRequest): Promise<NextResponse | Deco
 export async function GET(request: NextRequest) {
     const providerCheck = await verifyProvider(request);
     if (providerCheck instanceof NextResponse) return providerCheck;
-    const providerId = new Types.ObjectId(providerCheck.id);
+
+    const { searchParams } = new URL(request.url);
+    const providerIdFromQuery = searchParams.get('providerId');
+
+    let targetProviderId: Types.ObjectId;
+
+    if (providerCheck.role === 'admin') {
+        if (!providerIdFromQuery || !Types.ObjectId.isValid(providerIdFromQuery)) {
+            return NextResponse.json({ message: 'Admin must provide a valid providerId' }, { status: 400 });
+        }
+        targetProviderId = new Types.ObjectId(providerIdFromQuery);
+    } else { // Role is 'provider'
+        targetProviderId = new Types.ObjectId(providerCheck.id);
+    }
 
     try {
         await dbConnect();
 
-        const providerTours = await Tour.find({ createdBy: providerId }).select('_id');
+        const providerTours = await Tour.find({ createdBy: targetProviderId }).select('_id');
         const providerTourIds = providerTours.map(t => t._id);
 
         if (providerTourIds.length === 0) {
@@ -58,7 +71,7 @@ export async function GET(request: NextRequest) {
         
         const totalBookingsPromise = Booking.countDocuments({ tourId: { $in: providerTourIds } });
         
-        const activeToursPromise = Tour.countDocuments({ createdBy: providerId, approved: true });
+        const activeToursPromise = Tour.countDocuments({ createdBy: targetProviderId, approved: true });
 
         const ratingDataPromise = Review.aggregate([
             { $match: { tourId: { $in: providerTourIds } } },

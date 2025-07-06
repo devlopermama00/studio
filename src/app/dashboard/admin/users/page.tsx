@@ -1,7 +1,8 @@
 
 "use client"
 
-import { MoreHorizontal, Loader2, UserX, UserCheck, KeyRound, Edit, Trash2 } from "lucide-react"
+import { MoreHorizontal, Loader2, UserX, UserCheck, KeyRound, Edit, Trash2, LayoutDashboard } from "lucide-react"
+import Link from "next/link"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 
@@ -195,6 +196,13 @@ export default function AdminUsersPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                {user.role === 'provider' && (
+                                  <DropdownMenuItem asChild>
+                                      <Link href={`/dashboard/admin/provider-view/${user._id}`}>
+                                          <LayoutDashboard className="mr-2 h-4 w-4" /> View Dashboard
+                                      </Link>
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem disabled>
                                     <Edit className="mr-2 h-4 w-4"/> Edit User
                                 </DropdownMenuItem>
