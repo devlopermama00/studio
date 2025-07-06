@@ -1,4 +1,6 @@
+
 import Image from "next/image"
+import Link from "next/link"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -42,11 +44,13 @@ export default function ProviderToursPage() {
                 Manage your tours and view their performance.
                 </CardDescription>
             </div>
-            <Button size="sm" className="gap-1">
+            <Button asChild size="sm" className="gap-1">
+              <Link href="/dashboard/tours/add">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Add Tour
+                  Add Tour
                 </span>
+              </Link>
             </Button>
         </div>
       </CardHeader>
