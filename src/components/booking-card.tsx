@@ -129,7 +129,7 @@ export function BookingCard({ price, tourId, currencyCode }: BookingCardProps) {
                     {isProcessing && <div className="flex justify-center items-center p-4"><Loader2 className="h-6 w-6 animate-spin" /></div>}
                     <div style={{ display: isProcessing ? 'none' : 'block', width: '100%' }}>
                         <PayPalButtons 
-                            style={{ layout: "vertical", label: 'book' }} 
+                            style={{ layout: "vertical", label: 'buynow' }} 
                             createOrder={createOrder} 
                             onApprove={onApprove}
                             onError={onError}
