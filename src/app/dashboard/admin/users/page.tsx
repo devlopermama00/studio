@@ -35,6 +35,8 @@ export default function AdminUsersPage() {
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isResetAlertOpen, setIsResetAlertOpen] = useState(false);
+  const [userToReset, setUserToReset] = useState<User | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -100,6 +102,11 @@ export default function AdminUsersPage() {
     setUserToDelete(user);
     setIsAlertOpen(true);
   };
+
+  const openResetDialog = (user: User) => {
+    setUserToReset(user);
+    setIsResetAlertOpen(true);
+  };
   
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
@@ -123,6 +130,26 @@ export default function AdminUsersPage() {
         setIsUpdating(null);
         setIsAlertOpen(false);
         setUserToDelete(null);
+    }
+  };
+
+  const handleConfirmResetPassword = async () => {
+    if (!userToReset) return;
+    setIsUpdating(userToReset._id);
+    try {
+        const response = await fetch(`/api/admin/users/${userToReset._id}/reset-password`, { method: 'POST' });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to send reset link.');
+        }
+        toast({ title: "Success", description: `Password reset link sent to ${userToReset.email}.` });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        toast({ variant: "destructive", title: "Action Failed", description: errorMessage });
+    } finally {
+        setIsUpdating(null);
+        setIsResetAlertOpen(false);
+        setUserToReset(null);
     }
   };
 
@@ -207,6 +234,7 @@ export default function AdminUsersPage() {
                                     <Edit className="mr-2 h-4 w-4"/> Edit User
                                 </DropdownMenuItem>
                                 {user.role !== 'admin' && (
+                                  <>
                                     <DropdownMenuItem onClick={() => handleToggleBlock(user)}>
                                         {user.isBlocked ? (
                                             <><UserCheck className="mr-2 h-4 w-4"/>Unblock User</>
@@ -214,18 +242,15 @@ export default function AdminUsersPage() {
                                             <><UserX className="mr-2 h-4 w-4"/>Block User</>
                                         )}
                                     </DropdownMenuItem>
-                                )}
-                                <DropdownMenuItem disabled>
-                                <KeyRound className="mr-2 h-4 w-4"/> Reset Password
-                                </DropdownMenuItem>
-                                {user.role !== 'admin' && (
-                                    <>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40" onClick={() => openDeleteDialog(user)}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
-                                            Delete User
-                                        </DropdownMenuItem>
-                                    </>
+                                    <DropdownMenuItem onClick={() => openResetDialog(user)}>
+                                      <KeyRound className="mr-2 h-4 w-4"/> Reset Password
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40" onClick={() => openDeleteDialog(user)}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete User
+                                    </DropdownMenuItem>
+                                  </>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -255,6 +280,21 @@ export default function AdminUsersPage() {
             <AlertDialogAction onClick={handleConfirmDelete} disabled={isUpdating === userToDelete?._id} className="bg-destructive hover:bg-destructive/90">
                 {isUpdating === userToDelete?._id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Delete
+            </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+     <AlertDialog open={isResetAlertOpen} onOpenChange={setIsResetAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Reset Password?</AlertDialogTitle>
+            <AlertDialogDescription>This will send a password reset link to "{userToReset?.email}". The user will be able to set a new password. Are you sure?</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmResetPassword} disabled={isUpdating === userToReset?._id}>
+                {isUpdating === userToReset?._id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Send Link
             </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
