@@ -15,12 +15,14 @@ export const sendPasswordResetEmail = async (email: string, name: string, token:
         throw new Error('RESEND_API_KEY is not defined in your environment variables. This is required to send emails.');
     }
 
+    const fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
+
     const resend = new Resend(resendApiKey);
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
     try {
         await resend.emails.send({
-            from: 'TourVista Support <onboarding@resend.dev>',
+            from: fromEmail,
             to: email,
             subject: 'Reset Your TourVista Password',
             react: ResetPasswordEmail({ userName: name, resetUrl: resetUrl }),
