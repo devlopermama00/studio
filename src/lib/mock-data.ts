@@ -4,8 +4,8 @@ import type { Tour, Category, Review, User, Booking } from "@/lib/types";
 export const users: User[] = [
   {
     id: "user-1",
-    name: "Alex Johnson",
-    email: "alex@example.com",
+    name: "Dan",
+    email: "dan@example.com",
     role: "user",
     profilePhoto: "https://placehold.co/100x100.png",
   },
@@ -37,7 +37,7 @@ export const reviews: Review[] = [
   {
     id: "review-1",
     userId: "user-1",
-    userName: "Alex Johnson",
+    userName: "Dan",
     userImage: "https://placehold.co/100x100.png",
     rating: 5,
     comment: "Absolutely breathtaking! The guide was incredibly knowledgeable and friendly. A must-do tour in Tbilisi.",
@@ -77,7 +77,7 @@ export const tours: Tour[] = [
     providerId: "user-2",
     providerName: "Georgia Wonders",
     rating: 4.8,
-    reviews: reviews,
+    reviews: reviews.filter(r => r.id === 'review-1'),
     approved: true,
   },
   {
@@ -627,7 +627,7 @@ export const bookings: Booking[] = [
     tourId: '2',
     tourTitle: 'Kazbegi Mountain Adventure',
     tourImage: 'https://placehold.co/800x600.png',
-    bookingDate: '2024-05-10',
+    bookingDate: '2024-08-15',
     guests: 1,
     totalPrice: 120,
     status: 'confirmed',
