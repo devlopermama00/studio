@@ -97,6 +97,7 @@ export async function PUT(
         // Admin can approve, provider cannot change approval status directly
         if (editorCheck.role === 'provider') {
             delete body.approved;
+            delete body.blocked;
         }
 
         const updatedTour = await Tour.findByIdAndUpdate(
@@ -120,7 +121,7 @@ export async function PUT(
 }
 
 
-// PATCH - Approve a tour (Admin only)
+// PATCH - Update tour status (Admin only)
 export async function PATCH(
     request: NextRequest,
     { params }: { params: { id: string } }
@@ -140,15 +141,25 @@ export async function PATCH(
         }
         
         const body = await request.json();
-        const { approved } = body;
+        const { approved, blocked } = body;
         
-        if (typeof approved !== 'boolean') {
-            return NextResponse.json({ message: 'Invalid approval status provided' }, { status: 400 });
+        const updateData: { approved?: boolean; blocked?: boolean } = {};
+
+        if (typeof approved === 'boolean') {
+            updateData.approved = approved;
+        }
+
+        if (typeof blocked === 'boolean') {
+            updateData.blocked = blocked;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json({ message: 'Invalid status provided. Provide `approved` or `blocked`.' }, { status: 400 });
         }
         
         const updatedTour = await Tour.findByIdAndUpdate(
             tourId,
-            { approved },
+            updateData,
             { new: true, runValidators: true }
         )
         .populate('category', 'name')

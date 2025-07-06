@@ -3,13 +3,13 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { MoreHorizontal, Loader2, Check, X, Edit, Trash2 } from "lucide-react"
+import { MoreHorizontal, Loader2, Check, X, Edit, Trash2, Ban } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
@@ -22,6 +22,7 @@ interface PopulatedAdminTour {
     title: string;
     price: number;
     approved: boolean;
+    blocked: boolean;
     images: string[];
     createdBy: {
         _id: string;
@@ -64,9 +65,11 @@ export default function AdminToursPage() {
     if (status === 'all') {
       setFilteredTours(tours);
     } else if (status === 'approved') {
-      setFilteredTours(tours.filter(t => t.approved));
+      setFilteredTours(tours.filter(t => t.approved && !t.blocked));
     } else if (status === 'pending') {
-      setFilteredTours(tours.filter(t => !t.approved));
+      setFilteredTours(tours.filter(t => !t.approved && !t.blocked));
+    } else if (status === 'blocked') {
+        setFilteredTours(tours.filter(t => t.blocked));
     }
   };
 
@@ -83,11 +86,30 @@ export default function AdminToursPage() {
       const updatedTour = await response.json();
       const updatedTours = tours.map(t => t._id === tourId ? { ...t, approved: updatedTour.approved } : t);
       setTours(updatedTours);
-      // Re-apply current filter
-      const currentTab = document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all';
-      handleFilterChange(currentTab);
-
+      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all');
       toast({ title: "Success", description: `Tour has been ${approved ? 'approved' : 'un-approved'}.` });
+    } catch (error) {
+      toast({ variant: "destructive", title: "Update Failed", description: "Could not update tour status." });
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+  
+  const handleBlock = async (tourId: string, blocked: boolean) => {
+    setIsUpdating(tourId);
+    try {
+      const response = await fetch(`/api/tours/${tourId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blocked }),
+      });
+      if (!response.ok) throw new Error('Failed to update tour');
+      
+      const updatedTour = await response.json();
+      const updatedTours = tours.map(t => t._id === tourId ? { ...t, blocked: updatedTour.blocked } : t);
+      setTours(updatedTours);
+      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all');
+      toast({ title: "Success", description: `Tour has been ${blocked ? 'blocked' : 'un-blocked'}.` });
     } catch (error) {
       toast({ variant: "destructive", title: "Update Failed", description: "Could not update tour status." });
     } finally {
@@ -140,10 +162,11 @@ export default function AdminToursPage() {
             <CardHeader>
                 <CardTitle>Tour Management</CardTitle>
                 <CardDescription>Approve, reject, and manage all tours on the platform.</CardDescription>
-                <TabsList className="grid w-full grid-cols-3 mt-4 max-w-md">
+                <TabsList className="grid w-full grid-cols-4 mt-4 max-w-md">
                     <TabsTrigger value="all">All</TabsTrigger>
                     <TabsTrigger value="approved">Approved</TabsTrigger>
                     <TabsTrigger value="pending">Pending</TabsTrigger>
+                    <TabsTrigger value="blocked">Blocked</TabsTrigger>
                 </TabsList>
             </CardHeader>
             <CardContent>
@@ -168,22 +191,42 @@ export default function AdminToursPage() {
                             <TableCell className="font-medium">{tour.title}</TableCell>
                             <TableCell>{tour.createdBy?.name || 'N/A'}</TableCell>
                             <TableCell>
-                                <Badge variant={tour.approved ? "default" : "secondary"} className={cn({"bg-green-500": tour.approved, "bg-amber-500": !tour.approved})}>
-                                    {tour.approved ? "Approved" : "Pending"}
+                                <Badge variant={tour.blocked ? "destructive" : tour.approved ? "default" : "secondary"} className={cn({"bg-red-500": tour.blocked, "bg-green-500": tour.approved && !tour.blocked, "bg-amber-500": !tour.approved && !tour.blocked})}>
+                                     {tour.blocked ? "Blocked" : tour.approved ? "Approved" : "Pending"}
                                 </Badge>
                             </TableCell>
                             <TableCell>${tour.price}</TableCell>
                             <TableCell>
-                                {isUpdating === tour._id ? <Loader2 className="h-4 w-4 animate-spin" /> :
-                                <div className="flex items-center gap-2">
-                                    <Link href={`/dashboard/admin/tours/${tour._id}/edit`}><Button size="icon" variant="outline"><Edit className="h-4 w-4" /></Button></Link>
-                                    {!tour.approved ?
-                                        <Button size="icon" variant="outline" onClick={() => handleApproval(tour._id, true)}><Check className="h-4 w-4 text-green-500" /></Button> :
-                                        <Button size="icon" variant="outline" onClick={() => handleApproval(tour._id, false)}><X className="h-4 w-4 text-red-500" /></Button>
-                                    }
-                                    <Button size="icon" variant="destructive" onClick={() => openDeleteDialog(tour)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                                }
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isUpdating === tour._id}>
+                                            {isUpdating === tour._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                                            <span className="sr-only">Toggle menu</span>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/dashboard/admin/tours/${tour._id}/edit`} className="cursor-pointer">
+                                                <Edit className="mr-2 h-4 w-4" /> Edit
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        {!tour.blocked && (
+                                            <DropdownMenuItem onClick={() => handleApproval(tour._id, !tour.approved)} className="cursor-pointer">
+                                                {tour.approved ? <X className="mr-2 h-4 w-4" /> : <Check className="mr-2 h-4 w-4" />}
+                                                {tour.approved ? 'Un-approve' : 'Approve'}
+                                            </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuItem onClick={() => handleBlock(tour._id, !tour.blocked)} className="cursor-pointer">
+                                            {tour.blocked ? <Check className="mr-2 h-4 w-4" /> : <Ban className="mr-2 h-4 w-4" />}
+                                            {tour.blocked ? 'Unblock' : 'Block'}
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-red-500 cursor-pointer" onClick={() => openDeleteDialog(tour)}>
+                                            <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </TableCell>
                             </TableRow>
                         ))

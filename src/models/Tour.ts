@@ -16,6 +16,7 @@ export interface ITour extends Document {
   itinerary: IItineraryItem[];
   createdBy: Types.ObjectId;
   approved: boolean;
+  blocked: boolean;
 }
 
 const ItinerarySchema: Schema = new Schema({
@@ -34,6 +35,7 @@ const TourSchema: Schema = new Schema({
   itinerary: [ItinerarySchema],
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   approved: { type: Boolean, default: false },
+  blocked: { type: Boolean, default: false },
 }, { timestamps: true });
 
 export default models.Tour || mongoose.model<ITour>('Tour', TourSchema);
