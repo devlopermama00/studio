@@ -8,6 +8,9 @@ import { CurrencyProvider } from '@/context/currency-context';
 export const metadata: Metadata = {
   title: 'TourVista Georgia',
   description: 'Book the best day tours in Georgia.',
+  icons: {
+    icon: [],
+  },
 };
 
 export default function RootLayout({
