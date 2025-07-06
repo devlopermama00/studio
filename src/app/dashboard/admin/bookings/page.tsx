@@ -1,9 +1,10 @@
 
 "use client"
 
-import { MoreHorizontal, Loader2, Check, X, ShieldQuestion } from "lucide-react"
+import { MoreHorizontal, Loader2, Check, X, ShieldQuestion, Link as LinkIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
+import Link from "next/link"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,6 +25,7 @@ interface PopulatedBooking {
     totalPrice: number;
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'cancellation-requested';
     createdAt: string;
+    stripePaymentId: string;
     cancellationDetails?: {
         refundEligible?: boolean;
     }
@@ -125,6 +127,7 @@ export default function AdminBookingsPage() {
                     <TableHead>Tour</TableHead>
                     <TableHead>Booking Date</TableHead>
                     <TableHead>Price</TableHead>
+                    <TableHead>Transaction</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead><span className="sr-only">Actions</span></TableHead>
                 </TableRow>
@@ -140,6 +143,13 @@ export default function AdminBookingsPage() {
                             <TableCell>{booking.tourId?.title || 'Deleted Tour'}</TableCell>
                             <TableCell>{format(new Date(booking.bookingDate), "PPP")}</TableCell>
                             <TableCell>${booking.totalPrice.toFixed(2)}</TableCell>
+                            <TableCell>
+                                <Button asChild variant="outline" size="icon">
+                                    <a href={`https://dashboard.stripe.com/payments/${booking.stripePaymentId}`} target="_blank" rel="noopener noreferrer">
+                                        <LinkIcon className="h-4 w-4" />
+                                    </a>
+                                </Button>
+                            </TableCell>
                             <TableCell>{renderStatusBadge(booking)}</TableCell>
                             <TableCell>
                                 <DropdownMenu>
@@ -170,7 +180,7 @@ export default function AdminBookingsPage() {
                     ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={6} className="text-center h-24">No bookings found.</TableCell>
+                        <TableCell colSpan={7} className="text-center h-24">No bookings found.</TableCell>
                     </TableRow>
                 )}
             </TableBody>

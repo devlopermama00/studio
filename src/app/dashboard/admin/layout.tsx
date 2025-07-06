@@ -11,7 +11,9 @@ import {
     Users,
     Settings,
     LayoutDashboard,
-    Map
+    Map,
+    DollarSign,
+    Star
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { TourVistaLogo } from "@/components/logo";
@@ -46,6 +48,14 @@ const AdminNav = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                        <Link href="/dashboard/admin/payouts">
+                            <DollarSign />
+                            Payouts
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                         <Link href="/dashboard/admin/tours">
@@ -73,8 +83,16 @@ const AdminNav = () => {
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                         <Link href="/dashboard/admin/reviews">
-                            <MessageSquare />
+                            <Star />
                             Reviews
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                        <Link href="/dashboard/admin/chat">
+                            <MessageSquare />
+                            Support Chat
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
