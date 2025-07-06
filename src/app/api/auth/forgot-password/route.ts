@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import crypto from 'crypto';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import { sendPasswordResetEmail } from '@/services/email';
 
 export async function POST(request: NextRequest) {
     try {
@@ -20,10 +21,7 @@ export async function POST(request: NextRequest) {
             user.forgotPasswordTokenExpiry = new Date(Date.now() + oneHour);
             await user.save();
             
-            // In a real application, you would send an email here.
-            // For this demo, we will log the reset link to the console.
-            const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-            console.log('Password Reset Link:', resetUrl);
+            await sendPasswordResetEmail(user.email, user.name, token);
         }
 
         // Always return a generic success message to prevent user enumeration attacks.
