@@ -42,8 +42,9 @@ export async function GET(request: NextRequest) {
 }
 
 const updateProfileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  bio: z.string().max(300, "Bio cannot be longer than 300 characters.").optional(),
+  name: z.string().min(2, "Name must be at least 2 characters.").optional(),
+  bio: z.string().max(300, "Bio cannot be longer than 300 characters.").optional().nullable(),
+  profilePhoto: z.string().url("Invalid photo URL").optional(),
 });
 
 
@@ -61,8 +62,19 @@ export async function PATCH(request: NextRequest) {
         if (!parseResult.success) {
             return NextResponse.json({ message: 'Invalid input', errors: parseResult.error.flatten().fieldErrors }, { status: 400 });
         }
+        
+        const updateData: Partial<z.infer<typeof updateProfileSchema>> = {};
 
-        const user = await User.findByIdAndUpdate(userCheck.id, parseResult.data, { new: true });
+        if (parseResult.data.name !== undefined) updateData.name = parseResult.data.name;
+        if (parseResult.data.bio !== undefined) updateData.bio = parseResult.data.bio;
+        if (parseResult.data.profilePhoto !== undefined) updateData.profilePhoto = parseResult.data.profilePhoto;
+
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json({ message: 'No fields to update provided.' }, { status: 400 });
+        }
+
+        const user = await User.findByIdAndUpdate(userCheck.id, updateData, { new: true });
 
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });

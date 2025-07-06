@@ -206,7 +206,7 @@ export default function EditTourPage() {
             
             <div className="space-y-2">
                 <Label>Upload Photos</Label>
-                <Input type="file" multiple disabled />
+                <Input type="file" multiple />
                 <FormDescription>Minimum 3 photos. Image uploads feature coming soon.</FormDescription>
             </div>
 

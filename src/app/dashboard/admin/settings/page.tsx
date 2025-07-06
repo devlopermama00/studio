@@ -27,22 +27,22 @@ export default function AdminSettingsPage() {
                 <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="logo">Logo Upload</Label>
-                        <Input id="logo" type="file" disabled />
+                        <Input id="logo" type="file" />
                         <p className="text-sm text-muted-foreground">Recommended size: 200x50px</p>
                     </div>
                     <div className="grid md:grid-cols-3 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="primary-color">Primary Color</Label>
-                            <Input id="primary-color" defaultValue="#21AEEB" disabled />
+                            <Input id="primary-color" defaultValue="#21AEEB" />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="accent-color">Accent Color</Label>
-                            <Input id="accent-color" defaultValue="#40BF9B" disabled />
+                            <Input id="accent-color" defaultValue="#40BF9B" />
                         </div>
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
-                    <Button onClick={() => handleSave("General")} disabled>Save Changes</Button>
+                    <Button onClick={() => handleSave("General")}>Save Changes</Button>
                 </CardFooter>
             </Card>
 
@@ -62,7 +62,7 @@ export default function AdminSettingsPage() {
                     </div>
                 </CardContent>
                  <CardFooter className="border-t px-6 py-4">
-                    <Button disabled>Update Credentials</Button>
+                    <Button>Update Credentials</Button>
                 </CardFooter>
             </Card>
         </div>

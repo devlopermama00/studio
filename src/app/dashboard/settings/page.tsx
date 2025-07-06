@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,12 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
+import { uploadFile } from "@/services/fileUploader";
 
 interface UserProfile {
   _id: string;
@@ -27,7 +28,7 @@ interface UserProfile {
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  bio: z.string().max(300, { message: "Bio cannot be longer than 300 characters." }).optional(),
+  bio: z.string().max(300, "Bio cannot be longer than 300 characters.").optional(),
 });
 
 const SettingsSkeleton = () => (
@@ -84,6 +85,9 @@ export default function SettingsPage() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const form = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
@@ -99,6 +103,7 @@ export default function SettingsPage() {
                 const data = await response.json();
                 setUser(data);
                 form.reset({ name: data.name, bio: data.bio || "" });
+                setPreviewUrl(data.profilePhoto || null);
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: "Could not load your profile." });
             } finally {
@@ -108,19 +113,39 @@ export default function SettingsPage() {
         fetchUser();
     }, [form, toast]);
     
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setSelectedFile(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
+    
     async function onSubmit(values: z.infer<typeof profileFormSchema>) {
+        if (!user) return;
         setIsSaving(true);
         try {
+            let photoUrl = user.profilePhoto;
+
+            if (selectedFile) {
+                photoUrl = await uploadFile(selectedFile, `profile-photos/${user._id}`);
+            }
+
+            const payload = { ...values, profilePhoto: photoUrl };
+
             const response = await fetch('/api/user/profile', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(values),
+                body: JSON.stringify(payload),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || "Failed to update profile");
             
             setUser(data);
+            setPreviewUrl(data.profilePhoto || null);
+            setSelectedFile(null);
             toast({ title: "Success", description: "Your profile has been updated." });
+            window.location.reload();
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
             toast({ variant: "destructive", title: "Update Failed", description: errorMessage });
@@ -150,12 +175,12 @@ export default function SettingsPage() {
                     <div className="space-y-6">
                         <div className="flex items-center gap-4">
                         <Avatar className="h-20 w-20">
-                            <AvatarImage src={user.profilePhoto || ""} alt={user.name} />
+                            <AvatarImage src={previewUrl || user.profilePhoto || ""} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="grid gap-2 w-full">
-                            <Input id="picture" type="file" disabled />
-                            <p className="text-xs text-muted-foreground">JPG, GIF or PNG. 1MB max. (Feature coming soon)</p>
+                            <Input id="picture" type="file" onChange={handleFileChange} ref={fileInputRef} />
+                            <p className="text-xs text-muted-foreground">JPG, GIF or PNG. 1MB max.</p>
                         </div>
                         </div>
                          <div className="grid sm:grid-cols-2 gap-4">

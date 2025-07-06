@@ -115,7 +115,7 @@ export default function DocumentsPage() {
                         <FileText className="h-4 w-4" />
                         Business License
                     </Label>
-                    <Input id="business-license" type="file" disabled />
+                    <Input id="business-license" type="file" />
                     <p className="text-xs text-muted-foreground">PDF, JPG, or PNG. Max 5MB.</p>
                 </div>
                 <div className="space-y-2">
@@ -123,7 +123,7 @@ export default function DocumentsPage() {
                         <FileText className="h-4 w-4" />
                         National ID / Passport
                     </Label>
-                    <Input id="id-proof" type="file" disabled />
+                    <Input id="id-proof" type="file" />
                     <p className="text-xs text-muted-foreground">PDF, JPG, or PNG. Max 5MB.</p>
                 </div>
             </div>
@@ -136,7 +136,7 @@ export default function DocumentsPage() {
         )}
 
         { !isLoading && document && document.status === 'rejected' && (
-             <Button disabled>
+             <Button>
                 Re-submit Documents (coming soon)
             </Button>
         )}
