@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -16,11 +17,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Trash2, PlusCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2, PlusCircle, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { currencies } from "@/context/currency-context";
+import { uploadFile } from "@/services/fileUploader";
 
 interface Category {
     _id: string;
@@ -31,6 +33,9 @@ const itineraryItemSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
 });
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 const formSchema = z.object({
   title: z.string().min(5, { message: "Tour name must be at least 5 characters." }),
@@ -44,6 +49,12 @@ const formSchema = z.object({
   category: z.string({ required_error: "Please select a category." }),
   groupSize: z.coerce.number().min(1, { message: "Group size must be at least 1." }),
   overview: z.string().min(50, { message: "Overview must be at least 50 characters." }),
+  images: z
+    .any()
+    .refine((files): files is FileList => files instanceof FileList, "Image files are required.")
+    .refine((files) => files.length >= 3, "Minimum of 3 images is required.")
+    .refine((files) => Array.from(files).every((file) => file.size <= MAX_FILE_SIZE), `Max file size is 5MB.`)
+    .refine((files) => Array.from(files).every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)), "Only .jpg, .jpeg, .png and .webp formats are supported."),
   languages: z.string().min(3, { message: "Please list at least one language." }),
   highlights: z.string().min(10, { message: "Please list at least one highlight." }),
   inclusions: z.string().min(10, { message: "Please list at least one inclusion." }),
@@ -82,6 +93,7 @@ export default function AddTourPage() {
       exclusions: "",
       importantInformation: "",
       itinerary: [],
+      images: undefined,
     },
   });
 
@@ -89,6 +101,21 @@ export default function AddTourPage() {
     control: form.control,
     name: "itinerary",
   });
+
+  const images = form.watch("images");
+  const imagePreviews = useMemo(() => {
+    if (images && images.length > 0) {
+        return Array.from(images).map(file => URL.createObjectURL(file as Blob));
+    }
+    return [];
+  }, [images]);
+
+   useEffect(() => {
+    // Cleanup object URLs to prevent memory leaks
+    return () => {
+        imagePreviews.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [imagePreviews]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -109,12 +136,28 @@ export default function AddTourPage() {
     };
     fetchCategories();
   }, [toast]);
+  
+  const removeImage = (indexToRemove: number) => {
+    const currentFiles = form.getValues("images");
+    if (currentFiles) {
+        const newFiles = Array.from(currentFiles).filter((_, index) => index !== indexToRemove);
+        const dataTransfer = new DataTransfer();
+        newFiles.forEach(file => dataTransfer.items.add(file));
+        form.setValue("images", dataTransfer.files, { shouldValidate: true });
+    }
+  };
 
   async function onSubmit(values: TourFormValues) {
     setIsLoading(true);
     try {
+        const imageFiles = Array.from(values.images);
+        const imageUrls = await Promise.all(
+            imageFiles.map(file => uploadFile(file, 'tour-images'))
+        );
+
         const payload = {
             ...values,
+            images: imageUrls,
             languages: values.languages.split('\n').map(item => item.trim()).filter(Boolean),
             highlights: values.highlights.split('\n').map(item => item.trim()).filter(Boolean),
             inclusions: values.inclusions.split('\n').map(item => item.trim()).filter(Boolean),
@@ -181,9 +224,51 @@ export default function AddTourPage() {
             <FormField name="overview" render={({ field }) => (<FormItem><FormLabel>Overview of Tour</FormLabel><FormControl><Textarea placeholder="Describe the tour experience, what makes it unique, etc." className="min-h-[120px]" {...field} /></FormControl><FormMessage /></FormItem>)} />
             
             <div className="space-y-2">
-                <Label>Upload Photos</Label>
-                <Input type="file" multiple />
-                <FormDescription>Minimum 3 photos. Image uploads feature coming soon.</FormDescription>
+                 <FormField
+                    control={form.control}
+                    name="images"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Tour Photos</FormLabel>
+                        <FormControl>
+                            <Input
+                                type="file"
+                                multiple
+                                accept="image/png, image/jpeg, image/jpg, image/webp"
+                                onChange={(e) => field.onChange(e.target.files)}
+                            />
+                        </FormControl>
+                        <FormDescription>
+                            Upload at least 3 photos. First image will be the cover. Max 5MB each.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                {imagePreviews.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                        {imagePreviews.map((src, index) => (
+                            <div key={src} className="relative group aspect-square">
+                                <Image
+                                    src={src}
+                                    alt={`Preview ${index + 1}`}
+                                    fill
+                                    sizes="(max-width: 768px) 50vw, 25vw"
+                                    className="rounded-md object-cover"
+                                />
+                                <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="destructive"
+                                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => removeImage(index)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <Separator />
