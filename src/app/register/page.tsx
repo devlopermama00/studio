@@ -19,8 +19,17 @@ import { Loader2 } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .regex(/[A-Z]/, { message: "Must contain at least one uppercase letter." })
+    .regex(/[a-z]/, { message: "Must contain at least one lowercase letter." })
+    .regex(/[0-9]/, { message: "Must contain at least one number." })
+    .regex(/[^A-Za-z0-9]/, { message: "Must contain at least one special character." }),
+  confirmPassword: z.string(),
   role: z.enum(["user", "provider"], { required_error: "You need to select a role." }),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 export default function RegisterPage() {
@@ -33,6 +42,7 @@ export default function RegisterPage() {
       name: "",
       email: "",
       password: "",
+      confirmPassword: "",
       role: "user",
     },
   });
@@ -153,6 +163,19 @@ export default function RegisterPage() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="Create a strong password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Confirm your password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

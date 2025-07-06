@@ -95,25 +95,27 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                        <FormLabel>Password</FormLabel>
-                        <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                            Forgot password?
-                        </Link>
-                    </div>
-                    <FormControl>
-                      <Input type="password" placeholder="Your password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full mt-6" disabled={isLoading}>
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Your password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="text-right">
+                    <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                        Forgot password?
+                    </Link>
+                </div>
+              </div>
+              <Button type="submit" className="w-full pt-4" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Log In
               </Button>
