@@ -1,0 +1,23 @@
+--- a/node_modules/react-quill/lib/index.js
++++ b/node_modules/react-quill/lib/index.js
+@@ -102,7 +102,8 @@
+ 	},
+ 
+ 	getEditingArea: function() {
+-		return ReactDOM.findDOMNode(this).querySelector('.ql-editor');
++		// Fix for React 18: https://github.com/zenoamaro/react-quill/issues/895#issuecomment-1425728772
++		return this.editingArea;
+ 	},
+ 
+ 	getEditor: function() {
+@@ -141,7 +142,9 @@
+ 		var children = this.props.children;
+ 		var properties = {
+ 			key: this.state.generation,
+-			ref: 'editor',
++			ref: (instance) => {
++				this.editingArea = instance;
++			},
+ 			className: 'ql-editor',
+ 			dangerouslySetInnerHTML: { __html: this.getHTML() }
+ 		};
