@@ -1,3 +1,4 @@
+
 import type { Tour, Category, Review, User, Booking } from "@/lib/types";
 
 export const users: User[] = [
@@ -21,6 +22,13 @@ export const users: User[] = [
     name: "Admin User",
     email: "admin@tourvista.com",
     role: "admin",
+    profilePhoto: "https://placehold.co/100x100.png",
+  },
+  {
+    id: "user-4",
+    name: "Jane Doe",
+    email: "jane@example.com",
+    role: "user",
     profilePhoto: "https://placehold.co/100x100.png",
   },
 ];
