@@ -27,7 +27,10 @@ export const sendPasswordResetEmail = async (email: string, name: string, token:
         });
     } catch (error) {
         console.error('Error sending password reset email:', error);
-        // This will now be caught by the calling API route and returned to the user.
-        throw new Error('Could not send password reset email.');
+        // Re-throw a more specific error to be caught by the API route
+        if (error instanceof Error) {
+             throw new Error(`Email sending failed: ${error.message}`);
+        }
+        throw new Error('Could not send password reset email due to an unknown error.');
     }
 };

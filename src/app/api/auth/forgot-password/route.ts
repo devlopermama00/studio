@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
         const { email } = await request.json();
 
         // The User model will handle the lowercase comparison automatically.
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ email });
 
         if (user) {
             // Only proceed if user is found, but don't reveal if the user exists
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Forgot password error:', error);
         if (error instanceof Error) {
-            return NextResponse.json({ message: 'An error occurred.', error: error.message }, { status: 500 });
+            return NextResponse.json({ message: error.message }, { status: 500 });
         }
         return NextResponse.json({ message: 'An unknown error occurred.' }, { status: 500 });
     }
