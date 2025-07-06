@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star, Compass, Lock, Smile, Ticket, Mail, Globe, Mountain, GlassWater, Landmark } from "lucide-react";
+import { ArrowRight, Star, Compass, Lock, Smile, Ticket, Mail } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
@@ -43,25 +43,29 @@ const categories = [
     {
         name: "City Tours",
         description: "Explore vibrant streets and historic landmarks.",
-        icon: Globe,
+        image: "https://placehold.co/400x500.png",
+        hint: "tbilisi street",
         href: "/tours?category=city"
     },
     {
         name: "Mountain & Hiking",
         description: "Trek through breathtaking Caucasus landscapes.",
-        icon: Mountain,
+        image: "https://placehold.co/400x500.png",
+        hint: "caucasus mountains",
         href: "/tours?category=hiking"
     },
     {
         name: "Wine & Gastronomy",
         description: "Indulge in ancient traditions of Georgian winemaking.",
-        icon: GlassWater,
+        image: "https://placehold.co/400x500.png",
+        hint: "georgian wine",
         href: "/tours?category=wine"
     },
     {
         name: "Historical & Cultural",
         description: "Discover ancient monasteries, fortresses, and more.",
-        icon: Landmark,
+        image: "https://placehold.co/400x500.png",
+        hint: "ancient monastery",
         href: "/tours?category=historical"
     },
 ];
@@ -143,18 +147,20 @@ export default async function Home() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {categories.map((category) => (
-                <Link href={category.href} key={category.name}>
-                    <Card className="text-center flex flex-col h-full hover:shadow-xl hover:-translate-y-1 transition-transform">
-                        <CardHeader>
-                            <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
-                            <category.icon className="w-8 h-8" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <CardTitle className="mb-2 text-xl font-headline">{category.name}</CardTitle>
-                            <p className="text-muted-foreground text-sm">{category.description}</p>
-                        </CardContent>
-                    </Card>
+                <Link href={category.href} key={category.name} className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
+                    <Image 
+                        src={category.image} 
+                        alt={category.name} 
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        data-ai-hint={category.hint}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <h3 className="text-white text-2xl font-bold font-headline">{category.name}</h3>
+                        <p className="text-white/90 text-sm mt-1">{category.description}</p>
+                    </div>
                 </Link>
               ))}
             </div>
