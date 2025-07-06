@@ -5,6 +5,7 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import Tour from '@/models/Tour';
 import Category from '@/models/Category';
+import Review from '@/models/Review';
 import { Types } from 'mongoose';
 
 interface DecodedToken {
@@ -33,24 +34,56 @@ export async function GET(request: NextRequest) {
 
     try {
         await dbConnect();
-        // Ensure Category model is initialized
-        Category;
         const user = await User.findById(userId)
             .populate({
                 path: 'wishlist',
                 model: Tour,
-                 populate: {
-                    path: 'category',
-                    model: 'Category'
-                }
+                populate: [
+                    { path: 'category', model: Category },
+                    { path: 'createdBy', model: User, select: 'name' }
+                ]
             })
-            .select('wishlist');
+            .select('wishlist')
+            .lean();
 
         if (!user) {
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
         
-        return NextResponse.json(user.wishlist);
+        if (!user.wishlist || user.wishlist.length === 0) {
+            return NextResponse.json([]);
+        }
+
+        const tourIds = user.wishlist.map((t: any) => t._id);
+
+        const ratings = await Review.aggregate([
+            { $match: { tourId: { $in: tourIds } } },
+            { $group: { _id: '$tourId', avgRating: { $avg: '$rating' } } }
+        ]);
+
+        const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
+
+        const formattedWishlist = user.wishlist.map((tour: any) => {
+             const rating = ratingsMap.get(tour._id.toString()) || 0;
+             return {
+                id: tour._id.toString(),
+                title: tour.title,
+                location: tour.location,
+                category: tour.category?.name || 'Uncategorized',
+                price: tour.price,
+                duration: tour.duration,
+                description: tour.description,
+                images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
+                providerName: tour.createdBy?.name || 'Unknown Provider',
+                rating: parseFloat(rating.toFixed(1)),
+                itinerary: [],
+                providerId: tour.createdBy?._id.toString() || '',
+                reviews: [],
+                approved: tour.approved,
+            }
+        });
+
+        return NextResponse.json(formattedWishlist);
     } catch (error) {
         console.error('Error fetching wishlist:', error);
         return NextResponse.json({ message: 'Error fetching wishlist' }, { status: 500 });

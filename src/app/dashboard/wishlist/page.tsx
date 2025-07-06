@@ -26,7 +26,7 @@ const CardSkeleton = () => (
 );
 
 export default function WishlistPage() {
-    const [wishlist, setWishlist] = useState<any[]>([]);
+    const [wishlist, setWishlist] = useState<Tour[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -36,14 +36,7 @@ export default function WishlistPage() {
                 const response = await fetch('/api/user/wishlist');
                 if (response.ok) {
                     const data = await response.json();
-                     const formattedData = data.map((tour: any) => ({
-                        ...tour,
-                        id: tour._id,
-                        category: tour.category?.name || "Uncategorized",
-                        rating: tour.rating || 0,
-                        reviews: [],
-                    }));
-                    setWishlist(formattedData);
+                    setWishlist(data);
                 }
             } catch (error) {
                 console.error("Failed to fetch wishlist", error);
