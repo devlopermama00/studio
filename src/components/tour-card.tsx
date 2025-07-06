@@ -23,22 +23,21 @@ export function TourCard({ tour }: { tour: Tour }) {
           ${tour.price}
         </Badge>
       </CardHeader>
-      <CardContent className="p-4 flex-1">
-        <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20">{tour.category}</Badge>
-        <CardTitle className="text-lg font-headline font-semibold">
+      <CardContent className="p-4 flex-1 flex flex-col">
+        <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 w-fit">{tour.category}</Badge>
+        <CardTitle className="text-lg font-headline font-semibold mb-2">
           <Link href={`/tours/${tour.id}`} className="hover:text-primary transition-colors">
             {tour.title}
           </Link>
         </CardTitle>
+        <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
+          {tour.description}
+        </p>
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex justify-between text-sm text-muted-foreground border-t mt-auto">
+      <CardFooter className="p-4 pt-0 flex justify-between items-center text-sm text-muted-foreground border-t mt-auto">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-primary" />
           <span>{tour.location}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-primary" />
-          <span>{tour.duration}</span>
         </div>
         <div className="flex items-center gap-1">
           <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
