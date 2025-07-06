@@ -22,7 +22,7 @@ import {
 import {
   LayoutDashboard, User, Settings, LogOut,
   Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart,
-  BookCopy, MessageSquare, LayoutList, Download, PenSquare, Star, DollarSign
+  BookCopy, MessageSquare, LayoutList, Download, PenSquare, Star, DollarSign, Megaphone
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -192,6 +192,14 @@ const AdminNav = () => {
                         <Link href="/dashboard/admin/reviews">
                             <Star />
                             Reviews
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/notices')}>
+                        <Link href="/dashboard/admin/notices">
+                            <Megaphone />
+                            Notices
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

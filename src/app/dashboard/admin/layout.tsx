@@ -13,7 +13,8 @@ import {
     LayoutDashboard,
     Map,
     DollarSign,
-    Star
+    Star,
+    Megaphone
 } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { TourVistaLogo } from "@/components/logo";
@@ -85,6 +86,14 @@ const AdminNav = () => {
                         <Link href="/dashboard/admin/reviews">
                             <Star />
                             Reviews
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                        <Link href="/dashboard/admin/notices">
+                            <Megaphone />
+                            Notices
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

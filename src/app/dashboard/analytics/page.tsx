@@ -2,11 +2,12 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { DollarSign, Users, BarChart, Star } from "lucide-react";
+import { DollarSign, Users, BarChart, Star, Megaphone } from "lucide-react";
 import { Bar, BarChart as RechartsBarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 interface ProviderStats {
     totalRevenue: number;
@@ -16,6 +17,13 @@ interface ProviderStats {
     reviewCount: number;
     monthlyEarnings: { month: string; total: number }[];
     topTours: { title: string; bookings: number }[];
+}
+
+interface Notice {
+    _id: string;
+    title: string;
+    content: string;
+    createdAt: string;
 }
 
 const ProviderDashboardSkeleton = () => (
@@ -48,25 +56,39 @@ const ProviderDashboardSkeleton = () => (
                 </CardContent>
             </Card>
         </div>
+        <Skeleton className="h-48" />
     </div>
 )
 
 export default function AnalyticsPage() {
     const [stats, setStats] = useState<ProviderStats | null>(null);
+    const [notices, setNotices] = useState<Notice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchAllData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch('/api/provider/stats');
-                if (!response.ok) {
-                    const errorData = await response.json();
+                const [statsResponse, noticesResponse] = await Promise.all([
+                    fetch('/api/provider/stats'),
+                    fetch('/api/provider/notices')
+                ]);
+
+                if (!statsResponse.ok) {
+                    const errorData = await statsResponse.json();
                     throw new Error(errorData.message || 'Failed to fetch dashboard data');
                 }
-                const data = await response.json();
-                setStats(data);
+                const statsData = await statsResponse.json();
+                setStats(statsData);
+
+                if (noticesResponse.ok) {
+                    const noticesData = await noticesResponse.json();
+                    setNotices(noticesData);
+                } else {
+                    console.error("Failed to fetch notices");
+                }
+                
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
                 toast({
@@ -78,7 +100,7 @@ export default function AnalyticsPage() {
                 setIsLoading(false);
             }
         };
-        fetchStats();
+        fetchAllData();
     }, [toast]);
     
     if (isLoading) {
@@ -187,6 +209,36 @@ export default function AnalyticsPage() {
                         </div>
                         ) : (
                             <p className="text-sm text-muted-foreground">No bookings yet.</p>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+             <div className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Megaphone className="h-5 w-5 text-primary" />
+                            Admin Announcements
+                        </CardTitle>
+                        <CardDescription>
+                            Important updates from the TourVista team.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {notices.length > 0 ? (
+                            <div className="space-y-4">
+                                {notices.map(notice => (
+                                    <div key={notice._id} className="p-3 rounded-lg border bg-secondary/50">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <p className="font-semibold">{notice.title}</p>
+                                            <p className="text-xs text-muted-foreground">{format(new Date(notice.createdAt), "PPP")}</p>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground">{notice.content}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">No new announcements at the moment.</p>
                         )}
                     </CardContent>
                 </Card>
