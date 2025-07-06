@@ -18,8 +18,8 @@ export async function POST(request: Request) {
 
     const lowercasedEmail = email.toLowerCase();
     
-    // Use a case-insensitive regex for a more robust check
-    const existingUser = await User.findOne({ email: new RegExp(`^${lowercasedEmail}$`, 'i') });
+    // Simplest possible check: find a user where the email exactly matches the lowercased version.
+    const existingUser = await User.findOne({ email: lowercasedEmail });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     console.error('Full registration error:', JSON.stringify(error, null, 2));
 
     if (error.code === 11000) {
-      return NextResponse.json({ message: 'A user with this email already exists (database conflict).' }, { status: 409 });
+      return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
     }
     
     if (error instanceof mongoose.Error.MongooseServerSelectionError || error.name === 'MongoNetworkError') {
