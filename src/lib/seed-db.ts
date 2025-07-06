@@ -17,7 +17,6 @@ export async function seedDatabase() {
       return;
     }
 
-    // Check for tours instead of users to decide whether to seed.
     const tourCount = await Tour.countDocuments();
     if (tourCount > 0) {
       // console.log('Database has tours, skipping seed.');
@@ -26,27 +25,36 @@ export async function seedDatabase() {
 
     console.log('No tours found. Starting database seed...');
 
-    // 1. Seed Users (if needed)
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-        console.log('Seeding Users...');
-        const passwordHash = await bcryptjs.hash('Password123', 10);
-        const usersToSeed = mockUsersData.map(user => ({
-          ...user,
-          passwordHash,
-          isVerified: user.role === 'provider'
-        }));
-        await User.insertMany(usersToSeed.map(({id, ...rest}) => rest));
-        console.log('Users seeded.');
+    // 1. Seed Users idempotently
+    console.log('Upserting mock users...');
+    const passwordHash = await bcryptjs.hash('Password123', 10);
+    for (const mockUser of mockUsersData) {
+      const { id, ...userToUpsert } = mockUser;
+      await User.findOneAndUpdate(
+        { email: userToUpsert.email },
+        {
+          $setOnInsert: {
+            ...userToUpsert,
+            passwordHash,
+            isVerified: userToUpsert.role === 'provider'
+          }
+        },
+        { upsert: true }
+      );
     }
+    console.log('Mock users are present.');
 
-    // 2. Seed Categories (if needed)
-    const categoryCount = await Category.countDocuments();
-    if (categoryCount === 0) {
-        console.log('Seeding Categories...');
-        await Category.insertMany(mockCategoriesData.map(({id, ...rest}) => rest));
-        console.log('Categories seeded.');
+    // 2. Seed Categories idempotently
+    console.log('Upserting mock categories...');
+    for (const mockCategory of mockCategoriesData) {
+        const { id, ...categoryToUpsert } = mockCategory;
+        await Category.findOneAndUpdate(
+            { name: categoryToUpsert.name },
+            { $setOnInsert: categoryToUpsert },
+            { upsert: true }
+        );
     }
+    console.log('Mock categories are present.');
 
     // 3. Prepare maps for relationships
     const seededUsers = await User.find({}).lean();
@@ -58,7 +66,7 @@ export async function seedDatabase() {
 
     // 4. Seed Tours and Reviews
     const providerDbId = mockUserIdToDbIdMap.get('user-2');
-    if (!providerDbId) throw new Error('Could not find mock provider user in DB');
+    if (!providerDbId) throw new Error('Could not find mock provider user in DB after seeding.');
 
     for (const mockTour of mockToursData) {
         const categoryId = categoryNameToIdMap.get(mockTour.category);
