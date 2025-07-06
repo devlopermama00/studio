@@ -206,7 +206,7 @@ export default function AdminUsersPage() {
                             <div className="flex items-center gap-3">
                                 <Avatar className="hidden h-9 w-9 sm:flex">
                                     <AvatarImage src={user.profilePhoto || "https://placehold.co/100x100.png"} alt={user.name} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-0.5">
                                     <p className="font-medium">{user.name}</p>

@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -161,7 +162,7 @@ export default function AboutPage() {
                                 <div className="flex items-center mb-4">
                                 <Avatar className="h-12 w-12 mr-4">
                                     <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                                    <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback>{testimonial.name.charAt(0).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <p className="font-semibold">{testimonial.name}</p>

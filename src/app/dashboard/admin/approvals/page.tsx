@@ -153,7 +153,7 @@ export default function AdminApprovalsPage() {
                         <div className="flex items-center gap-3">
                             <Avatar className="hidden h-9 w-9 sm:flex">
                                 <AvatarImage src={doc.userId.profilePhoto || "https://placehold.co/100x100.png"} alt={doc.userId.name} />
-                                <AvatarFallback>{doc.userId.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{doc.userId.name.charAt(0).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="grid gap-0.5">
                                 <p className="font-medium">{doc.userId.name}</p>

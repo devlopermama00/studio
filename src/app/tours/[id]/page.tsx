@@ -125,7 +125,7 @@ export default async function TourDetailPage({ params }: { params: { id: string 
                             <div key={review.id} className="flex gap-4">
                                 <Avatar>
                                 <AvatarImage src={review.userImage} alt={review.userName} />
-                                <AvatarFallback>{review.userName.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{review.userName.charAt(0).toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1">
                                 <div className="flex items-center justify-between">
