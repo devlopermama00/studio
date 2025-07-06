@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -16,16 +16,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock categories for now. We will fetch these from the API later.
-const categories = [
-  { id: "1", name: "City Tours" },
-  { id: "2", name: "Mountain & Hiking" },
-  { id: "3", name: "Wine & Gastronomy" },
-  { id: "4", name: "Historical & Cultural" },
-  { id: "5", name: "Multi-Day Tours" },
-  { id: "6", name: "Adventure & Extreme" },
-];
+interface Category {
+    _id: string;
+    name: string;
+}
 
 const formSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }),
@@ -40,6 +36,28 @@ export default function AddTourPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingCategories, setIsFetchingCategories] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+        try {
+            const response = await fetch('/api/categories');
+            if (!response.ok) throw new Error('Failed to fetch categories');
+            const data = await response.json();
+            setCategories(data);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not load categories. Please try again later.",
+            });
+        } finally {
+            setIsFetchingCategories(false);
+        }
+    };
+    fetchCategories();
+  }, [toast]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,18 +65,42 @@ export default function AddTourPage() {
       title: "",
       description: "",
       location: "",
-      price: 0,
+      price: undefined,
       duration: "",
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // This is where we'll call our API endpoint later.
-    console.log(values);
-    toast({
-        title: "Tour Data (for now)",
-        description: <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4"><code className="text-white">{JSON.stringify(values, null, 2)}</code></pre>
-    });
+    setIsLoading(true);
+    try {
+        const response = await fetch('/api/tours', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(values),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to create tour.");
+        }
+
+        toast({
+            title: "Success!",
+            description: "Your new tour has been created.",
+        });
+        router.push('/dashboard/tours');
+        router.refresh();
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+        toast({
+            variant: "destructive",
+            title: "Failed to create tour",
+            description: errorMessage,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -154,6 +196,7 @@ export default function AddTourPage() {
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Category</FormLabel>
+                        {isFetchingCategories ? <Skeleton className="h-10 w-full" /> : (
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                             <SelectTrigger>
@@ -162,10 +205,11 @@ export default function AddTourPage() {
                             </FormControl>
                             <SelectContent>
                             {categories.map(category => (
-                                <SelectItem key={category.id} value={category.name}>{category.name}</SelectItem>
+                                <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>
                             ))}
                             </SelectContent>
                         </Select>
+                        )}
                         <FormMessage />
                         </FormItem>
                     )}
@@ -178,7 +222,7 @@ export default function AddTourPage() {
              </div>
           </CardContent>
           <CardFooter className="border-t pt-6">
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || isFetchingCategories}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Tour
             </Button>
