@@ -17,13 +17,7 @@ export async function seedDatabase() {
       return;
     }
 
-    const tourCount = await Tour.countDocuments();
-    if (tourCount > 0) {
-      // console.log('Database has tours, skipping seed.');
-      return;
-    }
-
-    console.log('No tours found. Starting database seed...');
+    console.log('Starting database seed/sync...');
 
     // 1. Seed Users idempotently
     console.log('Upserting mock users...');
@@ -64,14 +58,22 @@ export async function seedDatabase() {
     const categoryNameToIdMap = new Map(seededCategories.map(c => [c.name, c._id]));
     const mockUserIdToDbIdMap = new Map(mockUsersData.map(mu => [mu.id, userEmailToIdMap.get(mu.email)]));
 
-    // 4. Seed Tours and Reviews
-    const providerDbId = mockUserIdToDbIdMap.get('user-2');
-    if (!providerDbId) throw new Error('Could not find mock provider user in DB after seeding.');
-
+    // 4. Seed Tours and Reviews idempotently
+    const providerDbId = userEmailToIdMap.get('maria@example.com');
+    if (!providerDbId) {
+      throw new Error('Could not find mock provider user in DB. Seeding cannot continue.');
+    }
+    
+    let newToursAdded = 0;
     for (const mockTour of mockToursData) {
+        const existingTour = await Tour.findOne({ title: mockTour.title });
+        if (existingTour) {
+            continue; // Skip if tour with the same title exists
+        }
+
         const categoryId = categoryNameToIdMap.get(mockTour.category);
         if (!categoryId) {
-            console.warn(`Category not found for tour: ${mockTour.title}`);
+            console.warn(`Category '${mockTour.category}' not found for tour: ${mockTour.title}`);
             continue;
         }
 
@@ -89,6 +91,7 @@ export async function seedDatabase() {
         };
 
         const newTour = await new Tour(tourToCreate).save();
+        newToursAdded++;
         
         // Seed associated reviews
         if (mockTour.reviews && mockTour.reviews.length > 0) {
@@ -113,8 +116,10 @@ export async function seedDatabase() {
         }
     }
 
-    console.log('Tours and Reviews seeded.');
-    console.log('Database seeding complete.');
+    if (newToursAdded > 0) {
+      console.log(`${newToursAdded} new tours were seeded.`);
+    }
+    console.log('Database seeding/sync complete.');
 
   } catch (error) {
     console.error('Error seeding database:', error);
