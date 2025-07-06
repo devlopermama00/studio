@@ -42,28 +42,24 @@ const destinations = [
 const categories = [
     {
         name: "City Tours",
-        description: "Explore vibrant streets and historic landmarks.",
         image: "https://placehold.co/400x500.png",
         hint: "tbilisi street",
         href: "/tours?category=city"
     },
     {
         name: "Mountain & Hiking",
-        description: "Trek through breathtaking Caucasus landscapes.",
         image: "https://placehold.co/400x500.png",
         hint: "caucasus mountains",
         href: "/tours?category=hiking"
     },
     {
         name: "Wine & Gastronomy",
-        description: "Indulge in ancient traditions of Georgian winemaking.",
         image: "https://placehold.co/400x500.png",
         hint: "georgian wine",
         href: "/tours?category=wine"
     },
     {
         name: "Historical & Cultural",
-        description: "Discover ancient monasteries, fortresses, and more.",
         image: "https://placehold.co/400x500.png",
         hint: "ancient monastery",
         href: "/tours?category=historical"
@@ -147,7 +143,7 @@ export default async function Home() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {categories.map((category) => (
-                <Link href={category.href} key={category.name} className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
+                <Link href={category.href} key={category.name} className="group relative block aspect-[3/4] overflow-hidden rounded-lg shadow-lg">
                     <Image 
                         src={category.image} 
                         alt={category.name} 
@@ -156,10 +152,9 @@ export default async function Home() {
                         className="object-cover transition-transform duration-300 group-hover:scale-105"
                         data-ai-hint={category.hint}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 className="text-white text-2xl font-bold font-headline">{category.name}</h3>
-                        <p className="text-white/90 text-sm mt-1">{category.description}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="text-white text-xl font-bold font-headline">{category.name}</h3>
                     </div>
                 </Link>
               ))}
