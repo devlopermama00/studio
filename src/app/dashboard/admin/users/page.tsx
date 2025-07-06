@@ -1,14 +1,14 @@
 
 "use client"
 
-import { MoreHorizontal, Loader2, UserX, UserCheck, KeyRound } from "lucide-react"
+import { MoreHorizontal, Loader2, UserX, UserCheck, KeyRound, Edit, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -70,16 +70,26 @@ export default function AdminUsersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isBlocked: !user.isBlocked }),
       });
-      if (!response.ok) throw new Error('Failed to update user status');
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update user status');
+      }
       
-      const updatedUser = await response.json();
-      const updatedUsers = users.map(u => u._id === user._id ? { ...u, isBlocked: updatedUser.isBlocked } : u);
+      const updatedUsers = users.map(u => u._id === user._id ? { ...u, isBlocked: data.isBlocked } : u);
       setUsers(updatedUsers);
-      setFilteredUsers(updatedUsers.filter(u => filteredUsers.some(fu => fu._id === u._id)));
+      
+      const currentFilter = document.querySelector('[role="combobox"]')?.textContent;
+      if (currentFilter === "All Roles") {
+        setFilteredUsers(updatedUsers);
+      } else {
+        setFilteredUsers(updatedUsers.filter(u => u.role === user.role));
+      }
       
       toast({ title: "Success", description: `User ${user.isBlocked ? 'unblocked' : 'blocked'}.` });
     } catch (error) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Could not update user status." });
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      toast({ variant: "destructive", title: "Update Failed", description: errorMessage });
     } finally {
       setIsUpdating(null);
     }
@@ -95,14 +105,19 @@ export default function AdminUsersPage() {
     setIsUpdating(userToDelete._id);
     try {
         const response = await fetch(`/api/admin/users/${userToDelete._id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Failed to delete user');
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to delete user');
+        }
         
         const remainingUsers = users.filter(u => u._id !== userToDelete._id);
         setUsers(remainingUsers);
-        setFilteredUsers(remainingUsers);
+        setFilteredUsers(filteredUsers.filter(u => u._id !== userToDelete._id));
+
         toast({ title: "Success", description: "User deleted successfully." });
     } catch (error) {
-        toast({ variant: "destructive", title: "Deletion Failed", description: "Could not delete user." });
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        toast({ variant: "destructive", title: "Deletion Failed", description: errorMessage });
     } finally {
         setIsUpdating(null);
         setIsAlertOpen(false);
@@ -151,7 +166,7 @@ export default function AdminUsersPage() {
               <TableHead>Role</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Joined Date</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -171,7 +186,7 @@ export default function AdminUsersPage() {
                             </Badge>
                         </TableCell>
                         <TableCell>{format(new Date(user.createdAt), "PPP")}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-right">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                             <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isUpdating === user._id}>
@@ -179,18 +194,31 @@ export default function AdminUsersPage() {
                             </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            {user.role !== 'admin' && (
-                                <DropdownMenuItem onClick={() => handleToggleBlock(user)}>
-                                    {user.isBlocked ? <><UserCheck className="mr-2 h-4 w-4"/>Unblock User</> : <><UserX className="mr-2 h-4 w-4"/>Block User</>}
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem disabled>
+                                    <Edit className="mr-2 h-4 w-4"/> Edit User
                                 </DropdownMenuItem>
-                            )}
-                             <DropdownMenuItem disabled>
-                               <KeyRound className="mr-2 h-4 w-4"/> Reset Password
-                             </DropdownMenuItem>
-                            {user.role !== 'admin' && (
-                                <DropdownMenuItem className="text-red-600" onClick={() => openDeleteDialog(user)}>Delete User</DropdownMenuItem>
-                            )}
+                                {user.role !== 'admin' && (
+                                    <DropdownMenuItem onClick={() => handleToggleBlock(user)}>
+                                        {user.isBlocked ? (
+                                            <><UserCheck className="mr-2 h-4 w-4"/>Unblock User</>
+                                        ) : (
+                                            <><UserX className="mr-2 h-4 w-4"/>Block User</>
+                                        )}
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem disabled>
+                                <KeyRound className="mr-2 h-4 w-4"/> Reset Password
+                                </DropdownMenuItem>
+                                {user.role !== 'admin' && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-100 dark:focus:bg-red-900/40" onClick={() => openDeleteDialog(user)}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete User
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
@@ -211,12 +239,12 @@ export default function AdminUsersPage() {
     <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>This action cannot be undone. This will permanently delete the user account for "{userToDelete?.name}".</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} disabled={isUpdating === userToDelete?._id}>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isUpdating === userToDelete?._id} className="bg-destructive hover:bg-destructive/90">
                 {isUpdating === userToDelete?._id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Delete
             </AlertDialogAction>
