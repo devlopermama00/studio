@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -25,7 +24,6 @@ const formSchema = z.object({
 });
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,7 +63,7 @@ export default function RegisterPage() {
         title: "Success!",
         description: "Your account has been created. Please log in.",
       });
-      router.push('/login');
+      window.location.href = '/login';
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";

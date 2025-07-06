@@ -1,8 +1,9 @@
+
 "use client";
 
 import React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   SidebarProvider,
   Sidebar,
@@ -130,7 +131,6 @@ const AdminNav = () => {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = React.useState(true);
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -143,22 +143,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           const userData = await response.json();
           setUser(userData);
         } else {
-          router.push('/login');
+          window.location.href = '/login';
         }
       } catch (error) {
         console.error("Failed to fetch user, redirecting to login", error);
-        router.push('/login');
+        window.location.href = '/login';
       } finally {
         setIsLoading(false);
       }
     };
     fetchUser();
-  }, [router]);
+  }, []);
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
+    window.location.href = '/login';
   };
 
   if (isLoading) {
