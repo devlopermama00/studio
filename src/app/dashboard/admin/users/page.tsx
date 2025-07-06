@@ -240,7 +240,7 @@ export default function AdminUsersPage() {
         <AlertDialogContent>
             <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone. This will permanently delete the user account for "{userToDelete?.name}".</AlertDialogDescription>
+            <AlertDialogDescription>This action cannot be undone. This will permanently delete the user account for "{userToDelete?.name}" and all associated data.</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -3,6 +3,10 @@ import { NextResponse, type NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
+import Tour from '@/models/Tour';
+import Booking from '@/models/Booking';
+import Review from '@/models/Review';
+import Document from '@/models/Document';
 import { Types } from 'mongoose';
 
 interface DecodedToken {
@@ -104,7 +108,31 @@ export async function DELETE(
             return NextResponse.json({ message: 'Administrators cannot be deleted.' }, { status: 403 });
         }
 
+        const userId = new Types.ObjectId(userIdToDelete);
+
+        // If the user is a provider, delete all their tours and associated data first
+        if (userToDelete.role === 'provider') {
+            const toursToDelete = await Tour.find({ createdBy: userId });
+            const tourIdsToDelete = toursToDelete.map(t => t._id);
+
+            // Delete bookings for these tours
+            await Booking.deleteMany({ tourId: { $in: tourIdsToDelete } });
+            // Delete reviews for these tours
+            await Review.deleteMany({ tourId: { $in: tourIdsToDelete } });
+            // Delete the tours themselves
+            await Tour.deleteMany({ createdBy: userId });
+        }
+
+        // Delete bookings made by the user
+        await Booking.deleteMany({ userId: userId });
+        // Delete reviews written by the user
+        await Review.deleteMany({ userId: userId });
+        // Delete documents submitted by the user
+        await Document.deleteMany({ userId: userId });
+
+        // Finally, delete the user
         await User.findByIdAndDelete(userIdToDelete);
+
 
         return NextResponse.json({ message: 'User deleted successfully' }, { status: 200 });
 
