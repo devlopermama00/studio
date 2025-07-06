@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,6 +8,7 @@ import AdminDashboardPage from "./admin/page";
 import AnalyticsPage from "./analytics/page"; // This is the provider dashboard
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { BookOpen, Star, Map } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthUser {
   id: string;
@@ -15,12 +17,62 @@ interface AuthUser {
   role: "user" | "provider" | "admin";
 }
 
+interface UserStats {
+    upcomingBookings: number;
+    completedTours: number;
+    reviewsWritten: number;
+}
+
+const UserDashboardSkeleton = () => (
+    <div className="space-y-6">
+        <div className="space-y-1">
+            <Skeleton className="h-8 w-1/3" />
+            <Skeleton className="h-4 w-1/2" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+        </div>
+    </div>
+);
+
+
 const UserDashboard = ({ user }: { user: AuthUser }) => {
-    const stats = [
-        { title: "Upcoming Bookings", value: "2", icon: BookOpen, description: "Ready for your next adventure." },
-        { title: "Completed Tours", value: "12", icon: Map, description: "Memories made, stories to tell." },
-        { title: "Reviews Written", value: "8", icon: Star, description: "Your feedback helps others." },
+    const [stats, setStats] = useState<UserStats | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch('/api/user/stats');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to fetch dashboard data');
+                }
+                const data = await response.json();
+                setStats(data);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+                toast({ variant: "destructive", title: "Error", description: errorMessage });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchStats();
+    }, [toast]);
+    
+    if (isLoading) {
+        return <UserDashboardSkeleton />;
+    }
+
+    const statCards = [
+        { title: "Upcoming Bookings", value: stats?.upcomingBookings ?? 0, icon: BookOpen, description: "Ready for your next adventure." },
+        { title: "Completed Tours", value: stats?.completedTours ?? 0, icon: Map, description: "Memories made, stories to tell." },
+        { title: "Reviews Written", value: stats?.reviewsWritten ?? 0, icon: Star, description: "Your feedback helps others." },
     ];
+    
     return (
         <div className="space-y-6">
             <div className="space-y-1">
@@ -29,7 +81,7 @@ const UserDashboard = ({ user }: { user: AuthUser }) => {
             </div>
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {stats.map((stat) => (
+                {statCards.map((stat) => (
                     <Card key={stat.title}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
