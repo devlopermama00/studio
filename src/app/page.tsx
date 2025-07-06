@@ -38,7 +38,7 @@ const destinations = [
 ];
 
 export default async function Home() {
-  const featuredTours = await getPublicTours(6);
+  const featuredTours = await getPublicTours(8);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -80,7 +80,7 @@ export default async function Home() {
             </p>
              {featuredTours.length > 0 ? (
                 <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {featuredTours.map((tour) => (
                         <TourCard key={tour.id} tour={tour} />
                     ))}
