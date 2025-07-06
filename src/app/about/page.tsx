@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ShieldCheck, CalendarCheck, Sparkles, Globe, MousePointerClick, Star } from "lucide-react";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 const features = [
   {
@@ -57,6 +58,14 @@ const testimonials = [
     rating: 4,
     comment: "The Kakheti wine tour was a delight for the senses. Wonderful wine, delicious food, and beautiful scenery.",
     tour: "Kakheti Wine Region Tour"
+  },
+  {
+    name: "Sarah Lee",
+    location: "Seoul, South Korea",
+    avatar: "https://placehold.co/100x100.png",
+    rating: 5,
+    comment: "I loved every moment. The tour was well-organized and the country is just beautiful. Can't wait to come back!",
+    tour: "Uplistsikhe & Mtskheta Historical Tour"
   }
 ];
 
@@ -112,7 +121,7 @@ export default function AboutPage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {features.map((feature, index) => (
-                <Card key={index} className="text-center flex flex-col">
+                <Card key={index} className="text-center flex flex-col h-full">
                   <CardHeader>
                     <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit">
                       <feature.icon className="w-8 h-8" />
@@ -136,31 +145,45 @@ export default function AboutPage() {
                     Real stories from adventurers who explored Georgia with us.
                 </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {testimonials.map((testimonial, index) => (
-                    <Card key={index} className="flex flex-col">
-                    <CardContent className="p-6 flex-1 flex flex-col">
-                        <div className="flex items-center mb-4">
-                        <Avatar className="h-12 w-12 mr-4">
-                            <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                            <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <p className="font-semibold">{testimonial.name}</p>
-                            <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                <Carousel
+                  opts={{
+                    align: "start",
+                    loop: true,
+                  }}
+                  className="w-full max-w-sm sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto"
+                >
+                  <CarouselContent>
+                    {testimonials.map((testimonial, index) => (
+                      <CarouselItem key={index} className="sm:basis-1/2 lg:basis-1/3">
+                        <div className="p-2 h-full">
+                            <Card className="flex flex-col h-full">
+                            <CardContent className="p-6 flex-1 flex flex-col">
+                                <div className="flex items-center mb-4">
+                                <Avatar className="h-12 w-12 mr-4">
+                                    <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                                    <AvatarFallback>{testimonial.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold">{testimonial.name}</p>
+                                    <p className="text-sm text-muted-foreground">{testimonial.location}</p>
+                                </div>
+                                </div>
+                                <StarRating rating={testimonial.rating} />
+                                <blockquote className="text-muted-foreground italic mt-4 flex-1">
+                                "{testimonial.comment}"
+                                </blockquote>
+                            </CardContent>
+                            <CardFooter className="bg-secondary p-4 text-sm mt-auto">
+                                <p className="text-muted-foreground">On the <span className="font-semibold text-foreground">{testimonial.tour}</span></p>
+                            </CardFooter>
+                            </Card>
                         </div>
-                        </div>
-                        <StarRating rating={testimonial.rating} />
-                        <blockquote className="text-muted-foreground italic mt-4 flex-1">
-                        "{testimonial.comment}"
-                        </blockquote>
-                    </CardContent>
-                    <CardFooter className="bg-secondary p-4 text-sm mt-auto">
-                        <p className="text-muted-foreground">On the <span className="font-semibold text-foreground">{testimonial.tour}</span></p>
-                    </CardFooter>
-                    </Card>
-                ))}
-                </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden sm:flex" />
+                  <CarouselNext className="hidden sm:flex" />
+                </Carousel>
             </div>
         </section>
         
