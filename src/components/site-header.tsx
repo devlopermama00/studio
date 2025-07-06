@@ -170,8 +170,8 @@ export function SiteHeader() {
                   <span className="sr-only">Open menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[80vw] max-w-sm">
-                <div key={user?.id ?? 'logged-out'}>
+              <SheetContent key={user?.id ?? 'logged-out'} side="right" className="w-[80vw] max-w-sm">
+                <div>
                   <SheetHeader className="p-0 text-left mb-8">
                     <SheetTitle className="sr-only">Main Menu</SheetTitle>
                     <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
