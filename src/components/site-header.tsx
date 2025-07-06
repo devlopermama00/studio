@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -80,7 +81,7 @@ export function SiteHeader() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <TourVistaLogo />
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
              {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -97,13 +98,13 @@ export function SiteHeader() {
         </div>
 
         <div className="flex items-center gap-2">
-            <div className="hidden md:flex">
+            <div className="hidden lg:flex">
                 <AuthButtons />
             </div>
             
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
+                <Button variant="ghost" size="icon" className="lg:hidden">
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Open menu</span>
                 </Button>
