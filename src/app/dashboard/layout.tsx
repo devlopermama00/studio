@@ -37,20 +37,22 @@ interface AuthUser {
   profilePhoto?: string;
 }
 
-const UserNav = () => {
+const UserNav = ({ user }: { user: AuthUser }) => {
     const pathname = usePathname();
     return (
         <SidebarGroup>
             <SidebarGroupLabel>My Account</SidebarGroupLabel>
             <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
-                        <Link href="/dashboard">
-                            <LayoutDashboard />
-                            Dashboard
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                {user.role !== 'admin' && (
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
+                            <Link href="/dashboard">
+                                <LayoutDashboard />
+                                Dashboard
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                )}
                 <SidebarMenuItem>
                      <SidebarMenuButton asChild isActive={pathname === "/dashboard/bookings"}>
                         <Link href="/dashboard/bookings">
@@ -122,7 +124,7 @@ const AdminNav = () => {
             <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin' || pathname === '/dashboard/admin'}>
+                    <SidebarMenuButton asChild isActive={pathname === '/dashboard/admin' || pathname === '/dashboard'}>
                         <Link href="/dashboard/admin">
                             <LayoutDashboard />
                             Overview
@@ -285,7 +287,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <TourVistaLogo />
         </SidebarHeader>
         <SidebarContent className="p-2">
-            <UserNav />
+            <UserNav user={user} />
             {(user.role === 'provider' || user.role === 'admin') && <ProviderNav />}
             {user.role === 'admin' && <AdminNav />}
         </SidebarContent>
