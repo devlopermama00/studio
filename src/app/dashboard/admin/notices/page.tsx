@@ -13,9 +13,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
-import { Loader2, Trash2 } from "lucide-react"
+import { Loader2, Trash2, Eye } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -40,6 +41,8 @@ export default function AdminNoticesPage() {
     const [notices, setNotices] = useState<Notice[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+    const [isViewOpen, setIsViewOpen] = useState(false);
 
     const fetchNotices = async () => {
         setIsLoading(true);
@@ -101,98 +104,130 @@ export default function AdminNoticesPage() {
             toast({ variant: "destructive", title: "Error", description: errorMessage });
         }
     };
+
+    const handleViewClick = (notice: Notice) => {
+        setSelectedNotice(notice);
+        setIsViewOpen(true);
+    };
     
     const SkeletonRows = () => Array.from({ length: 2 }).map((_, index) => (
         <TableRow key={index}>
             <TableCell><Skeleton className="h-5 w-40" /></TableCell>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-            <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+            <TableCell><Skeleton className="h-8 w-24 ml-auto" /></TableCell>
         </TableRow>
     ));
 
     return (
-        <div className="grid gap-6 lg:grid-cols-5">
-            <div className="lg:col-span-2">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Post a New Notice</CardTitle>
-                        <CardDescription>Create an announcement for users or providers.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                <FormField name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="Important Update" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField name="content" render={({ field }) => (<FormItem><FormLabel>Content</FormLabel><FormControl><Textarea placeholder="Details about the announcement..." {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField control={form.control} name="target" render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Audience</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <FormControl><SelectTrigger><SelectValue placeholder="Select an audience" /></SelectTrigger></FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="provider">Providers</SelectItem>
-                                                <SelectItem value="user">Users</SelectItem>
-                                                <SelectItem value="all">All</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )} />
-                                <Button type="submit" disabled={isSubmitting}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    Post Notice
-                                </Button>
-                            </form>
-                         </Form>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="lg:col-span-3">
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Posted Notices</CardTitle>
-                        <CardDescription>A list of all past announcements.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       <ScrollArea className="h-[400px]">
-                           <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Title</TableHead>
-                                        <TableHead>Audience</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead className="text-right">Action</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {isLoading ? <SkeletonRows /> : notices.map(notice => (
-                                        <TableRow key={notice._id}>
-                                            <TableCell className="font-medium">{notice.title}</TableCell>
-                                            <TableCell className="capitalize">{notice.target}</TableCell>
-                                            <TableCell>{format(new Date(notice.createdAt), "PPP")}</TableCell>
-                                            <TableCell className="text-right">
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                            <AlertDialogDescription>This will permanently delete the notice "{notice.title}".</AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                            <AlertDialogAction onClick={() => handleDelete(notice._id)}>Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </TableCell>
+        <>
+            <div className="grid gap-6 lg:grid-cols-5">
+                <div className="lg:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Post a New Notice</CardTitle>
+                            <CardDescription>Create an announcement for users or providers.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                                    <FormField name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="Important Update" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField name="content" render={({ field }) => (<FormItem><FormLabel>Content</FormLabel><FormControl><Textarea placeholder="Details about the announcement..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                    <FormField control={form.control} name="target" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Audience</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue placeholder="Select an audience" /></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="provider">Providers</SelectItem>
+                                                    <SelectItem value="user">Users</SelectItem>
+                                                    <SelectItem value="all">All</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Post Notice
+                                    </Button>
+                                </form>
+                            </Form>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-3">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Posted Notices</CardTitle>
+                            <CardDescription>A list of all past announcements.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        <ScrollArea className="h-[400px]">
+                            <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Title</TableHead>
+                                            <TableHead>Audience</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead className="text-right">Action</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                       </ScrollArea>
-                    </CardContent>
-                </Card>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {isLoading ? <SkeletonRows /> : notices.map(notice => (
+                                            <TableRow key={notice._id}>
+                                                <TableCell className="font-medium">{notice.title}</TableCell>
+                                                <TableCell className="capitalize">{notice.target}</TableCell>
+                                                <TableCell>{format(new Date(notice.createdAt), "PPP")}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleViewClick(notice)}>
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild><Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600"><Trash2 className="h-4 w-4" /></Button></AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                                <AlertDialogDescription>This will permanently delete the notice "{notice.title}".</AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDelete(notice._id)}>Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                        </ScrollArea>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
+            <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{selectedNotice?.title}</DialogTitle>
+                        {selectedNotice && (
+                            <DialogDescription>
+                                Posted on {format(new Date(selectedNotice.createdAt), "PPP")} for the '{selectedNotice.target}' audience.
+                            </DialogDescription>
+                        )}
+                    </DialogHeader>
+                    <div className="py-4 text-sm text-muted-foreground whitespace-pre-wrap max-h-96 overflow-y-auto">
+                        {selectedNotice?.content}
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button type="button" variant="secondary">
+                                Close
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
