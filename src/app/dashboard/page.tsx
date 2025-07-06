@@ -94,18 +94,6 @@ const UserDashboard = ({ user }: { user: AuthUser }) => {
                     </Card>
                 ))}
             </div>
-
-            {user.role === 'user' && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Become a Provider</CardTitle>
-                        <CardDescription>Share your passion for Georgia with travelers from around the world. Start creating and managing your own tours today!</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <button className="text-primary font-semibold">Learn more about providing tours</button>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     )
 };
