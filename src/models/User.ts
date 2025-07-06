@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, models } from 'mongoose';
+import mongoose, { Schema, Document, models, Types } from 'mongoose';
 
 export interface IUser extends Document {
   name: string;
@@ -10,6 +10,7 @@ export interface IUser extends Document {
   profilePhoto?: string;
   isBlocked: boolean;
   isVerified: boolean;
+  wishlist: Types.ObjectId[];
 }
 
 const UserSchema: Schema = new Schema({
@@ -22,6 +23,7 @@ const UserSchema: Schema = new Schema({
   profilePhoto: { type: String },
   isBlocked: { type: Boolean, default: false },
   isVerified: { type: Boolean, default: false },
+  wishlist: [{ type: Schema.Types.ObjectId, ref: 'Tour' }],
 }, { timestamps: true });
 
 export default models.User || mongoose.model<IUser>('User', UserSchema);

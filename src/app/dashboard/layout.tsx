@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   LayoutDashboard, User, Settings, LogOut,
-  Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen
+  Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -55,6 +55,14 @@ const UserNav = () => {
                         <Link href="/dashboard/bookings">
                             <BookOpen />
                             My Bookings
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/wishlist"}>
+                        <Link href="/dashboard/wishlist">
+                            <Heart />
+                            Wishlist
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

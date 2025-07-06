@@ -1,4 +1,5 @@
 
+
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
@@ -12,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MapPin, Clock, Users, MessageSquare } from "lucide-react";
 import { getPublicTourById } from "@/lib/tours-data";
 import { BookingCard } from "@/components/booking-card";
+import { TourActionButtons } from "@/components/tour-action-buttons";
 
 
 export default async function TourDetailPage({ params }: { params: { id: string } }) {
@@ -42,7 +44,10 @@ export default async function TourDetailPage({ params }: { params: { id: string 
         <div className="container mx-auto px-4 py-8 md:py-12">
           {/* Tour Header */}
           <div className="mb-8">
-            <h1 className="text-3xl md:text-5xl font-headline font-bold mb-2">{tour.title}</h1>
+            <div className="flex justify-between items-start gap-4 mb-2">
+              <h1 className="text-3xl md:text-5xl font-headline font-bold">{tour.title}</h1>
+              <TourActionButtons tourId={tour.id} tourTitle={tour.title} />
+            </div>
             <div className="flex flex-col md:flex-row md:items-center gap-4 text-muted-foreground">
               <StarRating rating={tour.rating} reviewCount={tour.reviews.length} />
               <div className="flex items-center gap-2"><MapPin className="w-4 h-4" /> {tour.location}</div>
