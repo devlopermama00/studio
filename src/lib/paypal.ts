@@ -1,6 +1,4 @@
 
-'use server';
-
 const { PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET } = process.env;
 const base = process.env.NEXT_PUBLIC_PAYPAL_API_URL || "https://api-m.sandbox.paypal.com";
 
