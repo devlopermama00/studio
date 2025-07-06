@@ -15,7 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, User, Mail, Lock, FileText, Search } from "lucide-react";
+import { Loader2, Eye, EyeOff, User, Mail, Lock, FileText, Wallet, Upload, CheckCircle } from "lucide-react";
 import { currencies } from "@/context/currency-context";
 import { uploadFile } from "@/services/fileUploader";
 
@@ -54,6 +54,7 @@ export default function ProviderRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [documentFileName, setDocumentFileName] = useState<string | null>(null);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,6 +67,8 @@ export default function ProviderRegisterPage() {
       companyDocument: undefined,
     },
   });
+
+  const fileRef = form.register("companyDocument");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -112,21 +115,14 @@ export default function ProviderRegisterPage() {
     }
   }
 
-  const FormPasswordInput = ({ field, placeholder, show, toggleShow }: { field: any, placeholder: string, show: boolean, toggleShow: () => void}) => (
-     <div className="relative">
-        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-        <Input type={show ? "text" : "password"} placeholder={placeholder} {...field} className="pl-10 h-12 text-base" />
-        <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-            onClick={toggleShow}
-        >
-            {show ? <EyeOff /> : <Eye />}
-        </Button>
-    </div>
-  )
+  const PasswordRequirement = ({ text, met }: { text: string, met: boolean }) => (
+      <div className="flex items-center text-xs">
+          <CheckCircle className={`mr-2 h-3 w-3 ${met ? 'text-green-500' : 'text-muted-foreground'}`} />
+          <span className={met ? 'text-foreground' : 'text-muted-foreground'}>{text}</span>
+      </div>
+  );
+
+  const passwordValue = form.watch("password", "");
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-secondary py-12">
@@ -140,114 +136,122 @@ export default function ProviderRegisterPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
+                 <FormField control={form.control} name="name" render={({ field }) => (
+                    <FormItem>
                         <FormControl>
-                            <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input placeholder="Company Name" {...field} className="pl-10 h-12 text-base" />
-                            </div>
+                            <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input placeholder="Company Name" {...field} className="pl-10" /></div>
                         </FormControl>
                         <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
+                    </FormItem>
+                )} />
+                 <FormField control={form.control} name="email" render={({ field }) => (
+                     <FormItem>
                         <FormControl>
-                            <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input type="email" placeholder="Email Address" {...field} className="pl-10 h-12 text-base" />
-                            </div>
+                             <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input type="email" placeholder="Email Address" {...field} className="pl-10" /></div>
                         </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                         <FormMessage />
+                    </FormItem>
+                )} />
               </div>
               
-              <FormField
-                control={form.control}
-                name="currency"
-                render={({ field }) => (
+              <FormField control={form.control} name="currency" render={({ field }) => (
                   <FormItem>
                     <FormControl>
                         <div className="relative">
-                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                             <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                              <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
-                                <SelectTrigger className="pl-10 h-12 text-base">
-                                    <SelectValue placeholder="Select Payout Currency" />
-                                </SelectTrigger>
+                                <SelectTrigger className="pl-10"><SelectValue placeholder="Select Payout Currency" /></SelectTrigger>
                                 </FormControl>
-                                <SelectContent>
-                                    {currencies.map(c => <SelectItem key={c.code} value={c.code}>{c.name} ({c.symbol})</SelectItem>)}
-                                </SelectContent>
+                                <SelectContent>{currencies.map(c => <SelectItem key={c.code} value={c.code}>{c.name} ({c.symbol})</SelectItem>)}</SelectContent>
                             </Select>
                         </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="companyDocument"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Company Document</FormLabel>
-                    <FormControl>
-                        <div className="relative">
-                        <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            type="file"
-                            className="pl-10 h-12 text-base"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={(e) => field.onChange(e.target.files)}
-                        />
-                        </div>
-                    </FormControl>
-                    <FormDescription>
-                        PDF, JPG, or PNG. Max 5MB. This is required for verification.
-                    </FormDescription>
-                    <FormMessage />
-                    </FormItem>
-                )}
-              />
+              )} />
+              
+                <FormField
+                    control={form.control}
+                    name="companyDocument"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Company Document</FormLabel>
+                        <FormControl>
+                           <label className="flex items-center justify-center w-full h-24 px-4 transition bg-background border-2 border-dashed rounded-md appearance-none cursor-pointer hover:border-primary focus:outline-none">
+                                <span className="flex items-center space-x-2 text-muted-foreground">
+                                    <Upload className="w-6 h-6" />
+                                    {documentFileName ? (
+                                        <span className="font-medium">{documentFileName}</span>
+                                    ) : (
+                                        <span className="font-medium">Click to upload document</span>
+                                    )}
+                                </span>
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    {...fileRef}
+                                    onChange={(e) => {
+                                        field.onChange(e.target.files);
+                                        setDocumentFileName(e.target.files?.[0]?.name || null);
+                                    }}
+                                />
+                            </label>
+                        </FormControl>
+                        <FormDescription>PDF, JPG, or PNG. Max 5MB. Required for verification.</FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
               <div className="grid md:grid-cols-2 gap-4">
-                 <FormField control={form.control} name="password" render={({ field }) => (<FormItem><FormControl><FormPasswordInput field={field} placeholder="Password" show={showPassword} toggleShow={() => setShowPassword(s => !s)} /></FormControl><FormMessage /></FormItem>)} />
-                 <FormField control={form.control} name="confirmPassword" render={({ field }) => (<FormItem><FormControl><FormPasswordInput field={field} placeholder="Confirm Password" show={showConfirmPassword} toggleShow={() => setShowConfirmPassword(s => !s)} /></FormControl><FormMessage /></FormItem>)} />
+                 <FormField control={form.control} name="password" render={({ field }) => (
+                    <FormItem>
+                        <FormControl>
+                             <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input type={showPassword ? "text" : "password"} placeholder="Password" {...field} className="pl-10" />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPassword(s => !s)}>{showPassword ? <EyeOff /> : <Eye />}</Button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                 )} />
+                 <FormField control={form.control} name="confirmPassword" render={({ field }) => (
+                    <FormItem>
+                        <FormControl>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input type={showConfirmPassword ? "text" : "password"} placeholder="Confirm Password" {...field} className="pl-10" />
+                                <Button type="button" variant="ghost" size="icon" className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground" onClick={() => setShowConfirmPassword(s => !s)}>{showConfirmPassword ? <EyeOff /> : <Eye />}</Button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                 )} />
               </div>
 
-               <FormField
-                control={form.control}
-                name="terms"
-                render={({ field }) => (
+               <div className="grid grid-cols-2 gap-2 p-2 rounded-md bg-secondary">
+                    <PasswordRequirement text="8+ characters" met={passwordValue.length >= 8} />
+                    <PasswordRequirement text="1 uppercase letter" met={/[A-Z]/.test(passwordValue)} />
+                    <PasswordRequirement text="1 lowercase letter" met={/[a-z]/.test(passwordValue)} />
+                    <PasswordRequirement text="1 number" met={/[0-9]/.test(passwordValue)} />
+                    <PasswordRequirement text="1 special character" met={/[^A-Za-z0-9]/.test(passwordValue)} />
+                </div>
+
+
+               <FormField control={form.control} name="terms" render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md py-4">
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel>
-                        By creating an account, you agree to our{' '}
-                        <Link href="/terms" className="text-primary hover:underline">
-                          Terms & Conditions
-                        </Link>
-                        {' and '}
-                         <Link href="/privacy" className="text-primary hover:underline">
-                          Privacy Policy
-                        </Link>.
+                        I agree to the{' '}
+                        <Link href="/terms" className="text-primary hover:underline">Terms</Link>
+                        {' & '}
+                         <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
                       </FormLabel>
                       <FormMessage />
                     </div>
@@ -255,7 +259,7 @@ export default function ProviderRegisterPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full mt-6 h-12 text-base" disabled={isLoading}>
+              <Button type="submit" className="w-full h-12 text-base" disabled={isLoading}>
                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Provider Account
               </Button>
