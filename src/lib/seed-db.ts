@@ -8,6 +8,7 @@ import Tour from '@/models/Tour';
 import Review from '@/models/Review';
 import { tours as mockToursData, users as mockUsersData, categories as mockCategoriesData } from '@/lib/mock-data';
 import bcryptjs from 'bcryptjs';
+import { Types } from 'mongoose';
 
 export async function seedDatabase() {
   try {
@@ -19,12 +20,14 @@ export async function seedDatabase() {
 
     console.log('Starting database seed/sync...');
 
-    // 1. Seed Users idempotently
-    console.log('Upserting mock users...');
+    // 1. Seed Users idempotently and build maps
     const passwordHash = await bcryptjs.hash('Password123', 10);
+    const userEmailToIdMap = new Map<string, Types.ObjectId>();
+    const mockUserIdToDbIdMap = new Map<string, Types.ObjectId>();
+
     for (const mockUser of mockUsersData) {
       const { id, ...userToUpsert } = mockUser;
-      await User.findOneAndUpdate(
+      const dbUser = await User.findOneAndUpdate(
         { email: userToUpsert.email },
         {
           $setOnInsert: {
@@ -33,32 +36,32 @@ export async function seedDatabase() {
             isVerified: userToUpsert.role === 'provider'
           }
         },
-        { upsert: true }
+        { upsert: true, new: true, lean: true }
       );
+      if (dbUser) {
+        userEmailToIdMap.set(dbUser.email, dbUser._id);
+        mockUserIdToDbIdMap.set(id, dbUser._id);
+      }
     }
     console.log('Mock users are present.');
-
+    
     // 2. Seed Categories idempotently
     console.log('Upserting mock categories...');
+    const categoryNameToIdMap = new Map<string, Types.ObjectId>();
     for (const mockCategory of mockCategoriesData) {
         const { id, ...categoryToUpsert } = mockCategory;
-        await Category.findOneAndUpdate(
+        const dbCategory = await Category.findOneAndUpdate(
             { name: categoryToUpsert.name },
             { $setOnInsert: categoryToUpsert },
-            { upsert: true }
+            { upsert: true, new: true, lean: true }
         );
+        if (dbCategory) {
+            categoryNameToIdMap.set(dbCategory.name, dbCategory._id);
+        }
     }
     console.log('Mock categories are present.');
 
-    // 3. Prepare maps for relationships
-    const seededUsers = await User.find({}).lean();
-    const seededCategories = await Category.find({}).lean();
-    
-    const userEmailToIdMap = new Map(seededUsers.map(u => [u.email, u._id]));
-    const categoryNameToIdMap = new Map(seededCategories.map(c => [c.name, c._id]));
-    const mockUserIdToDbIdMap = new Map(mockUsersData.map(mu => [mu.id, userEmailToIdMap.get(mu.email)]));
-
-    // 4. Seed Tours and Reviews idempotently
+    // 3. Seed Tours and Reviews idempotently
     const providerDbId = userEmailToIdMap.get('maria@example.com');
     if (!providerDbId) {
       throw new Error('Could not find mock provider user in DB. Seeding cannot continue.');
@@ -68,7 +71,7 @@ export async function seedDatabase() {
     for (const mockTour of mockToursData) {
         const existingTour = await Tour.findOne({ title: mockTour.title });
         if (existingTour) {
-            continue; // Skip if tour with the same title exists
+            continue;
         }
 
         const categoryId = categoryNameToIdMap.get(mockTour.category);
