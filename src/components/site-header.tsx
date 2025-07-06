@@ -79,7 +79,7 @@ export function SiteHeader() {
     async function fetchUser() {
       setIsLoading(true);
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me', { cache: 'no-store' });
         if (response.ok) {
           const data = await response.json();
           setUser(data);
@@ -156,8 +156,8 @@ export function SiteHeader() {
               </SheetTrigger>
               <SheetContent side="right" className="w-[80vw] max-w-sm">
                 <SheetHeader className="p-0 text-left mb-8">
-                  <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
                   <SheetTitle className="sr-only">Main Menu</SheetTitle>
+                  <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
                 </SheetHeader>
                 <div className="flex flex-col space-y-4">
                   {navLinks.map((link) => (
