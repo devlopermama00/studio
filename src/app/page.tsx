@@ -1,5 +1,4 @@
 
-
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Ticket, Mail } from "lucide-react";
@@ -165,7 +164,7 @@ export default async function Home() {
               <CarouselContent className="-ml-4">
                 {categories.map((category) => (
                   <CarouselItem key={category.name} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                    <Link href={category.href} className="group relative block aspect-[4/5] overflow-hidden rounded-lg shadow-lg">
+                    <Link href={category.href} className="group relative block aspect-square overflow-hidden rounded-lg shadow-lg">
                       <Image
                         src={category.image}
                         alt={category.name}
@@ -229,7 +228,7 @@ export default async function Home() {
                         From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.
                     </p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {destinations.map((dest) => (
                         <Link href="/tours" key={dest.name} className="group relative block overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
                             <Image src={dest.image} alt={dest.name} width={600} height={400} data-ai-hint={dest.hint} className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105" />
