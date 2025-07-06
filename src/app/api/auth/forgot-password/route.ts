@@ -9,8 +9,10 @@ export async function POST(request: NextRequest) {
     try {
         await dbConnect();
         const { email } = await request.json();
+
+        const lowercasedEmail = email.toLowerCase();
         
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: lowercasedEmail });
 
         if (user) {
             // Only proceed if user is found, but don't reveal if the user exists

@@ -14,9 +14,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    const existingUser = await User.findOne({
-      email: { $regex: `^${email}$`, $options: 'i' }
-    });
+    const lowercasedEmail = email.toLowerCase();
+
+    const existingUser = await User.findOne({ email: lowercasedEmail });
     
     if (existingUser) {
       return NextResponse.json({ message: 'A user with this email already exists.' }, { status: 409 });
@@ -25,11 +25,11 @@ export async function POST(request: Request) {
     const passwordHash = await bcryptjs.hash(password, 10);
     
     // Assign 'admin' role if the email matches the designated admin email from environment variables
-    const finalRole = (process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL) ? 'admin' : role;
+    const finalRole = (process.env.ADMIN_EMAIL && lowercasedEmail === process.env.ADMIN_EMAIL) ? 'admin' : role;
 
     const newUser = new User({
       name,
-      email,
+      email: lowercasedEmail,
       passwordHash,
       role: finalRole,
     });
