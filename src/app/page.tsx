@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Star, Compass, Lock, Smile, Ticket, Mail } from "lucide-react";
+import { ArrowRight, Ticket, Mail } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
@@ -15,33 +15,36 @@ import { Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
-const howItWorksSteps = [
+const discoverItems = [
   {
-    icon: Compass,
-    title: "Find Your Perfect Tour",
-    description: "Browse our curated selection of tours or use the search to find exactly what you're looking for.",
+    title: "Kakheti Region",
+    description: "Traditions and Wine Making in the Heart of Kakheti!",
+    image: "https://placehold.co/600x400.png",
+    hint: "kakheti wine"
   },
   {
-    icon: Lock,
-    title: "Book Securely Online",
-    description: "Our booking process is simple, fast, and uses a secure payment system to protect your data.",
+    title: "Mountain of Kazbegi",
+    description: "Nature, History and Mountains to Fill your Eyes.",
+    image: "https://placehold.co/600x400.png",
+    hint: "kazbegi mountain"
   },
   {
-    icon: Smile,
-    title: "Enjoy with a Verified Guide",
-    description: "Meet your expert local guide and embark on an unforgettable adventure in Georgia.",
-  },
+    title: "Lovers of Real History",
+    description: "History of Georgia from the beginning until today!",
+    image: "https://placehold.co/600x400.png",
+    hint: "georgia history"
+  }
 ];
 
 const destinations = [
-  { name: "Tbilisi", image: "https://placehold.co/400x500.png", hint: "tbilisi georgia", activities: 125 },
-  { name: "Batumi", image: "https://placehold.co/400x500.png", hint: "batumi georgia", activities: 88 },
-  { name: "Gudauri", image: "https://placehold.co/400x500.png", hint: "gudauri georgia", activities: 42 },
-  { name: "Kakheti", image: "https://placehold.co/400x500.png", hint: "kakheti georgia", activities: 95 },
-  { name: "Kazbegi", image: "https://placehold.co/400x500.png", hint: "kazbegi mountains", activities: 30 },
-  { name: "Svaneti", image: "https://placehold.co/400x500.png", hint: "svaneti landscape", activities: 15 },
-  { name: "Mtskheta", image: "https://placehold.co/400x500.png", hint: "mtskheta georgia", activities: 25 },
-  { name: "Kutaisi", image: "https://placehold.co/400x500.png", hint: "kutaisi georgia", activities: 50 },
+  { name: "Tbilisi", image: "https://placehold.co/600x400.png", hint: "tbilisi georgia", description: "The vibrant capital where history meets modernity." },
+  { name: "Batumi", image: "https://placehold.co/600x400.png", hint: "batumi georgia", description: "A dazzling city on the Black Sea coast." },
+  { name: "Gudauri", image: "https://placehold.co/600x400.png", hint: "gudauri georgia", description: "A premier ski resort with stunning mountain views." },
+  { name: "Kakheti", image: "https://placehold.co/600x400.png", hint: "kakheti georgia", description: "The historic heartland of Georgian wine." },
+  { name: "Kazbegi", image: "https://placehold.co/600x400.png", hint: "kazbegi mountains", description: "Home to the iconic Gergeti Trinity Church." },
+  { name: "Svaneti", image: "https://placehold.co/600x400.png", hint: "svaneti landscape", description: "A remote region of medieval towers and high peaks." },
+  { name: "Mtskheta", image: "https://placehold.co/600x400.png", hint: "mtskheta georgia", description: "The ancient capital and spiritual heart of Georgia." },
+  { name: "Kutaisi", image: "https://placehold.co/600x400.png", hint: "kutaisi georgia", description: "A city of legends, canyons, and monasteries." },
 ];
 
 const categories = [
@@ -185,28 +188,33 @@ export default async function Home() {
           </div>
         </section>
         
-        {/* 4. How It Works Section */}
+        {/* 4. Discover World of Georgia Section */}
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">How It Works</h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto mb-12">
-                Booking your Georgian adventure is as easy as 1-2-3.
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <h2 className="text-3xl md:text-4xl font-headline font-semibold">
+                Discover The World of Georgia With Us!
+              </h2>
+              <p className="text-muted-foreground text-lg mt-4">
+                Discover amazing places at exclusive deals Only with Us!
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {howItWorksSteps.map((step, index) => (
-                <Card key={index} className="text-center">
-                    <CardHeader>
-                        <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
-                            <step.icon className="w-8 h-8" />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <CardTitle className="mb-2 text-xl font-headline">{step.title}</CardTitle>
-                        <p className="text-muted-foreground">{step.description}</p>
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              {discoverItems.map((item, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <div className="w-full overflow-hidden rounded-lg shadow-md mb-6">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      width={600}
+                      height={400}
+                      className="w-full h-auto object-cover aspect-[3/2] transition-transform duration-300 hover:scale-105"
+                      data-ai-hint={item.hint}
+                    />
+                  </div>
+                  <h3 className="text-xl font-headline font-semibold mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground max-w-xs">{item.description}</p>
+                </div>
               ))}
             </div>
           </div>
@@ -223,19 +231,12 @@ export default async function Home() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {destinations.map((dest) => (
-                        <Link href="/tours" key={dest.name} className="group relative block h-96 overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
-                            <Image 
-                                src={dest.image} 
-                                alt={dest.name} 
-                                width={400} 
-                                height={500} 
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
-                                data-ai-hint={dest.hint} 
-                            />
+                        <Link href="/tours" key={dest.name} className="group relative block overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
+                            <Image src={dest.image} alt={dest.name} width={600} height={400} data-ai-hint={dest.hint} className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                             <div className="absolute bottom-0 left-0 p-4">
                                 <h3 className="text-white text-2xl font-bold font-headline">{dest.name}</h3>
-                                <p className="text-white/90 text-sm">{dest.activities} activities</p>
+                                <p className="text-white/90 text-sm">{dest.description}</p>
                             </div>
                         </Link>
                     ))}
