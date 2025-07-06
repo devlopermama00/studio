@@ -42,24 +42,30 @@ const UserNav = () => {
         <SidebarGroup>
             <SidebarGroupLabel>My Account</SidebarGroupLabel>
             <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard" isActive={pathname === "/dashboard"}>
-                <LayoutDashboard />
-                Dashboard
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/bookings" isActive={pathname === "/dashboard/bookings"}>
-                <BookOpen />
-                My Bookings
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/profile" isActive={pathname === "/dashboard/profile"}>
-                <User />
-                Profile
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dashboard" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard"}>
+                            <LayoutDashboard />
+                            Dashboard
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dashboard/bookings" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/bookings"}>
+                            <BookOpen />
+                            My Bookings
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dashboard/profile" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/profile"}>
+                            <User />
+                            Profile
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
     );
@@ -71,24 +77,30 @@ const ProviderNav = () => {
         <SidebarGroup>
             <SidebarGroupLabel>Provider Tools</SidebarGroupLabel>
             <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/tours" isActive={pathname.startsWith('/dashboard/tours')}>
-                <Map />
-                My Tours
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/analytics" isActive={pathname === "/dashboard/analytics"}>
-                <BarChart2 />
-                Analytics
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/documents" isActive={pathname === "/dashboard/documents"}>
-                <FileText />
-                Verification
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dashboard/tours" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/tours')}>
+                            <Map />
+                            My Tours
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dashboard/analytics" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/analytics"}>
+                            <BarChart2 />
+                            Analytics
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <Link href="/dashboard/documents" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname === "/dashboard/documents"}>
+                            <FileText />
+                            Verification
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
     );
@@ -101,28 +113,36 @@ const AdminNav = () => {
             <SidebarGroupLabel>Admin Panel</SidebarGroupLabel>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard/admin" isActive={pathname === '/dashboard/admin'}>
-                        <ShieldCheck />
-                        Overview
-                    </SidebarMenuButton>
+                    <Link href="/dashboard/admin" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname === '/dashboard/admin'}>
+                            <ShieldCheck />
+                            Overview
+                        </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard/admin/users" isActive={pathname.startsWith('/dashboard/admin/users')}>
-                        <Users />
-                        Users
-                    </SidebarMenuButton>
+                    <Link href="/dashboard/admin/users" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/admin/users')}>
+                            <Users />
+                            Users
+                        </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard/admin/tours" isActive={pathname.startsWith('/dashboard/admin/tours')}>
-                        <Edit />
-                        Tours
-                    </SidebarMenuButton>
+                    <Link href="/dashboard/admin/tours" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/admin/tours')}>
+                            <Edit />
+                            Tours
+                        </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                    <SidebarMenuButton href="/dashboard/admin/approvals" isActive={pathname.startsWith('/dashboard/admin/approvals')}>
-                        <ShieldCheck />
-                        Approvals
-                    </SidebarMenuButton>
+                     <Link href="/dashboard/admin/approvals" passHref>
+                        <SidebarMenuButton as="a" isActive={pathname.startsWith('/dashboard/admin/approvals')}>
+                            <ShieldCheck />
+                            Approvals
+                        </SidebarMenuButton>
+                    </Link>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroup>
@@ -208,10 +228,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarFooter>
            <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton href="/dashboard/profile">
-                    <Settings />
-                    Settings
-                </SidebarMenuButton>
+                <Link href="/dashboard/profile" passHref>
+                    <SidebarMenuButton as="a">
+                        <Settings />
+                        Settings
+                    </SidebarMenuButton>
+                </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <SidebarMenuButton onClick={handleLogout}>
@@ -223,7 +245,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
            <Separator className="my-2 bg-sidebar-border" />
             <div className="p-2 flex items-center gap-2">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.profilePhoto || "https://placehold.co/100x100.png"} alt={user.name} />
+                    <AvatarImage src={user.profilePhoto || ""} alt={user.name} />
                     <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="group-data-[collapsible=icon]:hidden transition-opacity duration-200">
