@@ -20,6 +20,7 @@ import { Loader2, ArrowLeft, Trash2, PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { currencies } from "@/context/currency-context";
 
 interface Category {
     _id: string;
@@ -37,7 +38,7 @@ const formSchema = z.object({
   city: z.string().min(2, { message: "City is required." }),
   place: z.string().min(2, { message: "Place is required." }),
   durationInHours: z.coerce.number().positive({ message: "Duration must be a positive number of hours." }),
-  currency: z.string().min(3, { message: "Currency is required." }).default("USD"),
+  currency: z.string({ required_error: "Currency is required." }).default("USD"),
   price: z.coerce.number().positive({ message: "Price must be a positive number." }),
   tourType: z.enum(["public", "private"], { required_error: "Please select a tour type." }),
   category: z.string({ required_error: "Please select a category." }),
@@ -214,7 +215,26 @@ export default function EditTourPage() {
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <FormField name="durationInHours" render={({ field }) => (<FormItem><FormLabel>Duration (in hours)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField name="price" render={({ field }) => (<FormItem><FormLabel>Price</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField name="currency" render={({ field }) => (<FormItem><FormLabel>Currency</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Currency</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a currency" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {currencies.map(c => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <FormField name="groupSize" render={({ field }) => (<FormItem><FormLabel>Max Group Size</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
             
@@ -222,7 +242,7 @@ export default function EditTourPage() {
                  <FormField control={form.control} name="category" render={({ field }) => (
                     <FormItem>
                     <FormLabel>Category</FormLabel>
-                    {isFetchingCategories ? <Skeleton className="h-10 w-full" /> : (
+                    {isFetchingData ? <Skeleton className="h-10 w-full" /> : (
                     <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Select a tour category" /></SelectTrigger></FormControl>
                         <SelectContent>{categories.map(category => (<SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>))}</SelectContent>
