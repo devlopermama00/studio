@@ -1,3 +1,4 @@
+
 export type User = {
   id: string;
   name: string;
@@ -48,5 +49,5 @@ export type Booking = {
   bookingDate: string;
   guests: number;
   totalPrice: number;
-  status: "confirmed" | "cancelled" | "completed";
+  status: "pending" | "confirmed" | "cancelled" | "completed";
 };
