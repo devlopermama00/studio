@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -228,8 +227,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <SidebarFooter>
            <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                    <Link href="/dashboard/profile">
+                <SidebarMenuButton asChild isActive={pathname === "/dashboard/settings"}>
+                    <Link href="/dashboard/settings">
                         <Settings />
                         Settings
                     </Link>
