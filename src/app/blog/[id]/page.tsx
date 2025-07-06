@@ -10,25 +10,12 @@ import { SiteFooter } from "@/components/site-footer";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { getPublishedBlogPostById } from "@/lib/blog-data";
 
 export const dynamic = 'force-dynamic';
 
-async function getBlogPost(id: string) {
-    // In a real app, you'd fetch this from your API
-    // For now, we return mock data or handle not found
-    try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/blogs/${id}`, { cache: 'no-store' });
-        if (!res.ok) return null;
-        return res.json();
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
-
-
 export default async function BlogPostPage({ params }: { params: { id: string } }) {
-  const post = await getBlogPost(params.id);
+  const post = await getPublishedBlogPostById(params.id);
 
   if (!post) {
     notFound();

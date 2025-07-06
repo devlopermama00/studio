@@ -8,19 +8,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { getPublishedBlogPosts } from "@/lib/blog-data";
 
 export const dynamic = 'force-dynamic';
-
-async function getBlogPosts() {
-    try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/blogs`, { cache: 'no-store' });
-        if (!res.ok) return [];
-        return res.json();
-    } catch (error) {
-        console.error(error);
-        return [];
-    }
-}
 
 const BlogCard = ({ post }: { post: any }) => (
     <Link href={`/blog/${post._id}`} className="group">
@@ -49,7 +39,7 @@ const BlogCard = ({ post }: { post: any }) => (
 
 
 export default async function BlogPage() {
-  const posts = await getBlogPosts();
+  const posts = await getPublishedBlogPosts();
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -1,14 +1,6 @@
 
 import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import Blog from '@/models/Blog';
-import Category from '@/models/Category';
-import User from '@/models/User';
-import { Types } from 'mongoose';
-
-// To ensure models are registered
-Category;
-User;
+import { getPublishedBlogPostById } from '@/lib/blog-data';
 
 // GET a single published blog post
 export async function GET(
@@ -16,16 +8,7 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        await dbConnect();
-        
-        const blogId = params.id;
-        if (!Types.ObjectId.isValid(blogId)) {
-            return NextResponse.json({ message: 'Invalid blog post ID' }, { status: 400 });
-        }
-
-        const blogPost = await Blog.findOne({ _id: blogId, published: true })
-            .populate('author', 'name profilePhoto')
-            .populate('category', 'name');
+        const blogPost = await getPublishedBlogPostById(params.id);
 
         if (!blogPost) {
             return NextResponse.json({ message: 'Blog post not found or not published' }, { status: 404 });
