@@ -15,7 +15,6 @@ export interface IUser extends Document {
   wishlist: Types.ObjectId[];
   forgotPasswordToken?: string;
   forgotPasswordTokenExpiry?: Date;
-  website?: string;
   currency?: string;
   companyDocumentUrl?: string;
 }
@@ -34,7 +33,6 @@ const UserSchema: Schema = new Schema({
   wishlist: [{ type: Schema.Types.ObjectId, ref: 'Tour' }],
   forgotPasswordToken: { type: String },
   forgotPasswordTokenExpiry: { type: Date },
-  website: { type: String },
   currency: { type: String },
   companyDocumentUrl: { type: String },
 }, { timestamps: true });

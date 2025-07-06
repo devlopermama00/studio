@@ -8,10 +8,14 @@ import mongoose from 'mongoose';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, role, website, currency } = body;
+    const { name, email, password, role, currency, companyDocumentUrl } = body;
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (role === 'provider' && !companyDocumentUrl) {
+      return NextResponse.json({ message: 'Company document is required for providers.' }, { status: 400 });
     }
 
     await dbConnect();
@@ -33,8 +37,8 @@ export async function POST(request: Request) {
       email: lowercasedEmail,
       passwordHash,
       role: finalRole,
-      website,
       currency,
+      companyDocumentUrl,
     });
 
     await newUser.save();

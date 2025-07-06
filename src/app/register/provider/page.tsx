@@ -11,17 +11,20 @@ import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, User, Globe, Mail, Lock, FileText, Search } from "lucide-react";
+import { Loader2, Eye, EyeOff, User, Mail, Lock, FileText, Search } from "lucide-react";
 import { currencies } from "@/context/currency-context";
+import { uploadFile } from "@/services/fileUploader";
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Company name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
-  website: z.string().url({ message: "Please enter a valid website URL." }).optional().or(z.literal('')),
   currency: z.string({ required_error: "Please select your payout currency." }),
   password: z.string()
     .min(8, { message: "Password must be at least 8 characters." })
@@ -30,6 +33,14 @@ const formSchema = z.object({
     .regex(/[0-9]/, { message: "Must contain at least one number." })
     .regex(/[^A-Za-z0-9]/, { message: "Must contain at least one special character." }),
   confirmPassword: z.string(),
+  companyDocument: z
+    .any()
+    .refine((files) => files?.length === 1, "Company document is required.")
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine(
+      (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
+      "Only .pdf, .jpg, .jpeg, and .png formats are supported."
+    ),
   terms: z.literal(true, {
     errorMap: () => ({ message: "You must accept the terms and conditions." }),
   }),
@@ -50,22 +61,29 @@ export default function ProviderRegisterPage() {
     defaultValues: {
       name: "",
       email: "",
-      website: "",
       password: "",
       confirmPassword: "",
+      companyDocument: undefined,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      const documentFile = values.companyDocument[0] as File;
+      const companyDocumentUrl = await uploadFile(documentFile, 'provider-documents');
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...values,
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          currency: values.currency,
+          companyDocumentUrl: companyDocumentUrl,
           role: 'provider',
         }),
       });
@@ -94,13 +112,6 @@ export default function ProviderRegisterPage() {
     }
   }
 
-  const FormInput = ({ name, placeholder, icon: Icon, type = "text", field }: { name: string, placeholder: string, icon: React.ElementType, type?: string, field: any }) => (
-    <div className="relative">
-      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-      <Input type={type} placeholder={placeholder} {...field} className="pl-10 h-12 text-base" />
-    </div>
-  );
-  
   const FormPasswordInput = ({ field, placeholder, show, toggleShow }: { field: any, placeholder: string, show: boolean, toggleShow: () => void}) => (
      <div className="relative">
         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -129,8 +140,36 @@ export default function ProviderRegisterPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <FormField control={form.control} name="name" render={({ field }) => (<FormItem><FormControl><FormInput name="name" placeholder="Company Name" icon={User} field={field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormControl><FormInput name="email" placeholder="Email Address" icon={Mail} type="email" field={field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormControl>
+                            <div className="relative">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input placeholder="Company Name" {...field} className="pl-10 h-12 text-base" />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormControl>
+                            <div className="relative">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input type="email" placeholder="Email Address" {...field} className="pl-10 h-12 text-base" />
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
               </div>
               
               <FormField
@@ -158,16 +197,30 @@ export default function ProviderRegisterPage() {
                 )}
               />
 
-              <FormField control={form.control} name="website" render={({ field }) => (<FormItem><FormControl><FormInput name="website" placeholder="Website (optional)" icon={Globe} field={field} /></FormControl><FormMessage /></FormItem>)} />
-              
-              <FormItem>
-                  <FormLabel className="text-muted-foreground">Company Document (optional)</FormLabel>
-                   <div className="relative">
+              <FormField
+                control={form.control}
+                name="companyDocument"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Company Document</FormLabel>
+                    <FormControl>
+                        <div className="relative">
                         <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input type="file" className="pl-10 h-12 text-base" />
-                    </div>
-              </FormItem>
-
+                        <Input
+                            type="file"
+                            className="pl-10 h-12 text-base"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={(e) => field.onChange(e.target.files)}
+                        />
+                        </div>
+                    </FormControl>
+                    <FormDescription>
+                        PDF, JPG, or PNG. Max 5MB. This is required for verification.
+                    </FormDescription>
+                    <FormMessage />
+                    </FormItem>
+                )}
+              />
 
               <div className="grid md:grid-cols-2 gap-4">
                  <FormField control={form.control} name="password" render={({ field }) => (<FormItem><FormControl><FormPasswordInput field={field} placeholder="Password" show={showPassword} toggleShow={() => setShowPassword(s => !s)} /></FormControl><FormMessage /></FormItem>)} />
