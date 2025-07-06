@@ -22,7 +22,7 @@ import {
 import {
   LayoutDashboard, User, Settings, LogOut,
   Map, FileText, BarChart2, ShieldCheck, Users, Edit, BookOpen, Heart,
-  BookCopy, MessageSquare, LayoutList, Download, PenSquare, Star
+  BookCopy, MessageSquare, LayoutList, Download, PenSquare, Star, DollarSign
 } from "lucide-react";
 import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -156,6 +156,14 @@ const AdminNav = () => {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/payouts')}>
+                        <Link href="/dashboard/admin/payouts">
+                            <DollarSign />
+                            Payouts
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/tours')}>
                         <Link href="/dashboard/admin/tours">
                             <Map />
@@ -171,7 +179,7 @@ const AdminNav = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
+                 <SidebarMenuItem>
                      <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/approvals')}>
                         <Link href="/dashboard/admin/approvals">
                             <ShieldCheck />
