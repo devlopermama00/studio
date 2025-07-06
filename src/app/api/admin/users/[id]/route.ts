@@ -8,6 +8,7 @@ import Booking from '@/models/Booking';
 import Review from '@/models/Review';
 import Document from '@/models/Document';
 import { Types } from 'mongoose';
+import { z } from 'zod';
 
 interface DecodedToken {
     id: string;
@@ -63,6 +64,12 @@ export async function GET(
     }
 }
 
+const updateUserSchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters.').optional(),
+    role: z.enum(['user', 'provider', 'admin']).optional(),
+    isBlocked: z.boolean().optional(),
+});
+
 
 export async function PATCH(
     request: NextRequest,
@@ -84,18 +91,34 @@ export async function PATCH(
             return NextResponse.json({ message: 'User not found' }, { status: 404 });
         }
 
-        if (userToUpdate.role === 'admin') {
-            return NextResponse.json({ message: 'Administrators cannot be blocked.' }, { status: 403 });
+        const body = await request.json();
+        const parseResult = updateUserSchema.safeParse(body);
+
+        if (!parseResult.success) {
+            return NextResponse.json({ message: 'Invalid input', errors: parseResult.error.flatten().fieldErrors }, { status: 400 });
+        }
+        
+        const { name, role, isBlocked } = parseResult.data;
+
+        // Prevent self-modification for critical fields
+        if (userId === adminCheck.id && (role || typeof isBlocked === 'boolean')) {
+            return NextResponse.json({ message: 'Admins cannot change their own role or blocked status.' }, { status: 403 });
+        }
+        
+        if (userToUpdate.role === 'admin' && (role !== 'admin' || typeof isBlocked === 'boolean')) {
+            return NextResponse.json({ message: 'Cannot change role or block status of an administrator.' }, { status: 403 });
         }
 
-        const body = await request.json();
-        const { isBlocked } = body;
-        
-        if (typeof isBlocked !== 'boolean') {
-            return NextResponse.json({ message: 'Invalid `isBlocked` status provided' }, { status: 400 });
+        if (name) userToUpdate.name = name;
+        if (role) userToUpdate.role = role;
+        if (typeof isBlocked === 'boolean') {
+            userToUpdate.isBlocked = isBlocked;
+        }
+
+        if (Object.keys(parseResult.data).length === 0) {
+             return NextResponse.json({ message: 'No fields to update provided.' }, { status: 400 });
         }
         
-        userToUpdate.isBlocked = isBlocked;
         await userToUpdate.save();
 
         const updatedUser = userToUpdate.toObject();

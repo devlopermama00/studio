@@ -230,8 +230,10 @@ export default function AdminUsersPage() {
                                       </Link>
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem disabled>
-                                    <Edit className="mr-2 h-4 w-4"/> Edit User
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/admin/users/${user._id}/edit`}>
+                                        <Edit className="mr-2 h-4 w-4"/> Edit User
+                                    </Link>
                                 </DropdownMenuItem>
                                 {user.role !== 'admin' && (
                                   <>
