@@ -25,7 +25,7 @@ const BlogCard = ({ post }: { post: any }) => (
         <Card className="h-full flex flex-col overflow-hidden transition-transform transform hover:-translate-y-1 hover:shadow-xl">
             <CardHeader className="p-0">
                 <Image
-                    src={post.featureImage}
+                    src={post.featureImage || 'https://placehold.co/400x250.png'}
                     alt={post.title}
                     width={400}
                     height={250}
@@ -34,12 +34,12 @@ const BlogCard = ({ post }: { post: any }) => (
                 />
             </CardHeader>
             <CardContent className="p-6 flex-1">
-                {post.category && <Badge className="mb-2">{post.category.name}</Badge>}
+                {post.category?.name && <Badge className="mb-2">{post.category.name}</Badge>}
                 <CardTitle className="font-headline text-xl mb-2 group-hover:text-primary transition-colors">{post.title}</CardTitle>
                 <CardDescription className="line-clamp-3">{post.content.substring(0, 150)}...</CardDescription>
             </CardContent>
             <CardFooter className="p-6 pt-0 text-sm text-muted-foreground">
-                <span>By {post.author.name} on {format(new Date(post.publishedAt), "MMM d, yyyy")}</span>
+                <span>By {post.author?.name || 'TourVista'} on {format(new Date(post.publishedAt || post.createdAt), "MMM d, yyyy")}</span>
             </CardFooter>
         </Card>
     </Link>

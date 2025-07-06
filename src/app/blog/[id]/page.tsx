@@ -38,26 +38,26 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
       <main className="flex-1">
         <article className="container relative max-w-3xl mx-auto py-12 px-4">
             <div className="text-center mb-8">
-                {post.category && <Badge>{post.category.name}</Badge>}
+                {post.category?.name && <Badge>{post.category.name}</Badge>}
                 <h1 className="text-4xl font-headline font-extrabold tracking-tight lg:text-5xl mt-4">
                     {post.title}
                 </h1>
                 <div className="flex justify-center items-center gap-6 mt-4 text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <User className="h-4 w-4"/>
-                        <span>{post.author.name}</span>
+                        <span>{post.author?.name || 'TourVista'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4"/>
-                        <time dateTime={post.publishedAt}>
-                            {format(new Date(post.publishedAt), "MMMM d, yyyy")}
+                        <time dateTime={post.publishedAt || post.createdAt}>
+                            {format(new Date(post.publishedAt || post.createdAt), "MMMM d, yyyy")}
                         </time>
                     </div>
                 </div>
             </div>
             
             <Image
-                src={post.featureImage}
+                src={post.featureImage || 'https://placehold.co/1200x600.png'}
                 alt={post.title}
                 width={1200}
                 height={600}
@@ -74,11 +74,11 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
 
             <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage src={post.author.profilePhoto} alt={post.author.name} />
-                    <AvatarFallback>{post.author.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarImage src={post.author?.profilePhoto} alt={post.author?.name || 'TourVista'} />
+                    <AvatarFallback>{post.author?.name?.charAt(0).toUpperCase() || 'T'}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-semibold text-lg">Written by {post.author.name}</p>
+                    <p className="font-semibold text-lg">Written by {post.author?.name || 'TourVista'}</p>
                     <p className="text-muted-foreground">Author at TourVista Georgia</p>
                 </div>
             </div>
