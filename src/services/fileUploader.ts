@@ -1,7 +1,7 @@
 
 'use client';
 
-import { storage } from '@/lib/firebase';
+import { storage, firebaseConfig } from '@/lib/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -12,6 +12,10 @@ import { v4 as uuidv4 } from 'uuid';
  * @returns The public download URL of the uploaded file.
  */
 export const uploadFile = async (file: File, folder: string): Promise<string> => {
+  if (!firebaseConfig.storageBucket) {
+    throw new Error("Firebase Storage Bucket is not configured. Please set the NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET environment variable.");
+  }
+
   // Generate a unique file name to prevent overwrites
   const fileName = `${uuidv4()}-${file.name}`;
   const path = `${folder}/${fileName}`;
