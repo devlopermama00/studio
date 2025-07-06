@@ -61,6 +61,8 @@ export default function AddBlogPostPage() {
       title: "",
       content: "",
       published: false,
+      category: "",
+      tags: "",
     },
   });
 

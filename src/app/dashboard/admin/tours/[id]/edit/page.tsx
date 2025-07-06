@@ -73,8 +73,9 @@ export default function EditTourPage() {
       title: "",
       description: "",
       location: "",
-      price: undefined,
+      price: 0,
       duration: "",
+      category: "",
       itinerary: [],
     },
   });

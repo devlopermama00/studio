@@ -65,8 +65,9 @@ export default function AddTourPage() {
       title: "",
       description: "",
       location: "",
-      price: undefined,
+      price: 0,
       duration: "",
+      category: "",
     },
   });
 

@@ -59,6 +59,13 @@ export default function EditBlogPostPage() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      published: false,
+      category: "",
+      tags: "",
+    }
   });
 
   useEffect(() => {
@@ -73,7 +80,7 @@ export default function EditBlogPostPage() {
             const postData = await postRes.json();
             form.reset({
                 ...postData,
-                category: postData.category?._id || postData.category,
+                category: postData.category?._id || postData.category || "",
                 tags: Array.isArray(postData.tags) ? postData.tags.join(', ') : '',
             });
 
