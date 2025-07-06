@@ -35,19 +35,133 @@ async function verifyToken(token: string): Promise<DecodedToken | null> {
     }
 }
 
-async function transformTour(tourDoc: any): Promise<PublicTourType | null> {
+export async function getPublicTours(limit?: number): Promise<PublicTourType[]> {
+    await dbConnect();
+    
     try {
-        const tour = tourDoc.toObject ? tourDoc.toObject() : tourDoc;
+        let query = Tour.find({ approved: true, blocked: false })
+            .populate('category', 'name')
+            .populate('createdBy', 'name')
+            .sort({ createdAt: -1 });
 
-        let avgRating = 0;
+        if (limit) {
+            query = query.limit(limit);
+        }
+        
+        const tours = await query.exec();
+        
+        if (tours.length === 0) {
+            return [];
+        }
+
+        const tourIds = tours.map(t => t._id);
+
+        // Fetch ratings for all tours in a single query
+        const ratings = await Review.aggregate([
+            { $match: { tourId: { $in: tourIds } } },
+            { $group: { _id: '$tourId', avgRating: { $avg: '$rating' } } }
+        ]);
+
+        const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
+
+        const transformedTours = tours.map(tourDoc => {
+            const tour = tourDoc.toObject();
+            const rating = ratingsMap.get(tour._id.toString()) || 0;
+            
+            return {
+                id: tour._id.toString(),
+                title: tour.title,
+                country: tour.country,
+                city: tour.city,
+                place: tour.place,
+                images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
+                durationInHours: tour.durationInHours,
+                currency: tour.currency,
+                price: tour.price,
+                tourType: tour.tourType,
+                category: tour.category?.name || 'Uncategorized',
+                groupSize: tour.groupSize,
+                overview: tour.overview,
+                languages: tour.languages || [],
+                highlights: tour.highlights || [],
+                inclusions: tour.inclusions || [],
+                exclusions: tour.exclusions || [],
+                importantInformation: tour.importantInformation,
+                itinerary: tour.itinerary?.map((i: any) => ({ title: i.title, description: i.description })) || [],
+                providerId: tour.createdBy?._id?.toString() || '',
+                providerName: tour.createdBy?.name || 'Unknown Provider',
+                rating: parseFloat(rating.toFixed(1)),
+                reviews: [],
+                approved: tour.approved,
+            };
+        });
+
+        return transformedTours.filter((t): t is PublicTourType => t !== null);
+    } catch (error) {
+        console.error("Error in getPublicTours:", error);
+        return [];
+    }
+}
+
+export async function getPublicTourById(id: string): Promise<PublicTourType | null> {
+    await dbConnect();
+    
+    try {
+        if (!Types.ObjectId.isValid(id)) {
+            return null;
+        }
+        
+        const cookieStore = cookies();
+        const token = cookieStore.get('token')?.value || '';
+        const user = await verifyToken(token);
+
+        const tourDoc = await Tour.findById(id)
+            .populate('category', 'name')
+            .populate('createdBy', 'name');
+
+        if (!tourDoc) {
+            return null;
+        }
+
+        // If tour is not approved, only its creator or an admin can see it.
+        if (!tourDoc.approved && (!user || (user.role !== 'admin' && tourDoc.createdBy._id.toString() !== user.id))) {
+            return null;
+        }
+        
+        // Blocked tours are hidden from everyone except admins
+        if (tourDoc.blocked && user?.role !== 'admin') {
+            return null;
+        }
+
+        const tour = tourDoc.toObject();
+
         const reviewAggregate = await Review.aggregate([
             { $match: { tourId: new Types.ObjectId(tour._id) } },
             { $group: { _id: null, avgRating: { $avg: '$rating' } } }
         ]);
+        const avgRating = reviewAggregate.length > 0 ? reviewAggregate[0].avgRating : 0;
 
-        if (reviewAggregate.length > 0) {
-            avgRating = reviewAggregate[0].avgRating;
-        }
+        const tourReviews = await Review.find({ tourId: tourDoc._id })
+            .populate<{ userId: { _id: Types.ObjectId; name: string, profilePhoto?: string } }>('userId', 'name profilePhoto')
+            .sort({ createdAt: -1 });
+        
+        const reviews = tourReviews.map((r: any): ReviewType | null => {
+            if (!r.userId) return null;
+            
+            return {
+                id: r._id.toString(),
+                userId: r.userId._id.toString(),
+                userName: r.userId.name,
+                userImage: r.userId.profilePhoto || `https://placehold.co/100x100.png`,
+                rating: r.rating,
+                comment: r.comment,
+                createdAt: new Date(r.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                }),
+            }
+        }).filter((r): r is ReviewType => r !== null);
         
         return {
             id: tour._id.toString(),
@@ -72,108 +186,9 @@ async function transformTour(tourDoc: any): Promise<PublicTourType | null> {
             providerId: tour.createdBy?._id?.toString() || '',
             providerName: tour.createdBy?.name || 'Unknown Provider',
             rating: parseFloat(avgRating.toFixed(1)),
-            reviews: [], // Reviews are fetched separately for the detail page
+            reviews: reviews,
             approved: tour.approved,
         };
-    } catch (error) {
-        console.error("Failed to transform tour with ID:", tourDoc?._id, error);
-        return null; // Return null if transformation fails for a single tour
-    }
-}
-
-
-export async function getPublicTours(limit?: number): Promise<PublicTourType[]> {
-    const connection = await dbConnect();
-    if (!connection) {
-        console.log("No DB connection, returning empty array.");
-        return [];
-    }
-    
-    try {
-        let query = Tour.find({ approved: true, blocked: false })
-            .populate('category', 'name')
-            .populate('createdBy', 'name')
-            .sort({ createdAt: -1 });
-
-        if (limit) {
-            query = query.limit(limit);
-        }
-        
-        const tours = await query.exec();
-        const transformedTours = await Promise.all(tours.map(transformTour));
-        // Filter out any tours that failed to transform
-        return transformedTours.filter((t): t is PublicTourType => t !== null);
-    } catch (error) {
-        console.error("Error in getPublicTours:", error);
-        return [];
-    }
-}
-
-export async function getPublicTourById(id: string): Promise<PublicTourType | null> {
-    const connection = await dbConnect();
-    if (!connection) {
-        console.log("No DB connection, returning null.");
-        return null;
-    }
-    
-    try {
-        if (!Types.ObjectId.isValid(id)) {
-            return null;
-        }
-        
-        const cookieStore = cookies();
-        const token = cookieStore.get('token')?.value || '';
-        const user = await verifyToken(token);
-
-        const tourDoc = await Tour.findById(id)
-            .populate('category', 'name')
-            .populate('createdBy', 'name');
-
-        if (!tourDoc) {
-            return null;
-        }
-
-        // If tour is not approved, only its creator or an admin can see it.
-        if (!tourDoc.approved) {
-            if (!user || (user.role !== 'admin' && tourDoc.createdBy._id.toString() !== user.id)) {
-                return null;
-            }
-        }
-        
-        // Blocked tours are hidden from everyone except admins
-        if (tourDoc.blocked && user?.role !== 'admin') {
-            return null;
-        }
-
-        const transformedTour = await transformTour(tourDoc);
-
-        if (!transformedTour) {
-            return null;
-        }
-
-        const tourReviews = await Review.find({ tourId: tourDoc._id })
-            .populate<{ userId: { _id: Types.ObjectId; name: string, profilePhoto?: string } }>('userId', 'name profilePhoto')
-            .sort({ createdAt: -1 });
-        
-        transformedTour.reviews = tourReviews.map((r: any): ReviewType | null => {
-            if (!r.userId) return null;
-            
-            return {
-                id: r._id.toString(),
-                userId: r.userId._id.toString(),
-                userName: r.userId.name,
-                userImage: r.userId.profilePhoto || `https://placehold.co/100x100.png`,
-                rating: r.rating,
-                comment: r.comment,
-                createdAt: new Date(r.createdAt).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                }),
-            }
-        }).filter((r): r is ReviewType => r !== null);
-        
-        return transformedTour;
     } catch (error) {
         console.error(`Error in getPublicTourById for id ${id}:`, error);
         return null;
