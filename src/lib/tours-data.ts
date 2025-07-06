@@ -1,3 +1,4 @@
+
 'use server';
 
 import dbConnect from '@/lib/db';
@@ -15,37 +16,40 @@ Review;
 User;
 Tour;
 
-async function transformTour(tourDoc: any): Promise<PublicTourType> {
-    const tour = tourDoc.toObject ? tourDoc.toObject() : tourDoc;
+async function transformTour(tourDoc: any): Promise<PublicTourType | null> {
+    try {
+        const tour = tourDoc.toObject ? tourDoc.toObject() : tourDoc;
 
-    let avgRating = 0;
-    const reviewCount = await Review.countDocuments({ tourId: tour._id });
-    if (reviewCount > 0) {
-        const aggregateResult = await Review.aggregate([
+        let avgRating = 0;
+        const reviewAggregate = await Review.aggregate([
             { $match: { tourId: new Types.ObjectId(tour._id) } },
             { $group: { _id: null, avgRating: { $avg: '$rating' } } }
         ]);
-        if (aggregateResult.length > 0) {
-            avgRating = aggregateResult[0].avgRating;
+
+        if (reviewAggregate.length > 0) {
+            avgRating = reviewAggregate[0].avgRating;
         }
+        
+        return {
+            id: tour._id.toString(),
+            title: tour.title,
+            location: tour.location,
+            category: tour.category?.name || 'Uncategorized',
+            price: tour.price,
+            duration: tour.duration,
+            description: tour.description,
+            itinerary: tour.itinerary?.map((i: any) => ({ title: i.title, description: i.description })) || [],
+            images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
+            providerId: tour.createdBy?._id?.toString() || '',
+            providerName: tour.createdBy?.name || 'Unknown Provider',
+            rating: parseFloat(avgRating.toFixed(1)),
+            reviews: [], // Reviews are fetched separately for the detail page
+            approved: tour.approved,
+        };
+    } catch (error) {
+        console.error("Failed to transform tour with ID:", tourDoc?._id, error);
+        return null; // Return null if transformation fails for a single tour
     }
-    
-    return {
-        id: tour._id.toString(),
-        title: tour.title,
-        location: tour.location,
-        category: tour.category?.name || 'Uncategorized',
-        price: tour.price,
-        duration: tour.duration,
-        description: tour.description,
-        itinerary: tour.itinerary?.map((i: any) => ({ title: i.title, description: i.description })) || [],
-        images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
-        providerId: tour.createdBy?._id.toString() || '',
-        providerName: tour.createdBy?.name || 'Unknown Provider',
-        rating: parseFloat(avgRating.toFixed(1)),
-        reviews: [], // Reviews are fetched separately for the detail page
-        approved: tour.approved,
-    };
 }
 
 
@@ -68,7 +72,9 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
         }
         
         const tours = await query.exec();
-        return Promise.all(tours.map(transformTour));
+        const transformedTours = await Promise.all(tours.map(transformTour));
+        // Filter out any tours that failed to transform
+        return transformedTours.filter((t): t is PublicTourType => t !== null);
     } catch (error) {
         console.error("Error in getPublicTours:", error);
         return [];
@@ -99,23 +105,32 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
 
         const transformedTour = await transformTour(tourDoc);
 
+        if (!transformedTour) {
+            return null;
+        }
+
         const tourReviews = await Review.find({ tourId: tourDoc._id })
             .populate<{ userId: { _id: Types.ObjectId; name: string, profilePhoto?: string } }>('userId', 'name profilePhoto')
             .sort({ createdAt: -1 });
         
-        transformedTour.reviews = tourReviews.map((r: any): ReviewType => ({
-            id: r._id.toString(),
-            userId: r.userId._id.toString(),
-            userName: r.userId.name,
-            userImage: r.userId.profilePhoto || `https://placehold.co/100x100.png`,
-            rating: r.rating,
-            comment: r.comment,
-            createdAt: new Date(r.createdAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-            }),
-        }));
+        transformedTour.reviews = tourReviews.map((r: any): ReviewType | null => {
+            // If a review's user was deleted, r.userId will be null. Skip it gracefully.
+            if (!r.userId) return null;
+            
+            return {
+                id: r._id.toString(),
+                userId: r.userId._id.toString(),
+                userName: r.userId.name,
+                userImage: r.userId.profilePhoto || `https://placehold.co/100x100.png`,
+                rating: r.rating,
+                comment: r.comment,
+                createdAt: new Date(r.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                }),
+            }
+        }).filter((r): r is ReviewType => r !== null); // Filter out null reviews
         
         return transformedTour;
     } catch (error) {
