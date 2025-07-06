@@ -221,34 +221,25 @@ export default async function Home() {
                         From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.
                     </p>
                 </div>
-                 <Carousel opts={{ align: "start" }} className="w-full">
-                    <CarouselContent className="-ml-4">
-                        {destinations.map((dest, index) => (
-                            <CarouselItem key={index} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-                                <Link href="/tours" className="group block overflow-hidden rounded-lg relative aspect-[4/5] shadow-lg">
-                                    <Image
-                                        src={dest.image}
-                                        alt={dest.name}
-                                        fill
-                                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                        data-ai-hint={dest.hint}
-                                    />
-                                    <div className="absolute top-3 left-3 right-3 text-white">
-                                        <div className="bg-gray-900/80 backdrop-blur-sm rounded-lg px-3 py-1.5 mb-2 shadow-lg">
-                                            <h3 className="font-bold text-lg truncate">{`${index + 1}. ${dest.name}`}</h3>
-                                        </div>
-                                        <div className="bg-white/90 backdrop-blur-sm text-gray-900 rounded-md px-3 py-1 inline-block shadow">
-                                            <p className="text-sm font-semibold">{`${dest.activities} activities`}</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="hidden md:flex left-2 bg-background/50 hover:bg-background/80" />
-                    <CarouselNext className="hidden md:flex right-2 bg-background/50 hover:bg-background/80" />
-                </Carousel>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {destinations.map((dest) => (
+                        <Link href="/tours" key={dest.name} className="group relative block h-96 overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
+                            <Image 
+                                src={dest.image} 
+                                alt={dest.name} 
+                                width={400} 
+                                height={500} 
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                                data-ai-hint={dest.hint} 
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                            <div className="absolute bottom-0 left-0 p-4">
+                                <h3 className="text-white text-2xl font-bold font-headline">{dest.name}</h3>
+                                <p className="text-white/90 text-sm">{dest.activities} activities</p>
+                            </div>
+                        </Link>
+                    ))}
+                </div>
             </div>
         </section>
         
