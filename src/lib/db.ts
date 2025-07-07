@@ -24,7 +24,7 @@ async function dbConnect() {
   
   if (!MONGODB_URI) {
     throw new Error(
-      'Please define the MONGODB_URI environment variable inside .env.local'
+      'Please define the MONGODB_URI environment variable inside .env.local. A valid connection string is required to connect to the database.'
     );
   }
 
@@ -42,6 +42,11 @@ async function dbConnect() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
+    if (e instanceof Error && e.message.includes('querySrv EBADNAME')) {
+        throw new Error(
+            'Database connection failed due to an invalid hostname. This is often caused by an incorrect MONGODB_URI in your .env.local file. Please ensure it is correct and that your IP address is whitelisted in your MongoDB Atlas project.'
+        );
+    }
     throw e;
   }
 
