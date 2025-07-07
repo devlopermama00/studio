@@ -161,9 +161,9 @@ export async function PATCH(
         }
         
         const body = await request.json();
-        const { approved, blocked } = body;
+        const { approved, blocked, isPopular } = body;
         
-        const updateData: { approved?: boolean; blocked?: boolean } = {};
+        const updateData: { approved?: boolean; blocked?: boolean; isPopular?: boolean } = {};
 
         if (typeof approved === 'boolean') {
             updateData.approved = approved;
@@ -172,9 +172,13 @@ export async function PATCH(
         if (typeof blocked === 'boolean') {
             updateData.blocked = blocked;
         }
+        
+        if (typeof isPopular === 'boolean') {
+            updateData.isPopular = isPopular;
+        }
 
         if (Object.keys(updateData).length === 0) {
-            return NextResponse.json({ message: 'Invalid status provided. Provide `approved` or `blocked`.' }, { status: 400 });
+            return NextResponse.json({ message: 'Invalid status provided. Provide `approved`, `blocked`, or `isPopular`.' }, { status: 400 });
         }
         
         const updatedTour = await Tour.findByIdAndUpdate(

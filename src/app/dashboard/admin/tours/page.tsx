@@ -3,7 +3,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { MoreHorizontal, Loader2, Check, X, Edit, Trash2, Ban } from "lucide-react"
+import { MoreHorizontal, Loader2, Check, X, Edit, Trash2, Ban, Star } from "lucide-react"
 import { useState, useEffect, useCallback } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +24,7 @@ interface PopulatedAdminTour {
     price: number;
     approved: boolean;
     blocked: boolean;
+    isPopular?: boolean;
     images: string[];
     createdBy: {
         _id: string;
@@ -112,7 +113,7 @@ export default function AdminToursPage() {
     handleFilterChange(activeTab, tours);
   }, [tours, activeTab, handleFilterChange]);
 
-  const updateTourStatus = async (tourId: string, update: { approved?: boolean; blocked?: boolean }) => {
+  const updateTourStatus = async (tourId: string, update: { approved?: boolean; blocked?: boolean; isPopular?: boolean }) => {
     setIsUpdating(tourId);
     try {
       const response = await fetch(`/api/tours/${tourId}`, {
@@ -220,9 +221,12 @@ export default function AdminToursPage() {
                             <TableCell className="font-medium">{tour.title}</TableCell>
                             <TableCell>{tour.createdBy?.name || 'N/A'}</TableCell>
                             <TableCell>
-                                <Badge variant={tour.blocked ? "destructive" : tour.approved ? "default" : "secondary"} className={cn({"bg-red-500": tour.blocked, "bg-green-500": tour.approved && !tour.blocked, "bg-amber-500": !tour.approved && !tour.blocked})}>
-                                     {tour.blocked ? "Blocked" : tour.approved ? "Approved" : "Pending"}
-                                </Badge>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={tour.blocked ? "destructive" : tour.approved ? "default" : "secondary"} className={cn({"bg-red-500": tour.blocked, "bg-green-500": tour.approved && !tour.blocked, "bg-amber-500": !tour.approved && !tour.blocked})}>
+                                      {tour.blocked ? "Blocked" : tour.approved ? "Approved" : "Pending"}
+                                  </Badge>
+                                  {tour.isPopular && <Badge variant="outline"><Star className="mr-1 h-3 w-3" />Popular</Badge>}
+                                </div>
                             </TableCell>
                             <TableCell>${tour.price}</TableCell>
                             <TableCell>
@@ -240,6 +244,12 @@ export default function AdminToursPage() {
                                                 <Edit className="mr-2 h-4 w-4" /> Edit
                                             </Link>
                                         </DropdownMenuItem>
+                                        {!tour.blocked && tour.approved && (
+                                          <DropdownMenuItem onClick={() => updateTourStatus(tour._id, { isPopular: !tour.isPopular })} className="cursor-pointer">
+                                                <Star className="mr-2 h-4 w-4" />
+                                                {tour.isPopular ? 'Remove from Popular' : 'Add to Popular'}
+                                            </DropdownMenuItem>
+                                        )}
                                         {!tour.blocked && (
                                             <DropdownMenuItem onClick={() => updateTourStatus(tour._id, { approved: !tour.approved })} className="cursor-pointer">
                                                 {tour.approved ? <X className="mr-2 h-4 w-4" /> : <Check className="mr-2 h-4 w-4" />}

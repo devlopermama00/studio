@@ -109,6 +109,28 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
     }
 }
 
+export async function getPopularTours(limit?: number): Promise<PublicTourType[]> {
+    await dbConnect();
+    try {
+        let query = Tour.find({ approved: true, blocked: false, isPopular: true })
+            .populate('category', 'name')
+            .populate('createdBy', 'name')
+            .sort({ createdAt: -1 })
+            .lean();
+
+        if (limit) {
+            query = query.limit(limit);
+        }
+
+        const tours = await query.exec();
+        return transformTours(tours);
+    } catch (error) {
+        console.error("Error fetching popular tours:", error);
+        return [];
+    }
+}
+
+
 export async function getToursOnSale(limit?: number): Promise<PublicTourType[]> {
     await dbConnect();
     try {

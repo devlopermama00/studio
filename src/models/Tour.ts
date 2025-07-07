@@ -1,3 +1,4 @@
+
 import mongoose, { Schema, Document, models, Types } from 'mongoose';
 
 interface IItineraryItem {
@@ -27,6 +28,7 @@ export interface ITour extends Document {
   createdBy: Types.ObjectId;
   approved: boolean;
   blocked: boolean;
+  isPopular?: boolean;
   discountPrice?: number;
   offerExpiresAt?: Date;
 }
@@ -58,6 +60,7 @@ const TourSchema: Schema = new Schema({
   createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   approved: { type: Boolean, default: false },
   blocked: { type: Boolean, default: false },
+  isPopular: { type: Boolean, default: false },
   discountPrice: { type: Number },
   offerExpiresAt: { type: Date },
 }, { timestamps: true });

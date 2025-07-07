@@ -9,7 +9,7 @@ import { TourCard } from "@/components/tour-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { getPublicTours } from "@/lib/tours-data";
+import { getPopularTours } from "@/lib/tours-data";
 import { Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -88,7 +88,7 @@ const categories = [
 ];
 
 export default async function Home() {
-  const featuredTours = await getPublicTours(8);
+  const popularTours = await getPopularTours(8);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -119,19 +119,19 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 2. Featured Tours Section */}
-        <section id="featured-tours" className="py-16 md:py-24 bg-background">
+        {/* 2. Popular Tours Section */}
+        <section id="popular-tours" className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-headline font-semibold text-center mb-2">
-              Featured & Popular Tours
+              Popular Tours
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
-                Discover our most sought-after tours, handpicked for an unforgettable experience.
+                Discover our most sought-after tours, handpicked by our team for an unforgettable experience.
             </p>
-             {featuredTours.length > 0 ? (
+             {popularTours.length > 0 ? (
                 <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {featuredTours.map((tour) => (
+                    {popularTours.map((tour) => (
                         <TourCard key={tour.id} tour={tour} />
                     ))}
                     </div>
@@ -144,9 +144,9 @@ export default async function Home() {
             ) : (
                  <Alert>
                     <Terminal className="h-4 w-4" />
-                    <AlertTitle>No Featured Tours Yet</AlertTitle>
+                    <AlertTitle>No Popular Tours Yet</AlertTitle>
                     <AlertDescription>
-                        We're busy curating the best experiences for you. Check back soon for our featured tours!
+                        We're busy curating the best experiences for you. Check back soon for our popular tours!
                     </AlertDescription>
                 </Alert>
             )}
