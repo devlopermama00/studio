@@ -241,7 +241,14 @@ export default function AddTourPage() {
                                 type="file"
                                 multiple
                                 accept="image/png, image/jpeg, image/jpg, image/webp"
-                                onChange={(e) => field.onChange(e.target.files)}
+                                onChange={(e) => {
+                                    const existingFiles = field.value ? Array.from(field.value as FileList) : [];
+                                    const newFiles = e.target.files ? Array.from(e.target.files) : [];
+                                    const combinedFiles = [...existingFiles, ...newFiles];
+                                    const dataTransfer = new DataTransfer();
+                                    combinedFiles.forEach(file => dataTransfer.items.add(file as File));
+                                    field.onChange(dataTransfer.files);
+                                }}
                             />
                         </FormControl>
                         <FormDescription>
