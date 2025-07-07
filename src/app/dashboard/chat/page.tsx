@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormField } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 
 interface User {
   _id: string;
@@ -47,6 +47,29 @@ const chatFormSchema = z.object({
 });
 
 type ChatFormValues = z.infer<typeof chatFormSchema>;
+
+const ChatMessage = ({ msg, user }: { msg: Message, user: User }) => {
+    const isSender = msg.sender._id === user._id;
+    return (
+        <div key={msg._id} className={cn("flex items-start gap-3", isSender ? "justify-end" : "justify-start")}>
+            {!isSender && (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={msg.sender.profilePhoto} alt={msg.sender.name} />
+                    <AvatarFallback>{msg.sender.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                </Avatar>
+            )}
+            <div className={cn(
+                "max-w-xs md:max-w-md rounded-lg px-4 py-2",
+                isSender
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-secondary rounded-bl-none"
+            )}>
+                <p className="text-sm break-words">{msg.content}</p>
+            </div>
+        </div>
+    );
+};
+
 
 const ChatSkeleton = () => (
     <Card className="h-[calc(100vh-10rem)] flex flex-col">
@@ -137,7 +160,10 @@ export default function ChatPage() {
             
             socket.on('receiveMessage', (newMessage: Message) => {
                 if (selectedConversation?._id === newMessage.conversationId) {
-                    setMessages((prev) => [...prev, newMessage]);
+                    setMessages((prev) => {
+                        if (prev.some(msg => msg._id === newMessage._id)) return prev;
+                        return [...prev, newMessage]
+                    });
                 } else {
                     // Update conversation list with new last message for unread indicator
                     setConversations(prev => prev.map(c => c._id === newMessage.conversationId ? {...c, lastMessage: newMessage} : c));
@@ -205,7 +231,7 @@ export default function ChatPage() {
         setIsSending(true);
 
         const optimisticMessage: Message = {
-            _id: new Date().toISOString(),
+            _id: `optimistic_${Date.now()}_${Math.random()}`,
             conversationId: selectedConversation._id,
             sender: user,
             content: values.message,
@@ -296,10 +322,8 @@ export default function ChatPage() {
                             </div>
                             <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
                                 <div className="space-y-4">
-                                    {messages.map((msg) => (
-                                        <div key={msg._id} className={cn("flex items-end gap-2 max-w-[80%]", msg.sender._id === user._id ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
-                                            <div className={cn("rounded-lg p-3", msg.sender._id === user._id ? 'bg-primary text-primary-foreground' : 'bg-secondary')}><p>{msg.content}</p></div>
-                                        </div>
+                                     {messages.map((msg) => (
+                                        <ChatMessage key={msg._id} msg={msg} user={user} />
                                     ))}
                                 </div>
                             </ScrollArea>
@@ -307,7 +331,11 @@ export default function ChatPage() {
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
                                         <FormField control={form.control} name="message" render={({ field }) => (
-                                            <Input {...field} placeholder="Type a message..." className="flex-1" autoComplete="off" />
+                                            <FormItem className="flex-1">
+                                                <FormControl>
+                                                    <Input {...field} placeholder="Type a message..." className="flex-1" autoComplete="off" />
+                                                </FormControl>
+                                            </FormItem>
                                         )} />
                                         <Button type="submit" size="icon" disabled={isSending}><Send className="h-4 w-4"/></Button>
                                     </form>
@@ -337,10 +365,8 @@ export default function ChatPage() {
                     </div>
                     <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
                         <div className="space-y-4">
-                            {messages.map((msg, index) => (
-                                <div key={msg._id || index} className={cn("flex items-end gap-2 max-w-[80%]", msg.sender._id === user._id ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
-                                    <div className={cn("rounded-lg p-3", msg.sender._id === user._id ? 'bg-primary text-primary-foreground' : 'bg-secondary')}><p>{msg.content}</p></div>
-                                </div>
+                            {messages.map((msg) => (
+                                <ChatMessage key={msg._id} msg={msg} user={user} />
                             ))}
                         </div>
                     </ScrollArea>
@@ -348,7 +374,11 @@ export default function ChatPage() {
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
                                 <FormField control={form.control} name="message" render={({ field }) => (
-                                    <Input {...field} placeholder="Type a message..." className="flex-1" autoComplete="off" />
+                                    <FormItem className="flex-1">
+                                        <FormControl>
+                                             <Input {...field} placeholder="Type a message..." className="flex-1" autoComplete="off" />
+                                        </FormControl>
+                                    </FormItem>
                                 )}/>
                                 <Button type="submit" size="icon" disabled={isSending}><Send className="h-4 w-4"/></Button>
                             </form>
