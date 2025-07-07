@@ -31,6 +31,21 @@ const profileFormSchema = z.object({
   bio: z.string().max(300, "Bio cannot be longer than 300 characters.").optional(),
 });
 
+const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, { message: "Current password is required." }),
+  newPassword: z.string()
+    .min(8, { message: "Password must be at least 8 characters." })
+    .regex(/[A-Z]/, { message: "Must contain at least one uppercase letter." })
+    .regex(/[a-z]/, { message: "Must contain at least one lowercase letter." })
+    .regex(/[0-9]/, { message: "Must contain at least one number." })
+    .regex(/[^A-Za-z0-9]/, { message: "Must contain at least one special character." }),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: "New passwords do not match",
+  path: ["confirmPassword"],
+});
+
+
 const SettingsSkeleton = () => (
     <div className="grid gap-6">
         <Card>
@@ -85,13 +100,19 @@ export default function SettingsPage() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const form = useForm<z.infer<typeof profileFormSchema>>({
+    const profileForm = useForm<z.infer<typeof profileFormSchema>>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: { name: "", bio: "" },
+    });
+
+    const passwordForm = useForm<z.infer<typeof passwordFormSchema>>({
+        resolver: zodResolver(passwordFormSchema),
+        defaultValues: { currentPassword: "", newPassword: "", confirmPassword: "" },
     });
 
     useEffect(() => {
@@ -102,7 +123,7 @@ export default function SettingsPage() {
                 if (!response.ok) throw new Error("Failed to fetch profile");
                 const data = await response.json();
                 setUser(data);
-                form.reset({ name: data.name, bio: data.bio || "" });
+                profileForm.reset({ name: data.name, bio: data.bio || "" });
                 setPreviewUrl(data.profilePhoto || null);
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: "Could not load your profile." });
@@ -111,7 +132,7 @@ export default function SettingsPage() {
             }
         };
         fetchUser();
-    }, [form, toast]);
+    }, [profileForm, toast]);
     
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -121,7 +142,7 @@ export default function SettingsPage() {
         }
     };
     
-    async function onSubmit(values: z.infer<typeof profileFormSchema>) {
+    async function onProfileSubmit(values: z.infer<typeof profileFormSchema>) {
         if (!user) return;
         setIsSaving(true);
         try {
@@ -154,6 +175,30 @@ export default function SettingsPage() {
         }
     }
     
+     async function onPasswordSubmit(values: z.infer<typeof passwordFormSchema>) {
+        setIsSavingPassword(true);
+        try {
+            const response = await fetch('/api/user/change-password', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    currentPassword: values.currentPassword,
+                    newPassword: values.newPassword
+                }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || "Failed to update password.");
+
+            toast({ title: "Success", description: "Your password has been changed." });
+            passwordForm.reset();
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            toast({ variant: "destructive", title: "Update Failed", description: errorMessage });
+        } finally {
+            setIsSavingPassword(false);
+        }
+    }
+    
     if (isLoading) {
         return <SettingsSkeleton />;
     }
@@ -165,8 +210,8 @@ export default function SettingsPage() {
   return (
     <div className="grid gap-6">
       <Card>
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
+        <Form {...profileForm}>
+            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
                 <CardHeader>
                 <CardTitle>Edit Profile</CardTitle>
                 <CardDescription>Update your personal details and profile picture.</CardDescription>
@@ -185,7 +230,7 @@ export default function SettingsPage() {
                         </div>
                          <div className="grid sm:grid-cols-2 gap-4">
                             <FormField
-                                control={form.control}
+                                control={profileForm.control}
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
@@ -203,7 +248,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
                          <FormField
-                            control={form.control}
+                            control={profileForm.control}
                             name="bio"
                             render={({ field }) => (
                                 <FormItem>
@@ -228,29 +273,61 @@ export default function SettingsPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Change Password</CardTitle>
-          <CardDescription>Update your password for better security. (Feature coming soon)</CardDescription>
-        </CardHeader>
-        <CardContent>
-        <form className="space-y-4">
-            <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" disabled />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" disabled />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" disabled />
-            </div>
-        </form>
-        </CardContent>
-        <CardFooter className="border-t px-6 py-4">
-          <Button disabled>Update Password</Button>
-        </CardFooter>
+          <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
+                <CardHeader>
+                <CardTitle>Change Password</CardTitle>
+                <CardDescription>Update your password for better security.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Current Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={passwordForm.control}
+                        name="newPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>New Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={passwordForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirm New Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+                <CardFooter className="border-t px-6 py-4">
+                <Button type="submit" disabled={isSavingPassword}>
+                    {isSavingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Update Password
+                </Button>
+                </CardFooter>
+            </form>
+        </Form>
       </Card>
     </div>
   );
