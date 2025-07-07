@@ -51,10 +51,16 @@ const formSchema = z.object({
   overview: z.string().min(50, { message: "Overview must be at least 50 characters." }),
   images: z
     .any()
-    .refine((files): files is FileList => files instanceof FileList, "Image files are required.")
-    .refine((files) => files.length >= 3, "Minimum of 3 images is required.")
-    .refine((files) => Array.from(files).every((file) => file.size <= MAX_FILE_SIZE), `Max file size is 5MB.`)
-    .refine((files) => Array.from(files).every((file) => ACCEPTED_IMAGE_TYPES.includes(file.type)), "Only .jpg, .jpeg, .png and .webp formats are supported."),
+    .refine((files) => files?.length > 0, "Images are required.")
+    .refine((files) => files?.length >= 3, "Minimum of 3 images is required.")
+    .refine(
+      (files) => Array.from(files).every((file: File) => file.size <= MAX_FILE_SIZE),
+      `Max file size is 5MB.`
+    )
+    .refine(
+      (files) => Array.from(files).every((file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
+      "Only .jpg, .jpeg, .png and .webp formats are supported."
+    ),
   languages: z.string().min(3, { message: "Please list at least one language." }),
   highlights: z.string().min(10, { message: "Please list at least one highlight." }),
   inclusions: z.string().min(10, { message: "Please list at least one inclusion." }),
