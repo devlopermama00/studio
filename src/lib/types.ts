@@ -34,6 +34,7 @@ export type Tour = {
   durationInHours: number;
   currency: string;
   price: number;
+  originalPrice?: number;
   tourType: 'public' | 'private';
   category: string;
   groupSize: number;

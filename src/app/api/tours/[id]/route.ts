@@ -103,9 +103,22 @@ export async function PUT(
             body.approved = false;
         }
 
+        const updatePayload: any = { $set: body, $unset: {} };
+
+        if (!body.discountPrice || parseFloat(body.discountPrice) <= 0) {
+            updatePayload.$unset.discountPrice = "";
+            updatePayload.$unset.offerExpiresAt = "";
+            delete updatePayload.$set.discountPrice;
+            delete updatePayload.$set.offerExpiresAt;
+        }
+
+        if (Object.keys(updatePayload.$unset).length === 0) {
+            delete updatePayload.$unset;
+        }
+
         const updatedTour = await Tour.findByIdAndUpdate(
             tourId,
-            body,
+            updatePayload,
             { new: true, runValidators: true }
         );
 

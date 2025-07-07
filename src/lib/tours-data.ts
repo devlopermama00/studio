@@ -35,71 +35,103 @@ async function verifyToken(token: string): Promise<DecodedToken | null> {
     }
 }
 
+const transformTours = async (tours: any[]): Promise<PublicTourType[]> => {
+    if (!tours || tours.length === 0) {
+        return [];
+    }
+
+    const tourIds = tours.map(t => t._id);
+
+    const ratings = await Review.aggregate([
+        { $match: { tourId: { $in: tourIds } } },
+        { $group: { _id: '$tourId', avgRating: { $avg: '$rating' } } }
+    ]);
+
+    const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
+    const now = new Date();
+
+    const transformedTours = tours.map(tour => {
+        const rating = ratingsMap.get(tour._id.toString()) || 0;
+        const isOfferActive = tour.discountPrice && tour.discountPrice > 0 && tour.offerExpiresAt && new Date(tour.offerExpiresAt) > now;
+        
+        return {
+            id: tour._id.toString(),
+            title: tour.title,
+            country: tour.country,
+            city: tour.city,
+            place: tour.place,
+            images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
+            durationInHours: tour.durationInHours,
+            currency: tour.currency,
+            price: isOfferActive ? tour.discountPrice : tour.price,
+            originalPrice: isOfferActive ? tour.price : undefined,
+            tourType: tour.tourType,
+            category: tour.category?.name || 'Uncategorized',
+            groupSize: tour.groupSize,
+            overview: tour.overview,
+            languages: tour.languages || [],
+            highlights: tour.highlights || [],
+            inclusions: tour.inclusions || [],
+            exclusions: tour.exclusions || [],
+            importantInformation: tour.importantInformation,
+            itinerary: tour.itinerary?.map((i: any) => ({ title: i.title, description: i.description })) || [],
+            providerId: tour.createdBy?._id?.toString() || '',
+            providerName: tour.createdBy?.name || 'Unknown Provider',
+            rating: parseFloat(rating.toFixed(1)),
+            reviews: [],
+            approved: tour.approved,
+        };
+    });
+
+    return transformedTours.filter((t): t is PublicTourType => t !== null);
+};
+
+
 export async function getPublicTours(limit?: number): Promise<PublicTourType[]> {
     await dbConnect();
     
     try {
-        // Find all tours that are approved and not blocked.
         let query = Tour.find({ approved: true, blocked: false })
             .populate('category', 'name')
             .populate('createdBy', 'name')
             .sort({ createdAt: -1 })
-            .lean(); // Use .lean() for faster, plain JS objects
+            .lean();
 
         if (limit) {
             query = query.limit(limit);
         }
         
         const tours = await query.exec();
-        
-        if (!tours || tours.length === 0) {
-            return [];
-        }
-
-        const tourIds = tours.map(t => t._id);
-
-        // Fetch ratings for all tours in a single query
-        const ratings = await Review.aggregate([
-            { $match: { tourId: { $in: tourIds } } },
-            { $group: { _id: '$tourId', avgRating: { $avg: '$rating' } } }
-        ]);
-
-        const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
-
-        const transformedTours = tours.map(tour => {
-            const rating = ratingsMap.get(tour._id.toString()) || 0;
-            
-            return {
-                id: tour._id.toString(),
-                title: tour.title,
-                country: tour.country,
-                city: tour.city,
-                place: tour.place,
-                images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
-                durationInHours: tour.durationInHours,
-                currency: tour.currency,
-                price: tour.price,
-                tourType: tour.tourType,
-                category: tour.category?.name || 'Uncategorized',
-                groupSize: tour.groupSize,
-                overview: tour.overview,
-                languages: tour.languages || [],
-                highlights: tour.highlights || [],
-                inclusions: tour.inclusions || [],
-                exclusions: tour.exclusions || [],
-                importantInformation: tour.importantInformation,
-                itinerary: tour.itinerary?.map((i: any) => ({ title: i.title, description: i.description })) || [],
-                providerId: tour.createdBy?._id?.toString() || '',
-                providerName: tour.createdBy?.name || 'Unknown Provider',
-                rating: parseFloat(rating.toFixed(1)),
-                reviews: [],
-                approved: tour.approved,
-            };
-        });
-
-        return transformedTours.filter((t): t is PublicTourType => t !== null);
+        return transformTours(tours);
     } catch (error) {
         console.error("Error in getPublicTours:", error);
+        return [];
+    }
+}
+
+export async function getToursOnSale(limit?: number): Promise<PublicTourType[]> {
+    await dbConnect();
+    try {
+        const now = new Date();
+        let query = Tour.find({
+            approved: true,
+            blocked: false,
+            discountPrice: { $gt: 0 },
+            offerExpiresAt: { $gt: now }
+        })
+        .populate('category', 'name')
+        .populate('createdBy', 'name')
+        .sort({ createdAt: -1 })
+        .lean();
+
+        if (limit) {
+            query = query.limit(limit);
+        }
+
+        const tours = await query.exec();
+        return transformTours(tours);
+    } catch (error) {
+        console.error("Error fetching tours on sale:", error);
         return [];
     }
 }
@@ -125,17 +157,16 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
             return null;
         }
 
-        // If tour is not approved, only its creator or an admin can see it.
         if (!tourDoc.approved && (!user || (user.role !== 'admin' && tourDoc.createdBy?._id.toString() !== user.id))) {
             return null;
         }
         
-        // Blocked tours are hidden from everyone except admins
         if (tourDoc.blocked && user?.role !== 'admin') {
             return null;
         }
 
-        const tour = tourDoc; // Already a plain object because of .lean()
+        const tour = tourDoc;
+        const now = new Date();
 
         const reviewAggregate = await Review.aggregate([
             { $match: { tourId: new Types.ObjectId(tour._id) } },
@@ -146,7 +177,7 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         const tourReviews = await Review.find({ tourId: tourDoc._id })
             .populate<{ userId: { _id: Types.ObjectId; name: string, profilePhoto?: string } }>('userId', 'name profilePhoto')
             .sort({ createdAt: -1 })
-            .lean(); // Use .lean()
+            .lean();
         
         const reviews = tourReviews.map((r: any): ReviewType | null => {
             if (!r.userId || !r.userId.name) return null;
@@ -166,6 +197,8 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
             }
         }).filter((r): r is ReviewType => r !== null);
         
+        const isOfferActive = tour.discountPrice && tour.discountPrice > 0 && tour.offerExpiresAt && new Date(tour.offerExpiresAt) > now;
+        
         return {
             id: tour._id.toString(),
             title: tour.title,
@@ -175,7 +208,8 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
             images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
             durationInHours: tour.durationInHours,
             currency: tour.currency,
-            price: tour.price,
+            price: isOfferActive ? tour.discountPrice! : tour.price,
+            originalPrice: isOfferActive ? tour.price : undefined,
             tourType: tour.tourType,
             category: tour.category?.name || 'Uncategorized',
             groupSize: tour.groupSize,

@@ -39,8 +39,11 @@ export async function POST(request: NextRequest) {
         if (!tour) {
             return NextResponse.json({ message: 'Tour not found.' }, { status: 404 });
         }
-        
-        const totalPrice = tour.price * guests;
+
+        const now = new Date();
+        const isOfferActive = tour.discountPrice && tour.discountPrice > 0 && tour.offerExpiresAt && new Date(tour.offerExpiresAt) > now;
+        const finalPricePerGuest = isOfferActive ? tour.discountPrice : tour.price;
+        const totalPrice = finalPricePerGuest * guests;
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
                             images: tour.images,
                             description: `Booking for ${guests} guest(s) on ${new Date(bookingDate).toLocaleDateString()}.`
                         },
-                        unit_amount: tour.price * 100, // Stripe expects amount in cents
+                        unit_amount: finalPricePerGuest * 100, // Stripe expects amount in cents
                     },
                     quantity: guests,
                 },

@@ -2,13 +2,13 @@
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourCard } from "@/components/tour-card";
-import { getPublicTours } from "@/lib/tours-data";
+import { getToursOnSale } from "@/lib/tours-data";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, Percent } from "lucide-react";
 import type { Tour } from "@/lib/types";
 
 export default async function DealsPage() {
-  const deals: Tour[] = await getPublicTours(3);
+  const deals: Tour[] = await getToursOnSale();
 
   return (
     <div className="flex flex-col min-h-screen">

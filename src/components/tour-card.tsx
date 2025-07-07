@@ -25,9 +25,17 @@ export function TourCard({ tour }: { tour: Tour }) {
             data-ai-hint="tour landscape"
           />
         </Link>
-        <Badge variant="secondary" className="absolute top-3 right-3 text-base">
-          {formatCurrency(tour.price)}
-        </Badge>
+        <div className="absolute top-3 right-3 flex flex-col items-end gap-2">
+            {tour.originalPrice && (
+                <Badge variant="destructive" className="text-base animate-pulse">DEAL</Badge>
+            )}
+            <Badge variant="secondary" className="text-base">
+                {tour.originalPrice && (
+                    <span className="line-through text-muted-foreground mr-2">{formatCurrency(tour.originalPrice)}</span>
+                )}
+                {formatCurrency(tour.price)}
+            </Badge>
+        </div>
       </CardHeader>
       <CardContent className="p-4 flex-1 flex flex-col">
         <Badge className="mb-2 bg-primary/10 text-primary hover:bg-primary/20 w-fit">{tour.category}</Badge>

@@ -215,7 +215,12 @@ export default async function TourDetailPage({ params }: { params: { id: string 
 
             {/* Right/Sticky Column */}
             <div className="lg:col-span-1">
-              <BookingCard price={tour.price} tourId={tour.id} currencyCode={tour.currency} />
+              <BookingCard
+                price={tour.price}
+                originalPrice={tour.originalPrice}
+                tourId={tour.id}
+                currencyCode={tour.currency}
+              />
             </div>
           </div>
         </div>

@@ -8,6 +8,7 @@ import * as z from "zod";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -17,12 +18,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ArrowLeft, Trash2, PlusCircle, X } from "lucide-react";
+import { Loader2, ArrowLeft, Trash2, PlusCircle, X, CalendarIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { currencies } from "@/context/currency-context";
 import { uploadFile } from "@/services/fileUploader";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 interface Category {
     _id: string;
@@ -45,6 +49,8 @@ const formSchema = z.object({
   durationInHours: z.coerce.number().positive({ message: "Duration must be a positive number of hours." }),
   currency: z.string({ required_error: "Currency is required." }).default("USD"),
   price: z.coerce.number().positive({ message: "Price must be a positive number." }),
+  discountPrice: z.coerce.number().optional(),
+  offerExpiresAt: z.date().optional(),
   tourType: z.enum(["public", "private"], { required_error: "Please select a tour type." }),
   category: z.string({ required_error: "Please select a category." }),
   groupSize: z.coerce.number().min(1, { message: "Group size must be at least 1." }),
@@ -67,6 +73,22 @@ const formSchema = z.object({
   exclusions: z.string().min(10, { message: "Please list at least one exclusion." }),
   importantInformation: z.string().optional(),
   itinerary: z.array(itineraryItemSchema).optional(),
+}).refine(data => {
+    if (data.discountPrice && data.price) {
+        return data.discountPrice < data.price;
+    }
+    return true;
+}, {
+    message: "Discount price must be less than the original price.",
+    path: ["discountPrice"],
+}).refine(data => {
+    if (data.discountPrice) {
+        return !!data.offerExpiresAt;
+    }
+    return true;
+}, {
+    message: "Offer expiry date is required when a discount is set.",
+    path: ["offerExpiresAt"],
 });
 
 type TourFormValues = z.infer<typeof formSchema>;
@@ -117,7 +139,6 @@ export default function AddTourPage() {
   }, [images]);
 
    useEffect(() => {
-    // Cleanup object URLs to prevent memory leaks
     return () => {
         imagePreviews.forEach(url => URL.revokeObjectURL(url));
     };
@@ -311,8 +332,36 @@ export default function AddTourPage() {
                 />
                 <FormField name="groupSize" render={({ field }) => (<FormItem><FormLabel>Max Group Size</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
+
+            <Separator />
+             <div>
+                <h3 className="text-lg font-medium">Special Offer (Optional)</h3>
+                <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                    <FormField name="discountPrice" render={({ field }) => (<FormItem><FormLabel>Discounted Price</FormLabel><FormControl><Input type="number" placeholder="e.g., 45" {...field} onChange={e => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))} value={field.value ?? ''} /></FormControl><FormDescription>Must be lower than the original price.</FormDescription><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="offerExpiresAt" render={({ field }) => (
+                        <FormItem className="flex flex-col pt-2">
+                            <FormLabel>Offer Expires On</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal h-10", !field.value && "text-muted-foreground")}>
+                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate()))} />
+                                </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+            </div>
+            <Separator />
             
-             <div className="grid sm:grid-cols-2 gap-4">
+             <div className="grid sm:grid-cols-2 gap-4 pt-4">
                  <FormField control={form.control} name="category" render={({ field }) => (
                     <FormItem>
                     <FormLabel>Category</FormLabel>

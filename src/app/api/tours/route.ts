@@ -89,11 +89,18 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const newTour = new Tour({
+        const newTourData: any = {
             ...body,
             createdBy: new Types.ObjectId(decoded.id),
             approved: decoded.role === 'admin',
-        });
+        };
+
+        if (!body.discountPrice || parseFloat(body.discountPrice) <= 0) {
+            delete newTourData.discountPrice;
+            delete newTourData.offerExpiresAt;
+        }
+
+        const newTour = new Tour(newTourData);
 
         await newTour.save();
 
