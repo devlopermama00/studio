@@ -219,14 +219,6 @@ const AdminNav = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/chat')}>
-                        <Link href="/dashboard/chat">
-                            <MessageSquare />
-                            Support Chat
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
                  <SidebarMenuItem>
                      <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/categories')}>
                         <Link href="/dashboard/admin/categories">
@@ -384,7 +376,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {getPageTitle()}
             </h1>
         </header>
-        <main className="flex-1 p-4 sm:px-6 sm:py-6">
+        <main className="flex flex-1 flex-col p-4 sm:px-6 sm:py-6 md:gap-8">
           {children}
         </main>
       </SidebarInset>

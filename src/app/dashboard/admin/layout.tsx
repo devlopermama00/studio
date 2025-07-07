@@ -99,14 +99,6 @@ const AdminNav = () => {
                 </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild>
-                        <Link href="/dashboard/admin/chat">
-                            <MessageSquare />
-                            Support Chat
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
                         <Link href="/dashboard/admin/categories">
                             <LayoutList />
                             Categories
