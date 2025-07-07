@@ -2,10 +2,13 @@
 import Image from "next/image";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ShieldCheck, CalendarCheck, Sparkles, Globe, MousePointerClick, Star } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
+import { getPublicReviews } from "@/lib/reviews-data";
 
 const features = [
   {
@@ -35,7 +38,20 @@ const features = [
   }
 ];
 
-export default function AboutPage() {
+const StarRating = ({ rating }: { rating: number }) => (
+    <div className="flex items-center gap-1">
+      {[...Array(5)].map((_, i) => (
+        <Star
+          key={i}
+          className={`w-5 h-5 ${i < Math.round(rating) ? "text-amber-500 fill-amber-500" : "text-gray-300"}`}
+        />
+      ))}
+    </div>
+);
+
+export default async function AboutPage() {
+  const reviews = await getPublicReviews(9);
+
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
@@ -89,6 +105,62 @@ export default function AboutPage() {
                 </Card>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24 bg-background">
+          <div className="container mx-auto px-4">
+            <div className="text-center max-w-3xl mx-auto mb-12">
+              <h2 className="text-3xl md:text-4xl font-headline font-semibold">What Our Travelers Say</h2>
+              <p className="text-muted-foreground text-lg mt-4">
+                Real stories from our adventurous guests.
+              </p>
+            </div>
+            {reviews && reviews.length > 0 ? (
+              <Carousel
+                opts={{
+                  align: "start",
+                }}
+                className="w-full max-w-6xl mx-auto"
+              >
+                <CarouselContent className="-ml-4">
+                  {reviews.map((review) => (
+                    <CarouselItem key={review._id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                      <div className="p-1 h-full">
+                        <Card className="flex flex-col h-full">
+                          <CardContent className="p-6 flex-1 flex flex-col justify-between">
+                            <div>
+                                <StarRating rating={review.rating} />
+                                <p className="text-muted-foreground mt-4 italic line-clamp-4">"{review.comment}"</p>
+                            </div>
+                            <div className="mt-6 flex items-center gap-4 border-t pt-4">
+                                <Avatar>
+                                    <AvatarImage src={review.userId?.profilePhoto} alt={review.userId?.name} />
+                                    <AvatarFallback>{review.userId?.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p className="font-semibold">{review.userId?.name || 'Anonymous User'}</p>
+                                    <p className="text-sm text-muted-foreground">on {review.tourId?.title || 'a tour'}</p>
+                                </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
+              </Carousel>
+            ) : (
+              <Alert className="max-w-md mx-auto">
+                <Terminal className="h-4 w-4" />
+                <AlertTitle>No Reviews Yet</AlertTitle>
+                <AlertDescription>
+                    Be the first to leave a review after your tour!
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </section>
         
