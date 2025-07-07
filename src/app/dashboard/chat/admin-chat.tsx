@@ -150,20 +150,11 @@ export default function AdminChat() {
             const currentConvo = selectedConversationRef.current;
             const currentUser = authUserRef.current;
             
+            // This is the sender, so replace the optimistic message
             if (currentUser && newMessage.sender._id === currentUser._id) {
-                setMessages(prev => {
-                    const newMessages = [...prev];
-                    const tempIndex = newMessages.findIndex(m => m._id.startsWith('temp_'));
-                    if (tempIndex !== -1) {
-                        newMessages[tempIndex] = newMessage;
-                        return newMessages;
-                    }
-                    if (!newMessages.some(m => m._id === newMessage._id)) {
-                        return [...newMessages, newMessage];
-                    }
-                    return newMessages;
-                });
+                setMessages(prev => prev.map(m => m._id.startsWith('temp_') ? newMessage : m));
             } else if (currentConvo && newMessage.conversationId === currentConvo._id) {
+                // This is the receiver, add the new message
                 setMessages((prevMessages) => {
                     if (prevMessages.some(m => m._id === newMessage._id)) return prevMessages;
                     return [...prevMessages, newMessage];
@@ -216,7 +207,7 @@ export default function AdminChat() {
                 if (!res.ok) throw new Error("Could not create conversation.");
 
                 const newConvoData = await res.json();
-                 
+
                 setConversations(prev => {
                     const updatedConvos = prev.map(c => c._id === convo._id ? newConvoData : c);
                     const currentFilterValue = document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all';
@@ -304,7 +295,7 @@ export default function AdminChat() {
     const renderMessageStatus = (message: Message) => {
         if (!selectedConversation || !authUser) return null;
         if (message.sender._id !== authUser._id) return null;
-        if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin" />
+        if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin text-primary-foreground/70" />
         
         const otherParticipant = selectedConversation.participants.find(p => p._id !== authUser._id);
         if (!otherParticipant) return null;
@@ -312,7 +303,7 @@ export default function AdminChat() {
         const isRead = message.readBy && message.readBy.includes(otherParticipant._id);
         
         if (isRead) return <CheckCheck className="h-4 w-4 text-primary-foreground" />;
-        return <Check className="h-4 w-4" />;
+        return <Check className="h-4 w-4 text-primary-foreground/70" />;
     };
 
     if (isLoading) return <AdminChatSkeleton />;
@@ -320,7 +311,7 @@ export default function AdminChat() {
     return (
         <Card className="h-full">
             <CardContent className="flex h-full p-0">
-                <div className={cn("border-r h-full flex-col w-full md:max-w-xs md:flex", selectedConversation ? 'hidden md:flex' : 'flex')}>
+                <div className={cn("border-r h-full flex flex-col min-h-0 w-full md:max-w-xs md:flex", selectedConversation ? 'hidden md:flex' : 'flex')}>
                     <div className="p-4 border-b">
                         <Select onValueChange={(value) => handleFilterChange(value, conversations)} defaultValue="all">
                             <SelectTrigger><SelectValue placeholder="Filter by role" /></SelectTrigger>
