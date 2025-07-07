@@ -27,7 +27,7 @@ export function SiteFooter() {
             </div>
           </div>
           
-          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <h4 className="font-headline font-semibold mb-4">Explore</h4>
               <ul className="space-y-2 text-sm">
@@ -41,9 +41,14 @@ export function SiteFooter() {
               <h4 className="font-headline font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link href="/about" className="text-muted-foreground hover:text-primary">About Us</Link></li>
-                <li><Link href="/providers" className="text-muted-foreground hover:text-primary">For Tour Providers</Link></li>
                 <li><Link href="/contact" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
                 <li><Link href="/faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-headline font-semibold mb-4">Career</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/providers" className="text-muted-foreground hover:text-primary">For Tour Providers</Link></li>
               </ul>
             </div>
             <div>
