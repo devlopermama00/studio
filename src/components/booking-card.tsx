@@ -26,10 +26,16 @@ export function BookingCard({ price, tourId, currencyCode, originalPrice }: Book
     const { formatCurrency } = useCurrency();
     const router = useRouter();
     const { toast } = useToast();
-    const [date, setDate] = useState<Date | undefined>(new Date());
+    const [date, setDate] = useState<Date | undefined>();
     const [guests, setGuests] = useState<number>(1);
     const [isLoading, setIsLoading] = useState(false);
-    
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+        setDate(new Date());
+    }, []);
+
     const handleBooking = async () => {
         setIsLoading(true);
         try {
@@ -81,7 +87,17 @@ export function BookingCard({ price, tourId, currencyCode, originalPrice }: Book
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
-                            <Calendar mode="single" selected={date} onSelect={setDate} disabled={(date) => date < new Date(new Date().setDate(new Date().getDate() - 1))} initialFocus />
+                            {isClient ? (
+                                <Calendar 
+                                    mode="single"
+                                    selected={date}
+                                    onSelect={setDate}
+                                    disabled={(d) => d < new Date(new Date().setDate(new Date().getDate() - 1))} 
+                                    initialFocus 
+                                />
+                            ) : (
+                                <div className="p-3"><div className="w-[280px] h-[313px]" /></div>
+                            )}
                         </PopoverContent>
                     </Popover>
                 </div>
