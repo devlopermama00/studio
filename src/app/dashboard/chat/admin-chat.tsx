@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquare, Send, Check, CheckCheck, Loader2 } from "lucide-react";
+import { MessageSquare, Send, Check, CheckCheck, Loader2, ArrowLeft } from "lucide-react";
 
 interface User {
   _id: string;
@@ -51,7 +51,7 @@ let socket: Socket;
 const AdminChatSkeleton = () => (
     <Card className="h-full">
         <CardContent className="flex h-full p-0">
-            <div className="border-r h-full flex flex-col w-full max-w-xs">
+            <div className="border-r h-full flex flex-col w-full md:max-w-xs">
                 <div className="p-4 border-b"><Skeleton className="h-10 w-full" /></div>
                 <ScrollArea className="flex-1">
                     <div className="p-2 space-y-2">
@@ -67,7 +67,7 @@ const AdminChatSkeleton = () => (
                     </div>
                 </ScrollArea>
             </div>
-            <div className="flex-1 flex flex-col h-full bg-secondary/50">
+            <div className="flex-1 flex-col h-full bg-secondary/50 hidden md:flex">
                  <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
                     <h3 className="text-xl font-semibold">Select a conversation</h3>
@@ -79,7 +79,13 @@ const AdminChatSkeleton = () => (
 );
 
 export default function AdminChat() {
-    const [authUser, setAuthUser] = useState<User | null>(null);
+    const [authUser, _setAuthUser] = useState<User | null>(null);
+    const authUserRef = useRef<User | null>(null);
+    const setAuthUser = (user: User | null) => {
+        _setAuthUser(user);
+        authUserRef.current = user;
+    }
+
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -88,7 +94,6 @@ export default function AdminChat() {
     const { toast } = useToast();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
-    // Using refs to hold the latest state for socket event handlers, preventing stale state issues.
     const selectedConversationRef = useRef<Conversation | null>(null);
 
     useEffect(() => {
@@ -112,10 +117,12 @@ export default function AdminChat() {
             const currentConvo = selectedConversationRef.current;
             if (currentConvo && newMessage.conversationId === currentConvo._id) {
                 // Ignore message if sender is current user to avoid duplicates
-                if (newMessage.sender._id === authUser?._id) return;
+                if (newMessage.sender._id === authUserRef.current?._id) return;
+
                 setMessages((prevMessages) => [...prevMessages, newMessage]);
-                if (authUser) {
-                     socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUser._id });
+                
+                if (authUserRef.current) {
+                     socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
                 }
             }
              setConversations(prev => prev.map(c => 
@@ -189,14 +196,17 @@ export default function AdminChat() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ recipientId: recipient._id })
                 });
+                if (!res.ok) throw new Error("Could not create conversation.");
+
                 const newConvoData = await res.json();
                 const updatedConvos = conversations.map(c => c._id === convo._id ? newConvoData : c);
-                setConversations(updatedConvos);
-                const currentFilter = document.querySelector('[role="combobox"]')?.textContent;
-                handleFilterChange(currentFilter === 'All Users' ? 'all' : (currentFilter?.toLowerCase() || 'all'), updatedConvos);
+                
+                const currentFilterValue = document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all';
+                handleFilterChange(currentFilterValue === 'all users' ? 'all' : currentFilterValue, updatedConvos);
+                
                 targetConvo = newConvoData;
             } catch (error) {
-                 toast({ variant: "destructive", title: "Error", description: "Could not create conversation." });
+                 toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "An unknown error occurred" });
                  return;
             }
         }
@@ -269,7 +279,7 @@ export default function AdminChat() {
     
     const renderMessageStatus = (message: Message) => {
         if (!selectedConversation || !authUser) return null;
-        if (message._id.startsWith('temp')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         
         const otherParticipant = selectedConversation.participants.find(p => p._id !== authUser._id);
         if (!otherParticipant) return null;
@@ -285,7 +295,7 @@ export default function AdminChat() {
     return (
         <Card className="h-full">
             <CardContent className="flex h-full p-0">
-                <div className="border-r h-full flex flex-col w-full max-w-xs">
+                <div className={cn("border-r h-full flex-col w-full md:max-w-xs md:flex", selectedConversation ? 'hidden md:flex' : 'flex')}>
                     <div className="p-4 border-b">
                         <Select onValueChange={handleFilterChange} defaultValue="all">
                             <SelectTrigger><SelectValue placeholder="Filter by role" /></SelectTrigger>
@@ -331,10 +341,13 @@ export default function AdminChat() {
                     </ScrollArea>
                 </div>
 
-                <div className="flex flex-1 flex-col h-full bg-secondary/50">
+                <div className={cn("flex-1 flex-col h-full bg-secondary/50", selectedConversation ? 'flex' : 'hidden md:flex')}>
                     {selectedConversation && authUser ? (
                         <>
                             <div className="p-4 border-b flex items-center gap-3 bg-background shadow-sm flex-shrink-0">
+                                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
+                                    <ArrowLeft className="h-5 w-5" />
+                                </Button>
                                 <Avatar>
                                      <AvatarImage src={selectedConversation.participants.find(p => p._id !== authUser._id)?.profilePhoto} />
                                      <AvatarFallback>{selectedConversation.participants.find(p => p._id !== authUser._id)?.name.charAt(0).toUpperCase()}</AvatarFallback>

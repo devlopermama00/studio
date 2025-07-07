@@ -67,6 +67,11 @@ interface UserChatProps {
 }
 
 export default function UserChat({ authUser }: UserChatProps) {
+    const authUserRef = useRef(authUser);
+    useEffect(() => {
+        authUserRef.current = authUser;
+    }, [authUser]);
+
     const [conversation, setConversation] = useState<Conversation | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -98,9 +103,9 @@ export default function UserChat({ authUser }: UserChatProps) {
         socket.on('receive_message', (newMessage: Message) => {
             const currentConvo = conversationRef.current;
             if (currentConvo && newMessage.conversationId === currentConvo._id) {
-                 if (newMessage.sender._id === authUser._id) return;
+                 if (newMessage.sender._id === authUserRef.current._id) return;
                 setMessages((prevMessages) => [...prevMessages, newMessage]);
-                socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUser._id });
+                socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
             }
         });
         
