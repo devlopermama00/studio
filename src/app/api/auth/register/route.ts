@@ -9,14 +9,14 @@ import mongoose, { Types } from 'mongoose';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, password, role, currency, companyDocumentUrl } = body;
+    const { name, email, password, role, currency, licenseUrl, idProofUrl } = body;
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    if (role === 'provider' && !companyDocumentUrl) {
-      return NextResponse.json({ message: 'Company document is required for providers.' }, { status: 400 });
+    if (role === 'provider' && (!licenseUrl || !idProofUrl)) {
+      return NextResponse.json({ message: 'License and ID documents are required for providers.' }, { status: 400 });
     }
 
     await dbConnect();
@@ -40,7 +40,6 @@ export async function POST(request: Request) {
       passwordHash,
       role: finalRole,
       currency,
-      companyDocumentUrl,
     });
 
     await newUser.save();
@@ -49,9 +48,8 @@ export async function POST(request: Request) {
     if (finalRole === 'provider') {
         const newDocument = new Document({
             userId: new Types.ObjectId(newUser._id),
-            // Using the single doc url for both as per the current form
-            licenseUrl: companyDocumentUrl,
-            idProofUrl: companyDocumentUrl,
+            licenseUrl: licenseUrl,
+            idProofUrl: idProofUrl,
             status: 'pending'
         });
         await newDocument.save();

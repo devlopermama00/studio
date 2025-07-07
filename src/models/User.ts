@@ -16,7 +16,6 @@ export interface IUser extends Document {
   forgotPasswordToken?: string;
   forgotPasswordTokenExpiry?: Date;
   currency?: string;
-  companyDocumentUrl?: string;
   payoutDetails?: {
     paypalEmail?: string;
     bankDetails?: {
@@ -44,7 +43,6 @@ const UserSchema: Schema = new Schema({
   forgotPasswordToken: { type: String },
   forgotPasswordTokenExpiry: { type: Date },
   currency: { type: String },
-  companyDocumentUrl: { type: String },
   payoutDetails: {
     paypalEmail: { type: String },
     bankDetails: {
