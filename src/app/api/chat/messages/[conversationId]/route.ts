@@ -35,6 +35,12 @@ export async function GET(request: NextRequest, { params }: { params: { conversa
             return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
         
+        // Mark messages in this conversation as read by the current user
+        await Message.updateMany(
+            { conversationId: new Types.ObjectId(conversationId) },
+            { $addToSet: { readBy: new Types.ObjectId(decoded.id) } }
+        );
+
         const messages = await Message.find({ conversationId })
             .populate('sender', 'name email role profilePhoto')
             .sort({ createdAt: 1 });

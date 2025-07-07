@@ -43,6 +43,7 @@ interface Conversation {
     participants: User[];
     lastMessage?: Message | null;
     isNew?: boolean;
+    isUnread?: boolean;
     updatedAt: string;
 }
 
@@ -66,8 +67,8 @@ const ChatMessage = ({ msg, user }: { msg: Message, user: User }) => {
             <div className={cn(
                 "max-w-xs md:max-w-md rounded-lg px-4 py-2",
                 isSender
-                    ? "bg-primary text-primary-foreground rounded-br-none"
-                    : "bg-secondary rounded-bl-none"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary"
             )}>
                 <p className="text-sm break-words">{msg.content}</p>
             </div>
@@ -88,7 +89,7 @@ const ChatSkeleton = () => (
              <Skeleton className="h-7 w-48" />
              <Skeleton className="h-4 w-64" />
         </CardHeader>
-        <CardContent className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 overflow-hidden p-0">
+        <CardContent className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0 overflow-hidden p-0">
              <div className="flex flex-col border-r">
                 <div className="p-4 border-b space-y-4">
                     <Skeleton className="h-10 w-full" />
@@ -182,7 +183,11 @@ export default function ChatPage() {
                     });
                 } else {
                     // Update conversation list with new last message for unread indicator
-                    setConversations(prev => prev.map(c => c._id === newMessage.conversationId ? {...c, lastMessage: newMessage} : c));
+                     setConversations(prev => prev.map(c => 
+                        c._id === newMessage.conversationId 
+                        ? {...c, lastMessage: newMessage, isUnread: true} 
+                        : c
+                    ));
                     toast({title: "New Message", description: `From ${newMessage.sender.name}`})
                 }
             });
@@ -298,6 +303,7 @@ export default function ChatPage() {
             
             socket.emit('sendMessage', savedMessage);
             setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? savedMessage : m));
+            setConversations(prev => prev.map(c => c._id === savedMessage.conversationId ? {...c, lastMessage: savedMessage} : c));
 
         } catch (error) {
              toast({ variant: "destructive", title: "Error", description: "Failed to send message." });
@@ -324,10 +330,7 @@ export default function ChatPage() {
                 
                 const newRealConversation: Conversation = await res.json();
                 
-                // Replace the dummy conversation with the real one in the main list
-                setConversations(prev => prev.map(c => c._id === conv._id ? { ...newRealConversation, isNew: false } : c));
-                
-                // Select the new conversation
+                setConversations(prev => prev.map(c => c._id === conv._id ? { ...newRealConversation, isNew: false, isUnread: false } : c));
                 setSelectedConversation(newRealConversation);
 
             } catch (error) {
@@ -337,6 +340,11 @@ export default function ChatPage() {
             }
         } else {
             setSelectedConversation(conv);
+            if (conv.isUnread) {
+                 setConversations(prev => prev.map(c => 
+                    c._id === conv._id ? { ...c, isUnread: false } : c
+                ));
+            }
         }
     };
 
@@ -377,9 +385,17 @@ export default function ChatPage() {
                             <button key={conv._id} onClick={() => handleSelectConversation(conv)} className={cn("flex w-full text-left items-center gap-3 p-4 cursor-pointer hover:bg-secondary disabled:opacity-50", selectedConversation?._id === conv._id && "bg-secondary")} disabled={isCreatingConvo}>
                                 <Avatar><AvatarImage src={participant.profilePhoto} alt={participant.name} /><AvatarFallback>{participant.name.charAt(0)}</AvatarFallback></Avatar>
                                 <div className="flex-1 overflow-hidden">
-                                    <div className="font-semibold truncate flex items-center gap-2">{participant.name} <Badge variant="outline" className="capitalize">{participant.role}</Badge></div>
-                                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.content || "Click to start conversation"}</p>
+                                    <div className={cn("font-semibold truncate flex items-center gap-2", conv.isUnread && "font-bold text-foreground")}>
+                                        {participant.name} 
+                                        <Badge variant="outline" className="capitalize">{participant.role}</Badge>
+                                    </div>
+                                    <p className={cn("text-sm text-muted-foreground truncate", conv.isUnread && "font-semibold text-foreground")}>
+                                        {conv.lastMessage?.content || "Click to start conversation"}
+                                    </p>
                                 </div>
+                                {conv.isUnread && (
+                                    <div className="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0" />
+                                )}
                             </button>
                            )
                         })}
