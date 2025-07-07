@@ -209,22 +209,39 @@ export function HomepageSettingsForm() {
                           name="homepage_hero_image"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Background Image/Video</FormLabel>
-                                <FormControl>
+                                <FormLabel>Background Image/Video</FormLabel>
+                                <div className="flex items-center gap-2">
                                     <Input
-                                        type="file"
-                                        accept="image/*,video/mp4,video/webm"
-                                        onChange={(e) => handleHeroMediaUpload(e.target.files?.[0] || null)}
-                                        disabled={isUploading}
+                                        readOnly
+                                        placeholder="Upload media to see URL"
+                                        value={typeof field.value === 'string' ? field.value : ''}
+                                        className="flex-1 bg-muted"
                                     />
-                                </FormControl>
+                                    <FormControl>
+                                        <Button asChild type="button" variant="outline">
+                                            <label htmlFor="hero-media-upload" className="cursor-pointer flex items-center">
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                Upload
+                                                <Input
+                                                    id="hero-media-upload"
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*,video/mp4,video/webm"
+                                                    onChange={(e) => handleHeroMediaUpload(e.target.files?.[0] || null)}
+                                                    disabled={isUploading}
+                                                />
+                                            </label>
+                                        </Button>
+                                    </FormControl>
+                                </div>
                                 {isUploading && <Loader2 className="h-5 w-5 animate-spin my-2" />}
-                                {field.value && !isUploading && (
-                                    <div className="mt-2 relative w-full max-w-sm">
+                                
+                                {field.value && typeof field.value === 'string' && !isUploading && (
+                                    <div className="mt-2 relative w-full max-w-sm aspect-video">
                                         {(field.value.includes('.mp4') || field.value.includes('.webm')) ? (
-                                            <video src={field.value} muted loop autoPlay playsInline className="rounded-md w-full" />
+                                            <video src={field.value} muted loop autoPlay playsInline className="rounded-md w-full h-full object-cover" />
                                         ) : (
-                                            <Image src={field.value} alt="Hero preview" width={400} height={225} className="rounded-md object-contain" />
+                                            <Image src={field.value} alt="Hero preview" fill className="rounded-md object-cover" />
                                         )}
                                     </div>
                                 )}
