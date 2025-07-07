@@ -39,9 +39,8 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
     await dbConnect();
     
     try {
-        // Find all tours. For production, you might want to filter for approved tours only:
-        // let query = Tour.find({ approved: true, blocked: false });
-        let query = Tour.find({})
+        // Find all tours that are approved and not blocked.
+        let query = Tour.find({ approved: true, blocked: false })
             .populate('category', 'name')
             .populate('createdBy', 'name')
             .sort({ createdAt: -1 })
@@ -120,17 +119,14 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         const tourDoc = await Tour.findById(id)
             .populate('category', 'name')
             .populate('createdBy', 'name')
-            .lean(); // Use .lean()
+            .lean();
 
         if (!tourDoc) {
             return null;
         }
 
-        // To make debugging easier, we'll temporarily show unapproved tours.
-        // In production, you might want to uncomment this logic.
-        /*
         // If tour is not approved, only its creator or an admin can see it.
-        if (!tourDoc.approved && (!user || (user.role !== 'admin' && tourDoc.createdBy._id.toString() !== user.id))) {
+        if (!tourDoc.approved && (!user || (user.role !== 'admin' && tourDoc.createdBy?._id.toString() !== user.id))) {
             return null;
         }
         
@@ -138,7 +134,6 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         if (tourDoc.blocked && user?.role !== 'admin') {
             return null;
         }
-        */
 
         const tour = tourDoc; // Already a plain object because of .lean()
 
