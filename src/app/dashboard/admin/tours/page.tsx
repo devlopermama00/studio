@@ -4,7 +4,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { MoreHorizontal, Loader2, Check, X, Edit, Trash2, Ban } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useSocket } from "@/lib/socket"
 
 interface PopulatedAdminTour {
     _id: string;
@@ -37,12 +38,27 @@ export default function AdminToursPage() {
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [tourToDelete, setTourToDelete] = useState<PopulatedAdminTour | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
   const { toast } = useToast();
+  const socket = useSocket();
 
-  useEffect(() => {
-    const fetchTours = async () => {
+  const handleFilterChange = useCallback((status: string, sourceTours: PopulatedAdminTour[]) => {
+    let filtered: PopulatedAdminTour[] = [];
+    if (status === 'all') {
+      filtered = sourceTours;
+    } else if (status === 'approved') {
+      filtered = sourceTours.filter(t => t.approved && !t.blocked);
+    } else if (status === 'pending') {
+      filtered = sourceTours.filter(t => !t.approved && !t.blocked);
+    } else if (status === 'blocked') {
+      filtered = sourceTours.filter(t => t.blocked);
+    }
+    setFilteredTours(filtered);
+  }, []);
+
+  const fetchTours = useCallback(async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
         const response = await fetch('/api/tours');
         if (!response.ok) {
           const errorData = await response.json();
@@ -50,66 +66,73 @@ export default function AdminToursPage() {
         }
         const data = await response.json();
         setTours(data);
-        setFilteredTours(data);
+        handleFilterChange(activeTab, data);
       } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
           toast({ variant: "destructive", title: "Error fetching tours", description: errorMessage });
       } finally {
         setIsLoading(false);
       }
-    };
+    }, [activeTab, handleFilterChange, toast]);
+
+  useEffect(() => {
     fetchTours();
-  }, [toast]);
+  }, [fetchTours]);
 
-  const handleFilterChange = (status: string, sourceTours: PopulatedAdminTour[] = tours) => {
-    if (status === 'all') {
-      setFilteredTours(sourceTours);
-    } else if (status === 'approved') {
-      setFilteredTours(sourceTours.filter(t => t.approved && !t.blocked));
-    } else if (status === 'pending') {
-      setFilteredTours(sourceTours.filter(t => !t.approved && !t.blocked));
-    } else if (status === 'blocked') {
-        setFilteredTours(sourceTours.filter(t => t.blocked));
-    }
-  };
+  useEffect(() => {
+    if (!socket) return;
 
-  const handleApproval = async (tourId: string, approved: boolean) => {
-    setIsUpdating(tourId);
-    try {
-      const response = await fetch(`/api/tours/${tourId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ approved }),
-      });
-      if (!response.ok) throw new Error('Failed to update tour');
-      
-      const updatedTour = await response.json();
-      const updatedTours = tours.map(t => t._id === tourId ? updatedTour : t);
-      setTours(updatedTours);
-      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all', updatedTours);
-      toast({ title: "Success", description: `Tour has been ${approved ? 'approved' : 'un-approved'}.` });
-    } catch (error) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Could not update tour status." });
-    } finally {
-      setIsUpdating(null);
-    }
-  };
+    const handleNewTour = (newTour: PopulatedAdminTour) => {
+      toast({ title: "New Tour Created", description: newTour.title });
+      setTours(prev => [newTour, ...prev]);
+    };
+
+    const handleUpdateTour = (updatedTour: PopulatedAdminTour) => {
+      toast({ title: "Tour Updated", description: updatedTour.title });
+      setTours(prev => prev.map(t => t._id === updatedTour._id ? updatedTour : t));
+    };
+
+    const handleDeleteTour = (payload: { _id: string }) => {
+      toast({ title: "Tour Deleted" });
+      setTours(prev => prev.filter(t => t._id !== payload._id));
+    };
+
+    socket.on('tour_created', handleNewTour);
+    socket.on('tour_updated', handleUpdateTour);
+    socket.on('tour_deleted', handleDeleteTour);
+
+    return () => {
+      socket.off('tour_created', handleNewTour);
+      socket.off('tour_updated', handleUpdateTour);
+      socket.off('tour_deleted', handleDeleteTour);
+    };
+  }, [socket, toast]);
   
-  const handleBlock = async (tourId: string, blocked: boolean) => {
+  useEffect(() => {
+    handleFilterChange(activeTab, tours);
+  }, [tours, activeTab, handleFilterChange]);
+
+  const updateTourStatus = async (tourId: string, update: { approved?: boolean; blocked?: boolean }) => {
     setIsUpdating(tourId);
     try {
       const response = await fetch(`/api/tours/${tourId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blocked }),
+        body: JSON.stringify(update),
       });
       if (!response.ok) throw new Error('Failed to update tour');
       
       const updatedTour = await response.json();
-      const updatedTours = tours.map(t => t._id === tourId ? updatedTour : t);
-      setTours(updatedTours);
-      handleFilterChange(document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all', updatedTours);
-      toast({ title: "Success", description: `Tour has been ${blocked ? 'blocked' : 'un-blocked'}.` });
+      
+      // Update local state immediately
+      setTours(prevTours => prevTours.map(t => (t._id === tourId ? updatedTour : t)));
+      
+      // Broadcast the change to other clients
+      if (socket) {
+        socket.emit('broadcast', { event: 'tour_updated', payload: updatedTour });
+      }
+
+      toast({ title: "Success", description: `Tour has been updated.` });
     } catch (error) {
       toast({ variant: "destructive", title: "Update Failed", description: "Could not update tour status." });
     } finally {
@@ -129,10 +152,15 @@ export default function AdminToursPage() {
         const response = await fetch(`/api/tours/${tourToDelete._id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Failed to delete tour');
         
-        const remainingTours = tours.filter(t => t._id !== tourToDelete._id);
-        setTours(remainingTours);
-        const activeTabValue = document.querySelector('[role="tab"][data-state="active"]')?.getAttribute('data-value') || 'all';
-        handleFilterChange(activeTabValue, remainingTours);
+        const deletedId = tourToDelete._id;
+        // Update local state immediately
+        setTours(prevTours => prevTours.filter(t => t._id !== deletedId));
+
+        // Broadcast change
+        if (socket) {
+          socket.emit('broadcast', { event: 'tour_deleted', payload: { _id: deletedId } });
+        }
+        
         toast({ title: "Success", description: "Tour deleted successfully." });
     } catch (error) {
         toast({ variant: "destructive", title: "Deletion Failed", description: "Could not delete tour." });
@@ -159,7 +187,7 @@ export default function AdminToursPage() {
   return (
     <>
     <Card>
-        <Tabs defaultValue="all" onValueChange={(value) => handleFilterChange(value, tours)}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
             <CardHeader>
                 <CardTitle>Tour Management</CardTitle>
                 <CardDescription>Approve, reject, and manage all tours on the platform.</CardDescription>
@@ -213,12 +241,12 @@ export default function AdminToursPage() {
                                             </Link>
                                         </DropdownMenuItem>
                                         {!tour.blocked && (
-                                            <DropdownMenuItem onClick={() => handleApproval(tour._id, !tour.approved)} className="cursor-pointer">
+                                            <DropdownMenuItem onClick={() => updateTourStatus(tour._id, { approved: !tour.approved })} className="cursor-pointer">
                                                 {tour.approved ? <X className="mr-2 h-4 w-4" /> : <Check className="mr-2 h-4 w-4" />}
                                                 {tour.approved ? 'Un-approve' : 'Approve'}
                                             </DropdownMenuItem>
                                         )}
-                                        <DropdownMenuItem onClick={() => handleBlock(tour._id, !tour.blocked)} className="cursor-pointer">
+                                        <DropdownMenuItem onClick={() => updateTourStatus(tour._id, { blocked: !tour.blocked })} className="cursor-pointer">
                                             {tour.blocked ? <Check className="mr-2 h-4 w-4" /> : <Ban className="mr-2 h-4 w-4" />}
                                             {tour.blocked ? 'Unblock' : 'Block'}
                                         </DropdownMenuItem>

@@ -85,6 +85,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseW
       }
     });
 
+    // Generic broadcast listener
+    socket.on('broadcast', (data: { event: string; payload: any }) => {
+      // Broadcast to all clients except the sender
+      socket.broadcast.emit(data.event, data.payload);
+    });
+
     socket.on('disconnect', () => {
       console.log('A user disconnected:', socket.id);
     });

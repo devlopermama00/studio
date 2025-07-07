@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
@@ -21,6 +20,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { useSocket } from "@/lib/socket";
 
 const TOURS_PER_PAGE = 16;
 
@@ -28,16 +28,35 @@ export default function ToursPage() {
   const [tours, setTours] = useState<Tour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const socket = useSocket();
+
+  const fetchTours = useCallback(async () => {
+    // We don't want to show the skeleton on refetches, only initial load.
+    // So we only set isLoading to true if there are no tours yet.
+    if (tours.length === 0) {
+      setIsLoading(true);
+    }
+    const allTours = await getPublicTours();
+    setTours(allTours);
+    setIsLoading(false);
+  }, [tours.length]);
 
   useEffect(() => {
-    async function fetchTours() {
-      setIsLoading(true);
-      const allTours = await getPublicTours();
-      setTours(allTours);
-      setIsLoading(false);
-    }
     fetchTours();
-  }, []);
+  }, [fetchTours]);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    // Refetch tours when an admin approves/updates or deletes a tour
+    socket.on('tour_updated', fetchTours);
+    socket.on('tour_deleted', fetchTours);
+
+    return () => {
+        socket.off('tour_updated', fetchTours);
+        socket.off('tour_deleted', fetchTours);
+    };
+  }, [socket, fetchTours]);
 
   const totalPages = Math.ceil(tours.length / TOURS_PER_PAGE);
   const paginatedTours = tours.slice(
@@ -71,14 +90,25 @@ export default function ToursPage() {
     if (totalPages <= 1) return null;
 
     const pageNumbers = [];
-    const maxPagesToShow = 5;
-    const halfPagesToShow = Math.floor(maxPagesToShow / 2);
+    let startPage: number, endPage: number;
+    if (totalPages <= 5) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        if (currentPage <= 3) {
+            startPage = 1;
+            endPage = 5;
+        } else if (currentPage + 2 >= totalPages) {
+            startPage = totalPages - 4;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - 2;
+            endPage = currentPage + 2;
+        }
+    }
 
-    let startPage = Math.max(currentPage - halfPagesToShow, 1);
-    let endPage = Math.min(startPage + maxPagesToShow - 1, totalPages);
-
-    if (endPage - startPage + 1 < maxPagesToShow) {
-        startPage = Math.max(endPage - maxPagesToShow + 1, 1);
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
     }
     
     const showStartEllipsis = startPage > 1;
@@ -115,7 +145,7 @@ export default function ToursPage() {
               </PaginationLink>
             </PaginationItem>
           ))}
-          {showEndEllipsis && endPage < totalPages - 1 && (
+          {showEndEllipsis && endPage < totalPages -1 && (
             <PaginationItem>
               <PaginationEllipsis />
             </PaginationItem>

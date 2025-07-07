@@ -27,6 +27,7 @@ import { uploadFile } from "@/services/fileUploader";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useSocket } from "@/lib/socket";
 
 interface Category {
     _id: string;
@@ -97,6 +98,7 @@ type TourFormValues = z.infer<typeof formSchema>;
 export default function AddTourPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const socket = useSocket();
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -201,6 +203,10 @@ export default function AddTourPage() {
 
         if (!response.ok) {
             throw new Error(data.message || "Failed to create tour.");
+        }
+
+        if (socket) {
+          socket.emit('broadcast', { event: 'tour_created', payload: data });
         }
 
         toast({

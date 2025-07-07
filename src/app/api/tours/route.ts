@@ -103,8 +103,13 @@ export async function POST(request: NextRequest) {
         const newTour = new Tour(newTourData);
 
         await newTour.save();
+        
+        const populatedTour = await Tour.findById(newTour._id)
+            .populate('category', 'name')
+            .populate('createdBy', 'name')
+            .lean();
 
-        return NextResponse.json(newTour, { status: 201 });
+        return NextResponse.json(populatedTour, { status: 201 });
 
     } catch (error) {
         console.error('Error creating tour:', error);
