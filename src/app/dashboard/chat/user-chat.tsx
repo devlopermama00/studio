@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { io, Socket } from "socket.io-client";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -15,8 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Send, Check, CheckCheck, Loader2 } from "lucide-react";
-
-let socket: Socket;
 
 interface User {
   _id: string;
@@ -106,48 +103,6 @@ export default function UserChat({ authUser }: UserChatProps) {
         fetchInitialData();
     }, [toast]);
     
-    // Socket setup
-    useEffect(() => {
-        if (!conversation) return;
-
-        const socketInitializer = async () => {
-            await fetch("/api/socket");
-            socket = io(process.env.NEXT_PUBLIC_APP_URL || window.location.origin, {
-              path: "/api/socket",
-            });
-
-            socket.on("connect", () => {
-                socket.emit("join", conversation._id);
-            });
-
-            socket.on("receiveMessage", (newMessage: Message) => {
-                if (newMessage.sender._id === authUser._id) return;
-
-                if (newMessage.conversationId === conversationRef.current?._id) {
-                    setMessages((prev) => [...prev, newMessage]);
-                }
-            });
-            
-            socket.on("messagesSeen", ({ conversationId, userId }) => {
-                if (conversationId === conversationRef.current?._id) {
-                    setMessages(prev => prev.map(m => ({ ...m, readBy: [...m.readBy, userId] })));
-                }
-            });
-
-            socket.emit("messagesSeen", { conversationId: conversation._id, userId: authUser._id });
-
-            return () => {
-                socket.off("connect");
-                socket.off("receiveMessage");
-                socket.off("messagesSeen");
-                socket.disconnect();
-            };
-        };
-
-        socketInitializer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [conversation?._id, authUser._id]);
-
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
@@ -177,7 +132,6 @@ export default function UserChat({ authUser }: UserChatProps) {
             
             setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? newMessage : m));
             setConversation(prev => prev ? { ...prev, lastMessage: newMessage } : null);
-            socket.emit("sendMessage", newMessage);
 
         } catch (error) {
              setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id));

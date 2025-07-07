@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { io, Socket } from "socket.io-client";
 import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -17,8 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquare, Send, Check, CheckCheck, Loader2 } from "lucide-react";
-
-let socket: Socket;
 
 interface User {
   _id: string;
@@ -118,60 +115,12 @@ export default function AdminChat() {
         fetchInitialData();
     }, [toast]);
     
-    // Socket setup
-    useEffect(() => {
-        if (!authUser) return;
-
-        const socketInitializer = async () => {
-            await fetch("/api/socket");
-            socket = io(process.env.NEXT_PUBLIC_APP_URL || window.location.origin, {
-              path: "/api/socket",
-            });
-
-            socket.on("connect", () => {});
-
-            socket.on("receiveMessage", (newMessage: Message) => {
-                if (newMessage.sender._id === authUser?._id) return;
-
-                const currentConvo = selectedConversationRef.current;
-                if (newMessage.conversationId === currentConvo?._id) {
-                    setMessages(prev => [...prev, newMessage]);
-                }
-                
-                const updateConvos = (convos: Conversation[]) => convos.map(c => 
-                    c._id === newMessage.conversationId 
-                    ? {...c, lastMessage: newMessage, updatedAt: newMessage.createdAt, isUnread: c._id !== currentConvo?._id } 
-                    : c
-                ).sort((a, b) => new Date(b.lastMessage?.createdAt || b.updatedAt).getTime() - new Date(a.lastMessage?.createdAt || a.updatedAt).getTime());
-
-                setConversations(prev => updateConvos(prev));
-                setFilteredConversations(prev => updateConvos(prev));
-            });
-            
-             socket.on("messagesSeen", ({ conversationId, userId }) => {
-                const currentConvo = selectedConversationRef.current;
-                if (conversationId === currentConvo?._id) {
-                    setMessages(prev => prev.map(m => ({ ...m, readBy: [...m.readBy, userId] })));
-                }
-             });
-
-            return () => {
-                socket.off("receiveMessage");
-                socket.off("messagesSeen");
-                socket.disconnect();
-            };
-        };
-
-        socketInitializer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [authUser]);
-
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
      const handleSelectConversation = async (convo: Conversation) => {
-        if (!authUser || !socket) return;
+        if (!authUser) return;
         
         let targetConvo = convo;
 
@@ -196,10 +145,6 @@ export default function AdminChat() {
             }
         }
         
-        if (selectedConversation?._id) {
-            socket.emit("leave", selectedConversation._id);
-        }
-
         setSelectedConversation(targetConvo);
         setMessages([]);
 
@@ -209,9 +154,6 @@ export default function AdminChat() {
             const data = await res.json();
             setMessages(data);
             
-            socket.emit("join", targetConvo._id);
-            socket.emit("messagesSeen", { conversationId: targetConvo._id, userId: authUser._id });
-
             const markAsRead = (convos: Conversation[]) => convos.map(c => c._id === targetConvo._id ? { ...c, isUnread: false } : c);
             setConversations(prev => markAsRead(prev));
             setFilteredConversations(prev => markAsRead(prev));
@@ -255,8 +197,6 @@ export default function AdminChat() {
 
             setConversations(prev => updateConvos(prev));
             setFilteredConversations(prev => updateConvos(prev));
-
-            socket.emit("sendMessage", newMessage);
             
         } catch (error) {
             setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id));
