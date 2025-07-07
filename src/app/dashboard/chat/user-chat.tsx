@@ -103,9 +103,12 @@ export default function UserChat({ authUser }: UserChatProps) {
         socket.on('receive_message', (newMessage: Message) => {
             const currentConvo = conversationRef.current;
             if (currentConvo && newMessage.conversationId === currentConvo._id) {
-                 if (newMessage.sender._id === authUserRef.current._id) return;
-                setMessages((prevMessages) => [...prevMessages, newMessage]);
-                socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
+                if (newMessage.sender._id === authUserRef.current._id) {
+                    setMessages(prev => prev.map(msg => msg._id.startsWith('temp_') ? newMessage : msg));
+                } else {
+                    setMessages((prevMessages) => [...prevMessages, newMessage]);
+                    socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
+                }
             }
         });
         
@@ -192,6 +195,7 @@ export default function UserChat({ authUser }: UserChatProps) {
     
     const renderMessageStatus = (message: Message) => {
         if (!conversation) return null;
+        if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
         
         const adminUser = conversation.participants.find(p => p.role === 'admin');
         if (!adminUser) return null;

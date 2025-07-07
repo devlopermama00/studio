@@ -115,16 +115,22 @@ export default function AdminChat() {
 
         socket.on('receive_message', (newMessage: Message) => {
             const currentConvo = selectedConversationRef.current;
+            
+            // Update messages if the new message belongs to the selected conversation
             if (currentConvo && newMessage.conversationId === currentConvo._id) {
-                // Ignore message if sender is current user to avoid duplicates
-                if (newMessage.sender._id === authUserRef.current?._id) return;
-
-                setMessages((prevMessages) => [...prevMessages, newMessage]);
-                
-                if (authUserRef.current) {
-                     socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
+                if (newMessage.sender._id === authUserRef.current?._id) {
+                    // It's a confirmation of a message we just sent. Replace the temp message.
+                    setMessages(prev => prev.map(msg => msg._id.startsWith('temp_') ? newMessage : msg));
+                } else {
+                    // It's a new message from the other person. Add it.
+                    setMessages(prev => [...prev, newMessage]);
+                    if (authUserRef.current) {
+                        socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
+                    }
                 }
             }
+
+            // Always update the conversation list with the new last message and unread status
              setConversations(prev => prev.map(c => 
                 c._id === newMessage.conversationId 
                 ? { ...c, lastMessage: newMessage, updatedAt: newMessage.createdAt, isUnread: c._id !== currentConvo?._id } 
@@ -199,10 +205,12 @@ export default function AdminChat() {
                 if (!res.ok) throw new Error("Could not create conversation.");
 
                 const newConvoData = await res.json();
-                const updatedConvos = conversations.map(c => c._id === convo._id ? newConvoData : c);
-                
+                 
+                 const updatedConversations = conversations.map(c => c._id === convo._id ? newConvoData : c);
+                 setConversations(updatedConversations);
+
                 const currentFilterValue = document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all';
-                handleFilterChange(currentFilterValue === 'all users' ? 'all' : currentFilterValue, updatedConvos);
+                handleFilterChange(currentFilterValue.includes('all') ? 'all' : currentFilterValue, updatedConversations);
                 
                 targetConvo = newConvoData;
             } catch (error) {
