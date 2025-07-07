@@ -35,10 +35,30 @@ const destinationItemSchema = z.object({
 
 
 const homepageSettingsSchema = z.object({
-    homepage_hero_image: z.string().optional(),
-    homepage_popular_tours: z.array(z.string()).optional(),
-    homepage_discover_items: z.array(discoverItemSchema).optional(),
-    homepage_destinations: z.array(destinationItemSchema).optional(),
+  homepage_hero_image: z.string().optional(),
+  homepage_hero_title: z.string().optional(),
+  homepage_hero_subtitle: z.string().optional(),
+
+  homepage_popular_tours_title: z.string().optional(),
+  homepage_popular_tours_description: z.string().optional(),
+  homepage_popular_tours: z.array(z.string()).optional(),
+
+  homepage_categories_title: z.string().optional(),
+  homepage_categories_description: z.string().optional(),
+
+  homepage_discover_title: z.string().optional(),
+  homepage_discover_description: z.string().optional(),
+  homepage_discover_items: z.array(discoverItemSchema).optional(),
+
+  homepage_destinations_title: z.string().optional(),
+  homepage_destinations_description: z.string().optional(),
+  homepage_destinations: z.array(destinationItemSchema).optional(),
+  
+  homepage_offers_title: z.string().optional(),
+  homepage_offers_description: z.string().optional(),
+  
+  homepage_newsletter_title: z.string().optional(),
+  homepage_newsletter_description: z.string().optional(),
 });
 
 type HomepageSettingsValues = z.infer<typeof homepageSettingsSchema>;
@@ -54,9 +74,23 @@ export function HomepageSettingsForm() {
         resolver: zodResolver(homepageSettingsSchema),
         defaultValues: {
             homepage_hero_image: "",
+            homepage_hero_title: "",
+            homepage_hero_subtitle: "",
+            homepage_popular_tours_title: "",
+            homepage_popular_tours_description: "",
             homepage_popular_tours: [],
+            homepage_categories_title: "",
+            homepage_categories_description: "",
+            homepage_discover_title: "",
+            homepage_discover_description: "",
             homepage_discover_items: [],
+            homepage_destinations_title: "",
+            homepage_destinations_description: "",
             homepage_destinations: [],
+            homepage_offers_title: "",
+            homepage_offers_description: "",
+            homepage_newsletter_title: "",
+            homepage_newsletter_description: "",
         },
     });
 
@@ -75,7 +109,7 @@ export function HomepageSettingsForm() {
             try {
                 const [settingsRes, toursRes] = await Promise.all([
                     fetch('/api/admin/settings'),
-                    fetch('/api/tours') // Fetches all tours for admin
+                    fetch('/api/tours')
                 ]);
 
                 if (!settingsRes.ok) throw new Error("Failed to fetch settings.");
@@ -141,26 +175,20 @@ export function HomepageSettingsForm() {
             <form onSubmit={form.handleSubmit(handleSave)}>
                 <CardContent className="space-y-8">
                     {/* Hero Section */}
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         <FormLabel className="text-lg font-semibold">Hero Section</FormLabel>
-                        <FormField
-                            control={form.control}
-                            name="homepage_hero_image"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Background Image URL</FormLabel>
-                                <FormControl><Input {...field} placeholder="https://..." /></FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <FormField name="homepage_hero_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore Georgia’s Best Day Tours" /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_hero_subtitle" render={({ field }) => (<FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input {...field} placeholder="Book trusted experiences with verified guides." /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_hero_image" render={({ field }) => (<FormItem><FormLabel>Background Image URL</FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl><FormMessage /></FormItem>)} />
                     </div>
                     
                     <Separator />
 
                     {/* Popular Tours Section */}
-                    <div className="space-y-2">
-                        <FormLabel className="text-lg font-semibold">Popular Tours</FormLabel>
+                     <div className="space-y-4">
+                        <FormLabel className="text-lg font-semibold">Popular Tours Section</FormLabel>
+                        <FormField name="homepage_popular_tours_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Popular Tours" /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_popular_tours_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Discover our most sought-after tours..." /></FormControl><FormMessage /></FormItem>)} />
                         <FormDescription>Select which tours appear on the homepage.</FormDescription>
                         <FormField
                           control={form.control}
@@ -198,12 +226,22 @@ export function HomepageSettingsForm() {
 
                     <Separator />
 
+                    {/* Category Section */}
+                    <div className="space-y-4">
+                        <FormLabel className="text-lg font-semibold">Browse by Category Section</FormLabel>
+                        <FormField name="homepage_categories_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Browse by Category" /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_categories_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Find the type of adventure that suits you best." /></FormControl><FormMessage /></FormItem>)} />
+                    </div>
+
+                    <Separator />
+
                     {/* Discover Section */}
                     <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <div>
+                        <div className="flex justify-between items-start">
+                             <div>
                                 <FormLabel className="text-lg font-semibold">"Discover" Section</FormLabel>
-                                <FormDescription>Manage the three "Discover" cards on the homepage.</FormDescription>
+                                <FormField name="homepage_discover_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Discover The World of Georgia With Us!" /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField name="homepage_discover_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Discover amazing places at exclusive deals Only with Us!" /></FormControl><FormMessage /></FormItem>)} />
                             </div>
                             <Button type="button" variant="outline" size="sm" onClick={() => appendDiscover({ title: "", description: "", image: "", hint: "" })}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
@@ -237,10 +275,11 @@ export function HomepageSettingsForm() {
                      
                     {/* Destinations Section */}
                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <div>
+                        <div className="flex justify-between items-start">
+                             <div>
                                 <FormLabel className="text-lg font-semibold">"Explore by Destination" Section</FormLabel>
-                                <FormDescription>Manage the destination cards on the homepage.</FormDescription>
+                                <FormField name="homepage_destinations_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore by Destination" /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField name="homepage_destinations_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="From the vibrant capital to the serene mountains..." /></FormControl><FormMessage /></FormItem>)} />
                             </div>
                             <Button type="button" variant="outline" size="sm" onClick={() => appendDestination({ name: "", description: "", image: "", hint: "" })}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
@@ -268,6 +307,24 @@ export function HomepageSettingsForm() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+
+                    <Separator />
+
+                    {/* Offers Section */}
+                    <div className="space-y-4">
+                        <FormLabel className="text-lg font-semibold">Offers Banner</FormLabel>
+                        <FormField name="homepage_offers_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Don't Miss Our Special Offers!" /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_offers_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Get up to 20% off on select tours this month..." /></FormControl><FormMessage /></FormItem>)} />
+                    </div>
+
+                    <Separator />
+
+                     {/* Newsletter Section */}
+                    <div className="space-y-4">
+                        <FormLabel className="text-lg font-semibold">Newsletter Section</FormLabel>
+                        <FormField name="homepage_newsletter_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Subscribe to Our Newsletter" /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_newsletter_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Get the latest news, updates, and special offers..." /></FormControl><FormMessage /></FormItem>)} />
                     </div>
 
                 </CardContent>

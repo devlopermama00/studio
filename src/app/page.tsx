@@ -21,28 +21,25 @@ export default async function Home() {
   const settings = await getSettings();
 
   const heroImage = settings.homepage_hero_image || "https://placehold.co/1600x900.png";
+  const heroTitle = settings.homepage_hero_title || "Explore Georgia’s Best Day Tours";
+  const heroSubtitle = settings.homepage_hero_subtitle || "Book trusted experiences with verified guides.";
+
+  const popularToursTitle = settings.homepage_popular_tours_title || "Popular Tours";
+  const popularToursDescription = settings.homepage_popular_tours_description || "Discover our most sought-after tours, handpicked for an unforgettable experience.";
+
+  const categoriesTitle = settings.homepage_categories_title || "Browse by Category";
+  const categoriesDescription = settings.homepage_categories_description || "Find the type of adventure that suits you best.";
   
+  const discoverTitle = settings.homepage_discover_title || "Discover The World of Georgia With Us!";
+  const discoverDescription = settings.homepage_discover_description || "Discover amazing places at exclusive deals Only with Us!";
   const discoverItems = settings.homepage_discover_items || [
-    {
-      title: "Kakheti Region",
-      description: "Traditions and Wine Making in the Heart of Kakheti!",
-      image: "https://placehold.co/600x400.png",
-      hint: "kakheti wine"
-    },
-    {
-      title: "Mountain of Kazbegi",
-      description: "Nature, History and Mountains to Fill your Eyes.",
-      image: "https://placehold.co/600x400.png",
-      hint: "kazbegi mountain"
-    },
-    {
-      title: "Lovers of Real History",
-      description: "History of Georgia from the beginning until today!",
-      image: "https://placehold.co/600x400.png",
-      hint: "georgia history"
-    }
+    { title: "Kakheti Region", description: "Traditions and Wine Making in the Heart of Kakheti!", image: "https://placehold.co/600x400.png", hint: "kakheti wine" },
+    { title: "Mountain of Kazbegi", description: "Nature, History and Mountains to Fill your Eyes.", image: "https://placehold.co/600x400.png", hint: "kazbegi mountain" },
+    { title: "Lovers of Real History", description: "History of Georgia from the beginning until today!", image: "https://placehold.co/600x400.png", hint: "georgia history" }
   ];
 
+  const destinationsTitle = settings.homepage_destinations_title || "Explore by Destination";
+  const destinationsDescription = settings.homepage_destinations_description || "From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.";
   const destinations = settings.homepage_destinations || [
     { name: "Tbilisi", image: "https://placehold.co/600x400.png", hint: "tbilisi georgia", description: "The vibrant capital where history meets modernity." },
     { name: "Batumi", image: "https://placehold.co/600x400.png", hint: "batumi georgia", description: "A dazzling city on the Black Sea coast." },
@@ -53,44 +50,20 @@ export default async function Home() {
     { name: "Mtskheta", image: "https://placehold.co/600x400.png", hint: "mtskheta georgia", description: "The ancient capital and spiritual heart of Georgia." },
     { name: "Kutaisi", image: "https://placehold.co/600x400.png", hint: "kutaisi georgia", description: "A city of legends, canyons, and monasteries." },
   ];
+  
+  const offersTitle = settings.homepage_offers_title || "Don't Miss Our Special Offers!";
+  const offersDescription = settings.homepage_offers_description || "Get up to 20% off on select tours this month. Your next adventure is waiting.";
+
+  const newsletterTitle = settings.homepage_newsletter_title || "Subscribe to Our Newsletter";
+  const newsletterDescription = settings.homepage_newsletter_description || "Get the latest news, updates, and special offers delivered directly to your inbox.";
 
   const categories = [
-      {
-          name: "City Tours",
-          image: "https://placehold.co/400x500.png",
-          hint: "tbilisi street",
-          href: "/tours?category=city"
-      },
-      {
-          name: "Mountain & Hiking",
-          image: "https://placehold.co/400x500.png",
-          hint: "caucasus mountains",
-          href: "/tours?category=hiking"
-      },
-      {
-          name: "Wine & Gastronomy",
-          image: "https://placehold.co/400x500.png",
-          hint: "georgian wine",
-          href: "/tours?category=wine"
-      },
-      {
-          name: "Historical & Cultural",
-          image: "https://placehold.co/400x500.png",
-          hint: "ancient monastery",
-          href: "/tours?category=historical"
-      },
-      {
-          name: "Multi-Day Tours",
-          image: "https://placehold.co/400x500.png",
-          hint: "georgia road trip",
-          href: "/tours?category=multi-day"
-      },
-      {
-          name: "Adventure & Extreme",
-          image: "https://placehold.co/400x500.png",
-          hint: "paragliding georgia",
-          href: "/tours?category=adventure"
-      },
+      { name: "City Tours", image: "https://placehold.co/400x500.png", hint: "tbilisi street", href: "/tours?category=city" },
+      { name: "Mountain & Hiking", image: "https://placehold.co/400x500.png", hint: "caucasus mountains", href: "/tours?category=hiking" },
+      { name: "Wine & Gastronomy", image: "https://placehold.co/400x500.png", hint: "georgian wine", href: "/tours?category=wine" },
+      { name: "Historical & Cultural", image: "https://placehold.co/400x500.png", hint: "ancient monastery", href: "/tours?category=historical" },
+      { name: "Multi-Day Tours", image: "https://placehold.co/400x500.png", hint: "georgia road trip", href: "/tours?category=multi-day" },
+      { name: "Adventure & Extreme", image: "https://placehold.co/400x500.png", hint: "paragliding georgia", href: "/tours?category=adventure" },
   ];
 
   return (
@@ -111,10 +84,10 @@ export default async function Home() {
           />
           <div className="relative z-20 container mx-auto px-4">
             <h1 className="text-4xl md:text-6xl font-headline font-bold mb-4 drop-shadow-lg">
-              Explore Georgia’s Best Day Tours
+              {heroTitle}
             </h1>
             <p className="text-lg md:text-xl mb-8 max-w-3xl mx-auto drop-shadow-md">
-              Book trusted experiences with verified guides.
+              {heroSubtitle}
             </p>
             <div className="max-w-4xl mx-auto">
               <TourSearchForm />
@@ -126,10 +99,10 @@ export default async function Home() {
         <section id="popular-tours" className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-headline font-semibold text-center mb-2">
-              Popular Tours
+              {popularToursTitle}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
-                Discover our most sought-after tours, handpicked for an unforgettable experience.
+                {popularToursDescription}
             </p>
              {popularTours.length > 0 ? (
                 <>
@@ -160,10 +133,10 @@ export default async function Home() {
         <section className="py-16 md:py-24 bg-secondary">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl md:text-4xl font-headline font-semibold text-center mb-2">
-              Browse by Category
+              {categoriesTitle}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
-              Find the type of adventure that suits you best.
+              {categoriesDescription}
             </p>
             <Carousel opts={{ align: "start" }} className="w-full">
               <CarouselContent className="-ml-4">
@@ -197,10 +170,10 @@ export default async function Home() {
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-3xl md:text-4xl font-headline font-semibold">
-                Discover The World of Georgia With Us!
+                {discoverTitle}
               </h2>
               <p className="text-muted-foreground text-lg mt-4">
-                Discover amazing places at exclusive deals Only with Us!
+                {discoverDescription}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
@@ -228,9 +201,9 @@ export default async function Home() {
         <section className="py-16 md:py-24 bg-secondary">
             <div className="container mx-auto px-4">
                 <div className="text-center">
-                    <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">Explore by Destination</h2>
+                    <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">{destinationsTitle}</h2>
                     <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
-                        From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.
+                        {destinationsDescription}
                     </p>
                 </div>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -255,8 +228,8 @@ export default async function Home() {
                 <div className="flex items-center gap-6">
                     <Ticket className="w-16 h-16 hidden sm:block" />
                     <div>
-                        <h2 className="text-3xl md:text-4xl font-headline font-bold">Don't Miss Our Special Offers!</h2>
-                        <p className="text-lg mt-2 opacity-90">Get up to 20% off on select tours this month. Your next adventure is waiting.</p>
+                        <h2 className="text-3xl md:text-4xl font-headline font-bold">{offersTitle}</h2>
+                        <p className="text-lg mt-2 opacity-90">{offersDescription}</p>
                     </div>
                 </div>
                 <Button asChild variant="secondary" size="lg" className="bg-white text-accent hover:bg-white/90 flex-shrink-0">
@@ -270,9 +243,9 @@ export default async function Home() {
         <section className="py-16 md:py-24 bg-secondary">
             <div className="container mx-auto px-4 max-w-3xl text-center">
                  <Mail className="mx-auto h-12 w-12 text-primary mb-4" />
-                <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">Subscribe to Our Newsletter</h2>
+                <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">{newsletterTitle}</h2>
                 <p className="text-muted-foreground text-lg mb-8">
-                    Get the latest news, updates, and special offers delivered directly to your inbox.
+                    {newsletterDescription}
                 </p>
                 <form className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
                     <Input type="email" placeholder="Enter your email address" className="h-12 text-base flex-1" />
