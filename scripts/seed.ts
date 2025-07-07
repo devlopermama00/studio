@@ -5,6 +5,7 @@ import User from '@/models/User';
 import Category from '@/models/Category';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import bcryptjs from 'bcryptjs';
 
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
@@ -25,14 +26,12 @@ const toursData = [
     "price": 60,
     "currency": "USD",
     "max_group_size": 10,
-    "category_id": "668953185348ba97728c3065",
     "tour_type": "Public",
     "languages": ["English", "Georgian"],
     "highlights": ["Mount Kazbek", "Gergeti Church", "Panoramic Views"],
     "whats_included": ["Transportation", "Guide", "Lunch"],
     "whats_not_included": ["Tips", "Souvenirs"],
     "important_info": "Warm clothing is recommended due to mountain climate.",
-    "created_by": "6689528f5348ba97728c305a",
     "itinerary": [
       {
         "title": "Tbilisi Departure",
@@ -67,14 +66,12 @@ const toursData = [
     "price": 25,
     "currency": "USD",
     "max_group_size": 15,
-    "category_id": "668953185348ba97728c3065",
     "tour_type": "Public",
     "languages": ["English", "Georgian"],
     "highlights": ["Sulphur Baths", "Metekhi Church", "Narikala Fortress"],
     "whats_included": ["Local Guide"],
     "whats_not_included": ["Food", "Tickets"],
     "important_info": "Wear comfortable walking shoes.",
-    "created_by": "6689528f5348ba97728c305a",
     "itinerary": [
       {
         "title": "Liberty Square",
@@ -105,14 +102,12 @@ const toursData = [
     "price": 75,
     "currency": "USD",
     "max_group_size": 12,
-    "category_id": "668953185348ba97728c3065",
     "tour_type": "Public",
     "languages": ["English", "Georgian"],
     "highlights": ["Sighnaghi", "Wine Tastings", "Alaverdi Monastery"],
     "whats_included": ["Transportation", "Guide", "Wine Tastings"],
     "whats_not_included": ["Lunch"],
     "important_info": "Must be 18+ for wine tastings.",
-    "created_by": "6689528f5348ba97728c305a",
     "itinerary": [
       {
         "title": "Telavi Winery Visit",
@@ -134,6 +129,64 @@ const seedDatabase = async () => {
     try {
         await dbConnect();
         console.log('Connected to database.');
+        
+        // Seed admin user
+        const adminEmail = 'saurabhcsbs@gmail.com';
+        let adminUser = await User.findOne({ email: adminEmail });
+        if (!adminUser) {
+            console.log('Admin user not found, creating one...');
+            const hashedPassword = await bcryptjs.hash('Saurabh@123', 10);
+            adminUser = await User.create({
+                name: 'Admin',
+                username: adminEmail.toLowerCase(),
+                email: adminEmail.toLowerCase(),
+                passwordHash: hashedPassword,
+                role: 'admin',
+                isVerified: true,
+            });
+            console.log('Admin user created successfully!');
+        } else {
+            console.log('Admin user already exists.');
+        }
+
+        // Seed a default provider user
+        const providerEmail = 'provider@tourvista.com';
+        let providerUser = await User.findOne({ email: providerEmail });
+        if (!providerUser) {
+            console.log('Default provider user not found, creating one...');
+            const hashedPassword = await bcryptjs.hash('Provider@123', 10);
+            providerUser = await User.create({
+                name: 'Default Provider',
+                username: providerEmail,
+                email: providerEmail,
+                passwordHash: hashedPassword,
+                role: 'provider',
+                isVerified: true, 
+            });
+            console.log('Default provider user created successfully!');
+        } else {
+            console.log('Default provider user already exists.');
+        }
+
+        // Seed default categories
+        const categoriesToSeed = [
+            { name: "City Tours" },
+            { name: "Mountain & Hiking" },
+            { name: "Wine & Gastronomy" },
+            { name: "Historical & Cultural" },
+            { name: "Multi-Day Tours" },
+            { name: "Adventure & Extreme" },
+        ];
+
+        for (const cat of categoriesToSeed) {
+            const categoryExists = await Category.findOne({ name: cat.name });
+            if (!categoryExists) {
+                await Category.create(cat);
+                console.log(`Category "${cat.name}" seeded.`);
+            }
+        }
+        
+        const defaultCategory = await Category.findOne({ name: 'City Tours' });
 
         const tourCount = await Tour.countDocuments();
         if (tourCount > 0) {
@@ -151,14 +204,14 @@ const seedDatabase = async () => {
                 price: tour.price,
                 currency: tour.currency,
                 groupSize: tour.max_group_size,
-                category: new mongoose.Types.ObjectId(tour.category_id),
+                category: defaultCategory?._id,
                 tourType: (tour.tour_type as string).toLowerCase(),
                 languages: tour.languages,
                 highlights: tour.highlights,
                 inclusions: tour.whats_included,
                 exclusions: tour.whats_not_included,
                 importantInformation: tour.important_info,
-                createdBy: new mongoose.Types.ObjectId(tour.created_by),
+                createdBy: providerUser._id,
                 itinerary: tour.itinerary.map(item => ({
                     title: item.title,
                     description: item.description,
