@@ -68,6 +68,7 @@ export function HomepageSettingsForm() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [allTours, setAllTours] = useState<PopulatedTour[]>([]);
 
     const form = useForm<HomepageSettingsValues>({
@@ -148,6 +149,30 @@ export function HomepageSettingsForm() {
         }
     }
 
+    const handleHeroMediaUpload = async (file: File | null) => {
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const url = await uploadFile(file, 'homepage-assets');
+            form.setValue('homepage_hero_image', url, { shouldValidate: true });
+
+            // Save this single setting immediately
+            const response = await fetch('/api/admin/settings', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ homepage_hero_image: url }),
+            });
+            if (!response.ok) throw new Error("Failed to save hero media.");
+
+            toast({ title: "Success", description: "Hero media has been updated." });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Upload Failed", description: error instanceof Error ? error.message : "Could not upload media." });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const handleSave = async (values: HomepageSettingsValues) => {
         setIsSaving(true);
         try {
@@ -179,7 +204,35 @@ export function HomepageSettingsForm() {
                         <FormLabel className="text-lg font-semibold">Hero Section</FormLabel>
                         <FormField name="homepage_hero_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore Georgia’s Best Day Tours" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_hero_subtitle" render={({ field }) => (<FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input {...field} placeholder="Book trusted experiences with verified guides." /></FormControl><FormMessage /></FormItem>)} />
-                        <FormField name="homepage_hero_image" render={({ field }) => (<FormItem><FormLabel>Background Image URL</FormLabel><FormControl><Input {...field} placeholder="https://..." /></FormControl><FormMessage /></FormItem>)} />
+                        
+                        <FormField
+                          name="homepage_hero_image"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Background Image/Video</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="file"
+                                        accept="image/*,video/mp4,video/webm"
+                                        onChange={(e) => handleHeroMediaUpload(e.target.files?.[0] || null)}
+                                        disabled={isUploading}
+                                    />
+                                </FormControl>
+                                {isUploading && <Loader2 className="h-5 w-5 animate-spin my-2" />}
+                                {field.value && !isUploading && (
+                                    <div className="mt-2 relative w-full max-w-sm">
+                                        {(field.value.includes('.mp4') || field.value.includes('.webm')) ? (
+                                            <video src={field.value} muted loop autoPlay playsInline className="rounded-md w-full" />
+                                        ) : (
+                                            <Image src={field.value} alt="Hero preview" width={400} height={225} className="rounded-md object-contain" />
+                                        )}
+                                    </div>
+                                )}
+                              <FormDescription>Upload an image or a looping video for the hero section background. The current media is saved automatically upon successful upload.</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                     </div>
                     
                     <Separator />
@@ -329,8 +382,8 @@ export function HomepageSettingsForm() {
 
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Button type="submit" disabled={isSaving || isUploading}>
+                        {(isSaving || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Save Homepage Settings
                     </Button>
                 </CardFooter>

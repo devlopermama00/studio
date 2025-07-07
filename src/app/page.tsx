@@ -21,6 +21,7 @@ export default async function Home() {
   const settings = await getSettings();
 
   const heroImage = settings.homepage_hero_image || "https://placehold.co/1600x900.png";
+  const heroIsVideo = heroImage && (heroImage.endsWith('.mp4') || heroImage.endsWith('.webm'));
   const heroTitle = settings.homepage_hero_title || "Explore Georgia’s Best Day Tours";
   const heroSubtitle = settings.homepage_hero_subtitle || "Book trusted experiences with verified guides.";
 
@@ -71,17 +72,30 @@ export default async function Home() {
       <SiteHeader />
       <main className="flex-1">
         {/* 1. Hero Section */}
-        <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white">
+        <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white overflow-hidden">
           <div className="absolute inset-0 bg-black/50 z-10" />
-          <Image
-            src={heroImage}
-            alt="Scenic view of Georgia mountains"
-            fill
-            style={{objectFit: "cover"}}
-            className="z-0"
-            data-ai-hint="georgia mountains landscape"
-            priority
-          />
+            {heroIsVideo ? (
+                <video
+                    key={heroImage}
+                    src={heroImage}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute z-0 w-auto min-w-full min-h-full max-w-none"
+                    style={{ objectFit: 'cover' }}
+                />
+            ) : (
+                <Image
+                    src={heroImage}
+                    alt="Scenic view of Georgia"
+                    fill
+                    style={{ objectFit: "cover" }}
+                    className="z-0"
+                    data-ai-hint="georgia landscape"
+                    priority
+                />
+            )}
           <div className="relative z-20 container mx-auto px-4">
             <h1 className="text-4xl md:text-6xl font-headline font-bold mb-4 drop-shadow-lg">
               {heroTitle}
