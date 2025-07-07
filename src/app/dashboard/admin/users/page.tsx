@@ -25,6 +25,7 @@ interface User {
   role: 'user' | 'provider' | 'admin';
   profilePhoto?: string;
   isBlocked: boolean;
+  isVerified: boolean;
   createdAt: string;
 }
 
@@ -47,7 +48,8 @@ export default function AdminUsersPage() {
         if (!response.ok) throw new Error("Failed to fetch users");
         const data = await response.json();
         setUsers(data);
-        setFilteredUsers(data);
+        // Initially, show all users and only verified providers.
+        setFilteredUsers(data.filter((u: User) => u.role !== 'provider' || u.isVerified));
       } catch (error) {
           toast({ variant: "destructive", title: "Error fetching users", description: "Could not load user data." });
       } finally {
@@ -58,11 +60,12 @@ export default function AdminUsersPage() {
   }, [toast]);
 
   const handleFilterChange = (role: string) => {
-    if (role === 'all') {
-      setFilteredUsers(users);
-    } else {
-      setFilteredUsers(users.filter(user => user.role === role));
+    let roleFiltered = users;
+    if (role !== 'all') {
+      roleFiltered = users.filter(user => user.role === role);
     }
+    // Always apply the rule: only show verified providers from the role-filtered list.
+    setFilteredUsers(roleFiltered.filter((u: User) => u.role !== 'provider' || u.isVerified));
   };
 
   const handleToggleBlock = async (user: User) => {
@@ -84,9 +87,10 @@ export default function AdminUsersPage() {
       
       const currentFilter = document.querySelector('[role="combobox"]')?.textContent;
       if (currentFilter === "All Roles") {
-        setFilteredUsers(updatedUsers);
+        setFilteredUsers(updatedUsers.filter(u => u.role !== 'provider' || u.isVerified));
       } else {
-        setFilteredUsers(updatedUsers.filter(u => u.role === user.role));
+        const role = currentFilter?.toLowerCase();
+        setFilteredUsers(updatedUsers.filter(u => u.role === role && (u.role !== 'provider' || u.isVerified)));
       }
       
       toast({ title: "Success", description: `User ${user.isBlocked ? 'unblocked' : 'blocked'}.` });
@@ -171,7 +175,7 @@ export default function AdminUsersPage() {
     <Card>
       <CardHeader>
         <CardTitle>User Management</CardTitle>
-        <CardDescription>View, manage, and moderate all user accounts.</CardDescription>
+        <CardDescription>View, manage, and moderate all user accounts. Unverified providers are managed in the Approvals tab.</CardDescription>
         <div className="pt-4">
             <Select onValueChange={handleFilterChange} defaultValue="all">
                 <SelectTrigger className="w-[180px]">
@@ -268,7 +272,7 @@ export default function AdminUsersPage() {
         </Table>
       </CardContent>
       <CardFooter>
-        <div className="text-xs text-muted-foreground">Showing <strong>{filteredUsers.length}</strong> of <strong>{users.length}</strong> users</div>
+        <div className="text-xs text-muted-foreground">Showing <strong>{filteredUsers.length}</strong> of <strong>{users.filter(u => u.role !== 'provider' || u.isVerified).length}</strong> users</div>
       </CardFooter>
     </Card>
     <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>

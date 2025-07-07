@@ -3,7 +3,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { PlusCircle, Edit } from "lucide-react"
+import { PlusCircle, Edit, ShieldAlert } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
 
 interface PopulatedTour {
     _id: string;
@@ -42,29 +43,45 @@ interface PopulatedTour {
     }
 }
 
+interface AuthUser {
+    isVerified: boolean;
+}
+
 export default function ProviderToursPage() {
   const [tours, setTours] = useState<PopulatedTour[]>([]);
   const [filteredTours, setFilteredTours] = useState<PopulatedTour[]>([]);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchTours = async () => {
+    const fetchData = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const response = await fetch('/api/tours');
-        if (!response.ok) {
-          const errorData = await response.json();
+        const [toursResponse, userResponse] = await Promise.all([
+          fetch('/api/tours'),
+          fetch('/api/auth/me')
+        ]);
+
+        if (!toursResponse.ok) {
+          const errorData = await toursResponse.json();
           throw new Error(errorData.message || "Failed to fetch tours");
         }
-        const data = await response.json();
-        setTours(data);
-        setFilteredTours(data);
+        const toursData = await toursResponse.json();
+        setTours(toursData);
+        setFilteredTours(toursData);
+        
+        if (!userResponse.ok) {
+            throw new Error("Failed to fetch user status");
+        }
+        const userData = await userResponse.json();
+        setUser(userData);
+
       } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
           toast({
             variant: "destructive",
-            title: "Error fetching tours",
+            title: "Error",
             description: errorMessage,
           })
       } finally {
@@ -72,7 +89,7 @@ export default function ProviderToursPage() {
       }
     };
 
-    fetchTours();
+    fetchData();
   }, [toast]);
   
   const handleFilterChange = (status: string) => {
@@ -132,7 +149,7 @@ export default function ProviderToursPage() {
                 Manage your tours and view their performance.
                 </CardDescription>
             </div>
-            <Button asChild size="sm" className="gap-1">
+            <Button asChild size="sm" className="gap-1" disabled={isLoading || !user?.isVerified}>
               <Link href="/dashboard/tours/add">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
@@ -151,6 +168,16 @@ export default function ProviderToursPage() {
               <TabsTrigger value="blocked">Blocked</TabsTrigger>
           </TabsList>
         </Tabs>
+        
+        {!isLoading && user && !user.isVerified && (
+            <Alert variant="destructive" className="mb-4">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Account Pending Approval</AlertTitle>
+                <AlertDescription>
+                    Your account is pending review by an admin. You cannot add new tours until your documents are approved. Check your status on the Verification page.
+                </AlertDescription>
+            </Alert>
+        )}
 
         <Table>
           <TableHeader>

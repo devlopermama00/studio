@@ -1,3 +1,4 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
@@ -33,6 +34,7 @@ export async function GET(request: NextRequest) {
         email: user.email,
         role: user.role,
         profilePhoto: user.profilePhoto,
+        isVerified: user.isVerified,
     });
 
   } catch (error) {
