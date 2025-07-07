@@ -51,7 +51,7 @@ type ChatFormValues = z.infer<typeof chatFormSchema>;
 const ChatMessage = ({ msg, user }: { msg: Message, user: User }) => {
     const isSender = msg.sender._id === user._id;
     return (
-        <div key={msg._id} className={cn("flex items-start gap-3", isSender ? "justify-end" : "justify-start")}>
+        <div className={cn("flex items-end gap-3", isSender ? "justify-end" : "justify-start")}>
             {!isSender && (
                 <Avatar className="h-8 w-8">
                     <AvatarImage src={msg.sender.profilePhoto} alt={msg.sender.name} />
@@ -66,6 +66,12 @@ const ChatMessage = ({ msg, user }: { msg: Message, user: User }) => {
             )}>
                 <p className="text-sm break-words">{msg.content}</p>
             </div>
+             {isSender && (
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.profilePhoto} alt={user.name} />
+                    <AvatarFallback>{user.name?.charAt(0).toUpperCase() || 'U'}</AvatarFallback>
+                </Avatar>
+            )}
         </div>
     );
 };
