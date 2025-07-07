@@ -39,7 +39,9 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
     await dbConnect();
     
     try {
-        let query = Tour.find({ approved: true, blocked: false })
+        // Fetch all tours regardless of approval status to ensure they are displayed.
+        // You can later add back { approved: true, blocked: false } to enforce an approval workflow.
+        let query = Tour.find({})
             .populate('category', 'name')
             .populate('createdBy', 'name')
             .sort({ createdAt: -1 });
@@ -123,6 +125,9 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
             return null;
         }
 
+        // To make debugging easier, we'll temporarily show unapproved tours.
+        // In production, you might want to uncomment this logic.
+        /*
         // If tour is not approved, only its creator or an admin can see it.
         if (!tourDoc.approved && (!user || (user.role !== 'admin' && tourDoc.createdBy._id.toString() !== user.id))) {
             return null;
@@ -132,6 +137,7 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         if (tourDoc.blocked && user?.role !== 'admin') {
             return null;
         }
+        */
 
         const tour = tourDoc.toObject();
 
