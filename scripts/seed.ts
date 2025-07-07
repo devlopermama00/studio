@@ -1,14 +1,14 @@
 
+import dotenv from 'dotenv';
+// Load environment variables from .env.local BEFORE other imports
+dotenv.config({ path: '.env.local' });
+
 import dbConnect from '@/lib/db';
 import Tour from '@/models/Tour';
 import User from '@/models/User';
 import Category from '@/models/Category';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import bcryptjs from 'bcryptjs';
-
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
 
 const toursData = [
   {
