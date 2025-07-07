@@ -69,14 +69,6 @@ const UserNav = ({ user }: { user: AuthUser }) => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/chat"}>
-                        <Link href="/dashboard/chat">
-                            <MessageSquare />
-                            Support Chat
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/profile"}>
                         <Link href="/dashboard/profile">
