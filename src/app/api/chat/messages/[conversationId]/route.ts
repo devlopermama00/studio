@@ -25,20 +25,21 @@ export async function GET(request: NextRequest, { params }: { params: { conversa
     try {
         await dbConnect();
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as DecodedToken;
+        const userId = new Types.ObjectId(decoded.id);
         
         const conversation = await Conversation.findById(conversationId);
         if (!conversation) {
             return NextResponse.json({ message: 'Conversation not found' }, { status: 404 });
         }
         
-        if (!conversation.participants.includes(new Types.ObjectId(decoded.id))) {
+        if (!conversation.participants.includes(userId)) {
             return NextResponse.json({ message: 'Unauthorized' }, { status: 403 });
         }
         
-        // Mark messages in this conversation as read by the current user
+        // Mark all messages in this conversation as read by the current user
         await Message.updateMany(
-            { conversationId: new Types.ObjectId(conversationId) },
-            { $addToSet: { readBy: new Types.ObjectId(decoded.id) } }
+            { conversationId: new Types.ObjectId(conversationId), readBy: { $ne: userId } },
+            { $addToSet: { readBy: userId } }
         );
 
         const messages = await Message.find({ conversationId })

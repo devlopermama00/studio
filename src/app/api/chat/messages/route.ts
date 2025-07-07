@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
             conversationId,
             sender: senderId,
             content,
+            readBy: [senderId] // The sender has "read" their own message
         });
         
         conversation.lastMessage = newMessage._id;

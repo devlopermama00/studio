@@ -71,9 +71,16 @@ export default function UserChat({ authUser }: UserChatProps) {
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    
+    const conversationRef = useRef<Conversation | null>(null);
+
+    useEffect(() => {
+        conversationRef.current = conversation;
+    }, [conversation]);
 
     const form = useForm({ defaultValues: { message: "" } });
 
+    // Initial data fetch
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -99,6 +106,7 @@ export default function UserChat({ authUser }: UserChatProps) {
         fetchInitialData();
     }, [toast]);
     
+    // Socket setup
     useEffect(() => {
         if (!conversation) return;
 
@@ -113,15 +121,15 @@ export default function UserChat({ authUser }: UserChatProps) {
             });
 
             socket.on("receiveMessage", (newMessage: Message) => {
-                if (newMessage.sender._id === authUser._id) return; // Prevent duplicates
+                if (newMessage.sender._id === authUser._id) return;
 
-                if (newMessage.conversationId === conversation._id) {
+                if (newMessage.conversationId === conversationRef.current?._id) {
                     setMessages((prev) => [...prev, newMessage]);
                 }
             });
             
             socket.on("messagesSeen", ({ conversationId, userId }) => {
-                if (conversationId === conversation._id) {
+                if (conversationId === conversationRef.current?._id) {
                     setMessages(prev => prev.map(m => ({ ...m, readBy: [...m.readBy, userId] })));
                 }
             });
@@ -137,7 +145,8 @@ export default function UserChat({ authUser }: UserChatProps) {
         };
 
         socketInitializer();
-    }, [conversation, authUser._id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversation?._id, authUser._id]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -146,7 +155,6 @@ export default function UserChat({ authUser }: UserChatProps) {
     const handleSendMessage = async (data: { message: string }) => {
         if (!conversation || !data.message.trim()) return;
 
-        // Optimistic UI update
         const optimisticMessage: Message = {
             _id: `temp_${Date.now()}`,
             conversationId: conversation._id,
@@ -157,7 +165,6 @@ export default function UserChat({ authUser }: UserChatProps) {
         };
         setMessages(prev => [...prev, optimisticMessage]);
         form.reset();
-
 
         try {
             const res = await fetch('/api/chat/messages', {

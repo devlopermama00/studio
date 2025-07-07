@@ -8,7 +8,7 @@ import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ interface Conversation {
 const AdminChatSkeleton = () => (
     <Card className="h-full">
         <CardContent className="flex h-full p-0">
-            <div className="border-r h-full flex flex-col w-[33%]">
+            <div className="border-r h-full flex flex-col w-full max-w-xs">
                 <div className="p-4 border-b"><Skeleton className="h-10 w-full" /></div>
                 <ScrollArea className="flex-1">
                     <div className="p-2 space-y-2">
@@ -66,7 +66,7 @@ const AdminChatSkeleton = () => (
                     </div>
                 </ScrollArea>
             </div>
-            <div className="flex-1 flex flex-col h-full bg-secondary">
+            <div className="flex-1 flex flex-col h-full bg-secondary/50">
                  <div className="flex flex-col items-center justify-center h-full text-center p-8">
                     <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
                     <h3 className="text-xl font-semibold">Select a conversation</h3>
@@ -87,8 +87,15 @@ export default function AdminChat() {
     const { toast } = useToast();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    const selectedConversationRef = useRef<Conversation | null>(null);
+
+    useEffect(() => {
+        selectedConversationRef.current = selectedConversation;
+    }, [selectedConversation]);
+    
     const form = useForm({ defaultValues: { message: "" } });
 
+    // Initial data fetch
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -110,8 +117,11 @@ export default function AdminChat() {
         };
         fetchInitialData();
     }, [toast]);
-
+    
+    // Socket setup
     useEffect(() => {
+        if (!authUser) return;
+
         const socketInitializer = async () => {
             await fetch("/api/socket");
             socket = io(process.env.NEXT_PUBLIC_APP_URL || window.location.origin, {
@@ -121,28 +131,31 @@ export default function AdminChat() {
             socket.on("connect", () => {});
 
             socket.on("receiveMessage", (newMessage: Message) => {
-                if (newMessage.sender._id === authUser?._id) return; // Prevent duplicates
+                if (newMessage.sender._id === authUser?._id) return;
 
-                if (newMessage.conversationId === selectedConversation?._id) {
-                    setMessages((prev) => [...prev, newMessage]);
+                const currentConvo = selectedConversationRef.current;
+                if (newMessage.conversationId === currentConvo?._id) {
+                    setMessages(prev => [...prev, newMessage]);
                 }
+                
                 const updateConvos = (convos: Conversation[]) => convos.map(c => 
                     c._id === newMessage.conversationId 
-                    ? {...c, lastMessage: newMessage, updatedAt: newMessage.createdAt, isUnread: c._id !== selectedConversation?._id } 
+                    ? {...c, lastMessage: newMessage, updatedAt: newMessage.createdAt, isUnread: c._id !== currentConvo?._id } 
                     : c
-                );
-                 setConversations(prev => updateConvos(prev));
-                 setFilteredConversations(prev => updateConvos(prev));
+                ).sort((a, b) => new Date(b.lastMessage?.createdAt || b.updatedAt).getTime() - new Date(a.lastMessage?.createdAt || a.updatedAt).getTime());
+
+                setConversations(prev => updateConvos(prev));
+                setFilteredConversations(prev => updateConvos(prev));
             });
             
              socket.on("messagesSeen", ({ conversationId, userId }) => {
-                if (conversationId === selectedConversation?._id) {
+                const currentConvo = selectedConversationRef.current;
+                if (conversationId === currentConvo?._id) {
                     setMessages(prev => prev.map(m => ({ ...m, readBy: [...m.readBy, userId] })));
                 }
              });
 
             return () => {
-                socket.off("connect");
                 socket.off("receiveMessage");
                 socket.off("messagesSeen");
                 socket.disconnect();
@@ -150,31 +163,41 @@ export default function AdminChat() {
         };
 
         socketInitializer();
-    }, [selectedConversation?._id, authUser?._id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authUser]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
      const handleSelectConversation = async (convo: Conversation) => {
-        if (!authUser) return;
-
+        if (!authUser || !socket) return;
+        
         let targetConvo = convo;
 
-        if (convo.isNew) {
-            const recipient = convo.participants.find(p => p._id !== authUser._id);
+        if (targetConvo.isNew) {
+            const recipient = targetConvo.participants.find(p => p._id !== authUser._id);
             if (!recipient) return;
-
-            const res = await fetch('/api/chat/conversations', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recipientId: recipient._id })
-            });
-            const newConvoData = await res.json();
-            
-            setConversations(prev => prev.map(c => c._id === convo._id ? newConvoData : c));
-            setFilteredConversations(prev => prev.map(c => c._id === convo._id ? newConvoData : c));
-            targetConvo = newConvoData;
+            try {
+                const res = await fetch('/api/chat/conversations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipientId: recipient._id })
+                });
+                const newConvoData = await res.json();
+                const updatedConvos = conversations.map(c => c._id === convo._id ? newConvoData : c);
+                setConversations(updatedConvos);
+                const currentFilter = document.querySelector('[role="combobox"]')?.textContent;
+                handleFilterChange(currentFilter === 'All Users' ? 'all' : (currentFilter?.toLowerCase() || 'all'), updatedConvos);
+                targetConvo = newConvoData;
+            } catch (error) {
+                 toast({ variant: "destructive", title: "Error", description: "Could not create conversation." });
+                 return;
+            }
+        }
+        
+        if (selectedConversation?._id) {
+            socket.emit("leave", selectedConversation._id);
         }
 
         setSelectedConversation(targetConvo);
@@ -201,7 +224,6 @@ export default function AdminChat() {
     const handleSendMessage = async (data: { message: string }) => {
         if (!selectedConversation || !data.message.trim() || !authUser) return;
 
-        // Optimistic UI update
         const optimisticMessage: Message = {
             _id: `temp_${Date.now()}`,
             conversationId: selectedConversation._id,
@@ -223,7 +245,6 @@ export default function AdminChat() {
             
             const newMessage: Message = await res.json();
             
-            // Replace optimistic message with real one
             setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? newMessage : m));
 
             const updateConvos = (convos: Conversation[]) => convos.map(c => 
@@ -243,12 +264,12 @@ export default function AdminChat() {
         }
     };
     
-    const handleFilterChange = (role: string) => {
+    const handleFilterChange = (role: string, source: Conversation[] = conversations) => {
         if (role === 'all') {
-            setFilteredConversations(conversations);
+            setFilteredConversations(source);
         } else {
             setFilteredConversations(
-                conversations.filter(c => c.participants.some(p => p._id !== authUser?._id && p.role === role))
+                source.filter(c => c.participants.some(p => p._id !== authUser?._id && p.role === role))
             );
         }
     };
@@ -278,7 +299,6 @@ export default function AdminChat() {
     return (
         <Card className="h-full">
             <CardContent className="flex h-full p-0">
-                {/* Conversation List */}
                 <div className="border-r h-full flex flex-col w-full max-w-xs">
                     <div className="p-4 border-b">
                         <Select onValueChange={handleFilterChange} defaultValue="all">
@@ -325,11 +345,9 @@ export default function AdminChat() {
                     </ScrollArea>
                 </div>
 
-                {/* Message Area */}
                 <div className="flex flex-1 flex-col h-full bg-secondary/50">
                     {selectedConversation && authUser ? (
                         <>
-                            {/* Header */}
                             <div className="p-4 border-b flex items-center gap-3 bg-background shadow-sm flex-shrink-0">
                                 <Avatar>
                                      <AvatarImage src={selectedConversation.participants.find(p => p._id !== authUser._id)?.profilePhoto} />
@@ -340,7 +358,6 @@ export default function AdminChat() {
                                     <p className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(selectedConversation.participants.find(p => p._id !== authUser._id)?.createdAt || Date.now()))} ago</p>
                                 </div>
                             </div>
-                            {/* Messages */}
                             <div className="flex-1 relative">
                                 <div className="absolute inset-0 overflow-y-auto p-4 md:p-6 space-y-4">
                                     {messages.map(message => (
@@ -363,7 +380,6 @@ export default function AdminChat() {
                                     <div ref={messagesEndRef} />
                                 </div>
                             </div>
-                            {/* Input */}
                             <div className="p-4 border-t bg-background flex-shrink-0">
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
