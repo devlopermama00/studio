@@ -14,6 +14,8 @@ import { Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
+export const dynamic = 'force-dynamic';
+
 const discoverItems = [
   {
     title: "Kakheti Region",

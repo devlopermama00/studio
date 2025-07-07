@@ -39,12 +39,13 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
     await dbConnect();
     
     try {
-        // Fetch all tours regardless of approval status to ensure they are displayed.
-        // You can later add back { approved: true, blocked: false } to enforce an approval workflow.
+        // Find all tours. For production, you might want to filter for approved tours only:
+        // let query = Tour.find({ approved: true, blocked: false });
         let query = Tour.find({})
             .populate('category', 'name')
             .populate('createdBy', 'name')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean(); // Use .lean() for faster, plain JS objects
 
         if (limit) {
             query = query.limit(limit);
@@ -52,7 +53,7 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
         
         const tours = await query.exec();
         
-        if (tours.length === 0) {
+        if (!tours || tours.length === 0) {
             return [];
         }
 
@@ -66,8 +67,7 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
 
         const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
 
-        const transformedTours = tours.map(tourDoc => {
-            const tour = tourDoc.toObject();
+        const transformedTours = tours.map(tour => {
             const rating = ratingsMap.get(tour._id.toString()) || 0;
             
             return {
@@ -119,7 +119,8 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
 
         const tourDoc = await Tour.findById(id)
             .populate('category', 'name')
-            .populate('createdBy', 'name');
+            .populate('createdBy', 'name')
+            .lean(); // Use .lean()
 
         if (!tourDoc) {
             return null;
@@ -139,7 +140,7 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         }
         */
 
-        const tour = tourDoc.toObject();
+        const tour = tourDoc; // Already a plain object because of .lean()
 
         const reviewAggregate = await Review.aggregate([
             { $match: { tourId: new Types.ObjectId(tour._id) } },
@@ -149,7 +150,8 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
 
         const tourReviews = await Review.find({ tourId: tourDoc._id })
             .populate<{ userId: { _id: Types.ObjectId; name: string, profilePhoto?: string } }>('userId', 'name profilePhoto')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .lean(); // Use .lean()
         
         const reviews = tourReviews.map((r: any): ReviewType | null => {
             if (!r.userId) return null;
