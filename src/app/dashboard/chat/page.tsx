@@ -377,7 +377,7 @@ export default function ChatPage() {
                             <button key={conv._id} onClick={() => handleSelectConversation(conv)} className={cn("flex w-full text-left items-center gap-3 p-4 cursor-pointer hover:bg-secondary disabled:opacity-50", selectedConversation?._id === conv._id && "bg-secondary")} disabled={isCreatingConvo}>
                                 <Avatar><AvatarImage src={participant.profilePhoto} alt={participant.name} /><AvatarFallback>{participant.name.charAt(0)}</AvatarFallback></Avatar>
                                 <div className="flex-1 overflow-hidden">
-                                    <p className="font-semibold truncate flex items-center gap-2">{participant.name} <Badge variant="outline" className="capitalize">{participant.role}</Badge></p>
+                                    <div className="font-semibold truncate flex items-center gap-2">{participant.name} <Badge variant="outline" className="capitalize">{participant.role}</Badge></div>
                                     <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.content || "Click to start conversation"}</p>
                                 </div>
                             </button>
