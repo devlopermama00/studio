@@ -17,31 +17,24 @@ export async function POST(request: NextRequest) {
   if (!file) {
     return NextResponse.json({ error: "No file provided." }, { status: 400 });
   }
-
+  
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
+  const dataUri = `data:${file.type};base64,${buffer.toString('base64')}`;
+  const resourceType = file.type.startsWith('video') ? 'video' : 'image';
 
   try {
-    const result = await new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream({
-            folder: folder,
-            upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET
-        }, (error, result) => {
-            if (error) {
-                return reject(error);
-            }
-            resolve(result);
-        });
-        uploadStream.end(buffer);
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder: folder,
+      upload_preset: process.env.CLOUDINARY_UPLOAD_PRESET,
+      resource_type: resourceType,
     });
     
-    const uploadResult = result as { secure_url?: string };
-
-    if (!uploadResult.secure_url) {
-         throw new Error("Upload failed, secure_url not returned.");
+    if (!result.secure_url) {
+      throw new Error("Upload to Cloudinary failed, secure_url not returned.");
     }
 
-    return NextResponse.json({ url: uploadResult.secure_url });
+    return NextResponse.json({ url: result.secure_url });
   } catch (error) {
     console.error("Error uploading to Cloudinary:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown upload error";
