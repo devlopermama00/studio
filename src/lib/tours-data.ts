@@ -154,7 +154,7 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
             .lean(); // Use .lean()
         
         const reviews = tourReviews.map((r: any): ReviewType | null => {
-            if (!r.userId) return null;
+            if (!r.userId || !r.userId.name) return null;
             
             return {
                 id: r._id.toString(),

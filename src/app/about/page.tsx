@@ -35,52 +35,6 @@ const features = [
   }
 ];
 
-const testimonials = [
-  {
-    name: "Alex Johnson",
-    location: "New York, USA",
-    avatar: "https://placehold.co/100x100.png",
-    rating: 5,
-    comment: "Absolutely breathtaking! The guide was incredibly knowledgeable and friendly. A must-do tour in Tbilisi.",
-    tour: "Old Tbilisi Walking Tour"
-  },
-  {
-    name: "Maria Garcia",
-    location: "Madrid, Spain",
-    avatar: "https://placehold.co/100x100.png",
-    rating: 5,
-    comment: "A journey through history with stunning views. The Kazbegi tour exceeded all my expectations. Highly recommended!",
-    tour: "Kazbegi Mountain Adventure"
-  },
-  {
-    name: "Kenichi Tanaka",
-    location: "Tokyo, Japan",
-    avatar: "https://placehold.co/100x100.png",
-    rating: 4,
-    comment: "The Kakheti wine tour was a delight for the senses. Wonderful wine, delicious food, and beautiful scenery.",
-    tour: "Kakheti Wine Region Tour"
-  },
-  {
-    name: "Sarah Lee",
-    location: "Seoul, South Korea",
-    avatar: "https://placehold.co/100x100.png",
-    rating: 5,
-    comment: "I loved every moment. The tour was well-organized and the country is just beautiful. Can't wait to come back!",
-    tour: "Uplistsikhe & Mtskheta Historical Tour"
-  }
-];
-
-const StarRating = ({ rating }: { rating: number }) => (
-    <div className="flex items-center">
-        {[...Array(5)].map((_, i) => (
-        <Star
-            key={i}
-            className={`w-5 h-5 ${i < rating ? "text-amber-500 fill-amber-500" : "text-gray-300"}`}
-        />
-        ))}
-    </div>
-);
-
 export default function AboutPage() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -136,56 +90,6 @@ export default function AboutPage() {
               ))}
             </div>
           </div>
-        </section>
-
-        <section className="py-16 md:py-24 bg-background">
-            <div className="container mx-auto px-4">
-                <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">What Our Travelers Say</h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Real stories from adventurers who explored Georgia with us.
-                </p>
-                </div>
-                <Carousel
-                  opts={{
-                    align: "start",
-                    loop: true,
-                  }}
-                  className="w-full max-w-sm sm:max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto"
-                >
-                  <CarouselContent>
-                    {testimonials.map((testimonial, index) => (
-                      <CarouselItem key={index} className="sm:basis-1/2 lg:basis-1/3">
-                        <div className="p-2 h-full">
-                            <Card className="flex flex-col h-full">
-                            <CardContent className="p-6 flex-1 flex flex-col">
-                                <div className="flex items-center mb-4">
-                                <Avatar className="h-12 w-12 mr-4">
-                                    <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                                    <AvatarFallback>{testimonial.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-semibold">{testimonial.name}</p>
-                                    <p className="text-sm text-muted-foreground">{testimonial.location}</p>
-                                </div>
-                                </div>
-                                <StarRating rating={testimonial.rating} />
-                                <blockquote className="text-muted-foreground italic mt-4 flex-1">
-                                "{testimonial.comment}"
-                                </blockquote>
-                            </CardContent>
-                            <CardFooter className="bg-secondary p-4 text-sm mt-auto">
-                                <p className="text-muted-foreground">On the <span className="font-semibold text-foreground">{testimonial.tour}</span></p>
-                            </CardFooter>
-                            </Card>
-                        </div>
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-                  <CarouselPrevious className="hidden sm:flex" />
-                  <CarouselNext className="hidden sm:flex" />
-                </Carousel>
-            </div>
         </section>
         
         <section className="py-16 md:py-24 bg-secondary">
