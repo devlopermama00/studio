@@ -1,14 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { cookies } from 'next/headers';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
-    const cookieStore = cookies();
-    const token = cookieStore.get('token')?.value;
+    const token = request.cookies.get('token')?.value;
 
     if (!token) {
       return NextResponse.json({ message: 'Not authenticated' }, { status: 401 });
