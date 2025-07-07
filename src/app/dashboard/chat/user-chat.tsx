@@ -86,48 +86,7 @@ export default function UserChat({ authUser }: UserChatProps) {
 
     const form = useForm({ defaultValues: { message: "" } });
 
-    // Socket Initializer
-    const socketInitializer = async () => {
-        await fetch('/api/socket');
-        socket = io(undefined!, {
-            path: '/api/socket',
-        });
-        
-        socket.on('connect', () => {
-            console.log('Connected to socket server');
-            if (conversationRef.current) {
-                socket.emit('join_conversation', conversationRef.current._id);
-            }
-        });
-
-        socket.on('receive_message', (newMessage: Message) => {
-            const currentConvo = conversationRef.current;
-            if (currentConvo && newMessage.conversationId === currentConvo._id) {
-                if (newMessage.sender._id === authUserRef.current._id) {
-                    setMessages(prev => prev.map(msg => msg._id.startsWith('temp_') ? newMessage : msg));
-                } else {
-                    setMessages((prevMessages) => [...prevMessages, newMessage]);
-                    socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
-                }
-            }
-        });
-        
-        socket.on('update_seen_status', ({ conversationId, userId }) => {
-            const currentConvo = conversationRef.current;
-            if (currentConvo && conversationId === currentConvo._id) {
-                 setMessages((prevMessages) => prevMessages.map(msg => ({
-                     ...msg,
-                     readBy: [...new Set([...msg.readBy, userId])]
-                 })));
-            }
-        });
-
-        socket.on('disconnect', () => {
-            console.log('Disconnected from socket server');
-        });
-    };
-
-    // Initial data fetch
+    // Initial data fetch and socket setup
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -155,6 +114,7 @@ export default function UserChat({ authUser }: UserChatProps) {
                 setIsLoading(false);
             }
         };
+
         socketInitializer();
         fetchInitialData();
 
@@ -165,6 +125,68 @@ export default function UserChat({ authUser }: UserChatProps) {
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const socketInitializer = async () => {
+        await fetch('/api/socket');
+        socket = io(undefined!, {
+            path: '/api/socket',
+        });
+        
+        socket.on('connect', () => {
+            console.log('Connected to socket server');
+            if (conversationRef.current) {
+                socket.emit('join_conversation', conversationRef.current._id);
+            }
+        });
+
+        socket.on('receive_message', (newMessage: Message) => {
+            const currentConvo = conversationRef.current;
+            const currentUser = authUserRef.current;
+            if (currentConvo && newMessage.conversationId === currentConvo._id) {
+                if (currentUser && newMessage.sender._id === currentUser._id) {
+                    // This is a confirmation of a message we just sent. Replace the FIRST temp message.
+                    setMessages(prev => {
+                        let replaced = false;
+                        const newMessages = prev.map(msg => {
+                            if (!replaced && msg._id.startsWith('temp_')) {
+                                replaced = true;
+                                return newMessage;
+                            }
+                            return msg;
+                        });
+                        // If no temp message was found to replace (e.g. on a different tab), add it if it doesn't exist.
+                        if (!replaced && !newMessages.some(m => m._id === newMessage._id)) {
+                            return [...newMessages, newMessage];
+                        }
+                        return newMessages;
+                    });
+                } else {
+                     // This is a new message from the other person. Add it if it's not already there.
+                    setMessages((prevMessages) => {
+                        if (prevMessages.some(m => m._id === newMessage._id)) return prevMessages;
+                        return [...prevMessages, newMessage];
+                    });
+                    if (currentUser) {
+                        socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: currentUser._id });
+                    }
+                }
+            }
+        });
+        
+        socket.on('update_seen_status', ({ conversationId, userId }) => {
+            const currentConvo = conversationRef.current;
+            if (currentConvo && conversationId === currentConvo._id) {
+                 setMessages((prevMessages) => prevMessages.map(msg => ({
+                     ...msg,
+                     readBy: [...new Set([...msg.readBy, userId])]
+                 })));
+            }
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from socket server');
+        });
+    };
     
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

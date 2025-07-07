@@ -102,7 +102,40 @@ export default function AdminChat() {
 
     const form = useForm({ defaultValues: { message: "" } });
 
-    // Socket Initializer
+    // Socket Initializer and data fetch
+    useEffect(() => {
+        // Function to fetch initial data
+        const fetchInitialData = async () => {
+            try {
+                const userRes = await fetch('/api/auth/me');
+                if (!userRes.ok) throw new Error("Not authenticated");
+                const userData = await userRes.json();
+                setAuthUser(userData);
+
+                const convosRes = await fetch('/api/chat/conversations');
+                if (!convosRes.ok) throw new Error("Failed to fetch conversations");
+                const convosData = await convosRes.json();
+                setConversations(convosData);
+                setFilteredConversations(convosData);
+            } catch (error) {
+                toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not load chat." });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchInitialData();
+
+        // Initialize socket
+        socketInitializer();
+
+        return () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const socketInitializer = async () => {
         await fetch('/api/socket');
         socket = io(undefined!, {
@@ -115,17 +148,35 @@ export default function AdminChat() {
 
         socket.on('receive_message', (newMessage: Message) => {
             const currentConvo = selectedConversationRef.current;
+            const currentUser = authUserRef.current;
             
             // Update messages if the new message belongs to the selected conversation
             if (currentConvo && newMessage.conversationId === currentConvo._id) {
-                if (newMessage.sender._id === authUserRef.current?._id) {
-                    // It's a confirmation of a message we just sent. Replace the temp message.
-                    setMessages(prev => prev.map(msg => msg._id.startsWith('temp_') ? newMessage : msg));
+                 if (currentUser && newMessage.sender._id === currentUser._id) {
+                    // This is a confirmation of a message we just sent. Replace the FIRST temp message.
+                    setMessages(prev => {
+                        let replaced = false;
+                        const newMessages = prev.map(msg => {
+                            if (!replaced && msg._id.startsWith('temp_')) {
+                                replaced = true;
+                                return newMessage;
+                            }
+                            return msg;
+                        });
+                        // If no temp message was found to replace (e.g. on a different tab), add it if it doesn't exist.
+                        if (!replaced && !newMessages.some(m => m._id === newMessage._id)) {
+                            return [...newMessages, newMessage];
+                        }
+                        return newMessages;
+                    });
                 } else {
-                    // It's a new message from the other person. Add it.
-                    setMessages(prev => [...prev, newMessage]);
-                    if (authUserRef.current) {
-                        socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUserRef.current._id });
+                    // This is a new message from the other person. Add it if it's not already there.
+                    setMessages((prevMessages) => {
+                        if (prevMessages.some(m => m._id === newMessage._id)) return prevMessages;
+                        return [...prevMessages, newMessage];
+                    });
+                    if (currentUser) {
+                        socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: currentUser._id });
                     }
                 }
             }
@@ -152,37 +203,6 @@ export default function AdminChat() {
             console.log('Disconnected from socket server');
         });
     };
-
-    // Initial data fetch and socket connection
-    useEffect(() => {
-        const fetchInitialData = async () => {
-            try {
-                const userRes = await fetch('/api/auth/me');
-                if (!userRes.ok) throw new Error("Not authenticated");
-                const userData = await userRes.json();
-                setAuthUser(userData);
-
-                const convosRes = await fetch('/api/chat/conversations');
-                if (!convosRes.ok) throw new Error("Failed to fetch conversations");
-                const convosData = await convosRes.json();
-                setConversations(convosData);
-                setFilteredConversations(convosData);
-            } catch (error) {
-                toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not load chat." });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchInitialData();
-        socketInitializer();
-
-        return () => {
-            if (socket) {
-                socket.disconnect();
-            }
-        }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
     
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -206,11 +226,11 @@ export default function AdminChat() {
 
                 const newConvoData = await res.json();
                  
-                 const updatedConversations = conversations.map(c => c._id === convo._id ? newConvoData : c);
-                 setConversations(updatedConversations);
-
-                const currentFilterValue = document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all';
-                handleFilterChange(currentFilterValue.includes('all') ? 'all' : currentFilterValue, updatedConversations);
+                setConversations(prev => {
+                    const newConversations = prev.map(c => c._id === convo._id ? newConvoData : c);
+                    handleFilterChange(document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all', newConversations);
+                    return newConversations;
+                });
                 
                 targetConvo = newConvoData;
             } catch (error) {
@@ -305,7 +325,7 @@ export default function AdminChat() {
             <CardContent className="flex h-full p-0">
                 <div className={cn("border-r h-full flex-col w-full md:max-w-xs md:flex", selectedConversation ? 'hidden md:flex' : 'flex')}>
                     <div className="p-4 border-b">
-                        <Select onValueChange={handleFilterChange} defaultValue="all">
+                        <Select onValueChange={(value) => handleFilterChange(value, conversations)} defaultValue="all">
                             <SelectTrigger><SelectValue placeholder="Filter by role" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Users</SelectItem>
