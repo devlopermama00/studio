@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { io, type Socket } from "socket.io-client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,6 +40,9 @@ interface Conversation {
   lastMessage: Message | null;
   updatedAt: string;
 }
+
+// Socket instance variable
+let socket: Socket;
 
 const UserChatSkeleton = () => (
     <Card className="h-full">
@@ -77,6 +81,44 @@ export default function UserChat({ authUser }: UserChatProps) {
 
     const form = useForm({ defaultValues: { message: "" } });
 
+    // Socket Initializer
+    const socketInitializer = async () => {
+        await fetch('/api/socket');
+        socket = io(undefined!, {
+            path: '/api/socket',
+        });
+        
+        socket.on('connect', () => {
+            console.log('Connected to socket server');
+            if (conversationRef.current) {
+                socket.emit('join_conversation', conversationRef.current._id);
+            }
+        });
+
+        socket.on('receive_message', (newMessage: Message) => {
+            const currentConvo = conversationRef.current;
+            if (currentConvo && newMessage.conversationId === currentConvo._id) {
+                 if (newMessage.sender._id === authUser._id) return;
+                setMessages((prevMessages) => [...prevMessages, newMessage]);
+                socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUser._id });
+            }
+        });
+        
+        socket.on('update_seen_status', ({ conversationId, userId }) => {
+            const currentConvo = conversationRef.current;
+            if (currentConvo && conversationId === currentConvo._id) {
+                 setMessages((prevMessages) => prevMessages.map(msg => ({
+                     ...msg,
+                     readBy: [...new Set([...msg.readBy, userId])]
+                 })));
+            }
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from socket server');
+        });
+    };
+
     // Initial data fetch
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -93,6 +135,11 @@ export default function UserChat({ authUser }: UserChatProps) {
                     if (!messagesRes.ok) throw new Error("Failed to fetch messages");
                     const messagesData = await messagesRes.json();
                     setMessages(messagesData);
+                    
+                    if (socket) {
+                        socket.emit('join_conversation', mainConvo._id);
+                        socket.emit('messages_seen', { conversationId: mainConvo._id, userId: authUser._id });
+                    }
                 }
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not load chat." });
@@ -100,18 +147,27 @@ export default function UserChat({ authUser }: UserChatProps) {
                 setIsLoading(false);
             }
         };
+        socketInitializer();
         fetchInitialData();
-    }, [toast]);
+
+        return () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
     const handleSendMessage = async (data: { message: string }) => {
-        if (!conversation || !data.message.trim()) return;
-
+        if (!conversation || !data.message.trim() || !socket) return;
+        
+        const tempId = `temp_${Date.now()}`;
         const optimisticMessage: Message = {
-            _id: `temp_${Date.now()}`,
+            _id: tempId,
             conversationId: conversation._id,
             sender: authUser,
             content: data.message,
@@ -119,29 +175,18 @@ export default function UserChat({ authUser }: UserChatProps) {
             createdAt: new Date().toISOString(),
         };
         setMessages(prev => [...prev, optimisticMessage]);
+
+        socket.emit('send_message', {
+            conversationId: conversation._id,
+            senderId: authUser._id,
+            content: data.message.trim(),
+        });
+
         form.reset();
-
-        try {
-            const res = await fetch('/api/chat/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ conversationId: conversation._id, content: data.message }),
-            });
-            if (!res.ok) throw new Error("Failed to send message");
-            const newMessage: Message = await res.json();
-            
-            setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? newMessage : m));
-            setConversation(prev => prev ? { ...prev, lastMessage: newMessage } : null);
-
-        } catch (error) {
-             setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id));
-             toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not send message" });
-        }
     };
     
     const renderMessageStatus = (message: Message) => {
         if (!conversation) return null;
-        if (message._id.startsWith('temp')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         
         const adminUser = conversation.participants.find(p => p.role === 'admin');
         if (!adminUser) return null;

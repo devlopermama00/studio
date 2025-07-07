@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { io, type Socket } from "socket.io-client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,6 +44,9 @@ interface Conversation {
   isNew?: boolean;
   isUnread?: boolean;
 }
+
+// Socket instance variable
+let socket: Socket;
 
 const AdminChatSkeleton = () => (
     <Card className="h-full">
@@ -83,16 +87,60 @@ export default function AdminChat() {
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
     const messagesEndRef = useRef<HTMLDivElement>(null);
-
+    
+    // Using refs to hold the latest state for socket event handlers, preventing stale state issues.
     const selectedConversationRef = useRef<Conversation | null>(null);
 
     useEffect(() => {
         selectedConversationRef.current = selectedConversation;
     }, [selectedConversation]);
-    
+
     const form = useForm({ defaultValues: { message: "" } });
 
-    // Initial data fetch
+    // Socket Initializer
+    const socketInitializer = async () => {
+        await fetch('/api/socket');
+        socket = io(undefined!, {
+            path: '/api/socket',
+        });
+        
+        socket.on('connect', () => {
+            console.log('Connected to socket server');
+        });
+
+        socket.on('receive_message', (newMessage: Message) => {
+            const currentConvo = selectedConversationRef.current;
+            if (currentConvo && newMessage.conversationId === currentConvo._id) {
+                // Ignore message if sender is current user to avoid duplicates
+                if (newMessage.sender._id === authUser?._id) return;
+                setMessages((prevMessages) => [...prevMessages, newMessage]);
+                if (authUser) {
+                     socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: authUser._id });
+                }
+            }
+             setConversations(prev => prev.map(c => 
+                c._id === newMessage.conversationId 
+                ? { ...c, lastMessage: newMessage, updatedAt: newMessage.createdAt, isUnread: c._id !== currentConvo?._id } 
+                : c
+            ).sort((a,b) => new Date(b.lastMessage?.createdAt || b.updatedAt).getTime() - new Date(a.lastMessage?.createdAt || a.updatedAt).getTime()));
+        });
+        
+        socket.on('update_seen_status', ({ conversationId, userId }) => {
+            const currentConvo = selectedConversationRef.current;
+            if (currentConvo && conversationId === currentConvo._id) {
+                 setMessages((prevMessages) => prevMessages.map(msg => ({
+                     ...msg,
+                     readBy: [...new Set([...msg.readBy, userId])]
+                 })));
+            }
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from socket server');
+        });
+    };
+
+    // Initial data fetch and socket connection
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
@@ -113,7 +161,15 @@ export default function AdminChat() {
             }
         };
         fetchInitialData();
-    }, [toast]);
+        socketInitializer();
+
+        return () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -147,12 +203,20 @@ export default function AdminChat() {
         
         setSelectedConversation(targetConvo);
         setMessages([]);
+        
+        if (socket && targetConvo?._id) {
+             socket.emit('join_conversation', targetConvo._id);
+        }
 
         try {
             const res = await fetch(`/api/chat/messages/${targetConvo._id}`);
             if (!res.ok) throw new Error("Failed to fetch messages");
             const data = await res.json();
             setMessages(data);
+            
+            if (socket) {
+                socket.emit('messages_seen', { conversationId: targetConvo._id, userId: authUser._id });
+            }
             
             const markAsRead = (convos: Conversation[]) => convos.map(c => c._id === targetConvo._id ? { ...c, isUnread: false } : c);
             setConversations(prev => markAsRead(prev));
@@ -164,10 +228,11 @@ export default function AdminChat() {
     };
     
     const handleSendMessage = async (data: { message: string }) => {
-        if (!selectedConversation || !data.message.trim() || !authUser) return;
-
+        if (!selectedConversation || !data.message.trim() || !authUser || !socket) return;
+        
+        const tempId = `temp_${Date.now()}`;
         const optimisticMessage: Message = {
-            _id: `temp_${Date.now()}`,
+            _id: tempId,
             conversationId: selectedConversation._id,
             sender: authUser,
             content: data.message,
@@ -175,33 +240,14 @@ export default function AdminChat() {
             createdAt: new Date().toISOString(),
         };
         setMessages(prev => [...prev, optimisticMessage]);
+
+        socket.emit('send_message', {
+            conversationId: selectedConversation._id,
+            senderId: authUser._id,
+            content: data.message.trim(),
+        });
+
         form.reset();
-
-        try {
-            const res = await fetch('/api/chat/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ conversationId: selectedConversation._id, content: data.message }),
-            });
-            if (!res.ok) throw new Error("Failed to send message");
-            
-            const newMessage: Message = await res.json();
-            
-            setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? newMessage : m));
-
-            const updateConvos = (convos: Conversation[]) => convos.map(c => 
-                c._id === newMessage.conversationId 
-                ? { ...c, lastMessage: newMessage, updatedAt: newMessage.createdAt } 
-                : c
-            ).sort((a,b) => new Date(b.lastMessage?.createdAt || b.updatedAt).getTime() - new Date(a.lastMessage?.createdAt || a.updatedAt).getTime());
-
-            setConversations(prev => updateConvos(prev));
-            setFilteredConversations(prev => updateConvos(prev));
-            
-        } catch (error) {
-            setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id));
-            toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not send message" });
-        }
     };
     
     const handleFilterChange = (role: string, source: Conversation[] = conversations) => {
