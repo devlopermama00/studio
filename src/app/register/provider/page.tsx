@@ -20,7 +20,7 @@ import { currencies } from "@/context/currency-context";
 import { uploadFile } from "@/services/fileUploader";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_FILE_TYPES = ["application/pdf", "image/jpeg", "image/jpg", "image/png"];
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png"];
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Company name must be at least 2 characters." }),
@@ -38,16 +38,16 @@ const formSchema = z.object({
     .refine((files) => files?.length === 1, "Company license is required.")
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
-      (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
-      "Only .pdf, .jpg, .jpeg, and .png formats are supported."
+      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, and .png formats are supported."
     ),
   idDocument: z
     .any()
     .refine((files) => files?.length === 1, "ID document is required.")
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
-      (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
-      "Only .pdf, .jpg, .jpeg, and .png formats are supported."
+      (files) => ACCEPTED_IMAGE_TYPES.includes(files?.[0]?.type),
+      "Only .jpg, .jpeg, and .png formats are supported."
     ),
   terms: z.literal(true, {
     errorMap: () => ({ message: "You must accept the terms and conditions." }),
@@ -202,7 +202,7 @@ export default function ProviderRegisterPage() {
                                         <span className="font-medium text-sm">Upload License</span>
                                     )}
                                 </span>
-                                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" {...licenseFileRef} onChange={(e) => {
+                                <input type="file" className="hidden" accept="image/png, image/jpeg" {...licenseFileRef} onChange={(e) => {
                                     field.onChange(e.target.files);
                                     setLicenseFileName(e.target.files?.[0]?.name || null);
                                 }}/>
@@ -224,7 +224,7 @@ export default function ProviderRegisterPage() {
                                         <span className="font-medium text-sm">Upload ID</span>
                                     )}
                                 </span>
-                                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" {...idFileRef} onChange={(e) => {
+                                <input type="file" className="hidden" accept="image/png, image/jpeg" {...idFileRef} onChange={(e) => {
                                     field.onChange(e.target.files);
                                     setIdFileName(e.target.files?.[0]?.name || null);
                                 }}/>
@@ -234,7 +234,7 @@ export default function ProviderRegisterPage() {
                         </FormItem>
                     )} />
                 </div>
-                <FormDescription>PDF, JPG, or PNG. Max 5MB. Required for verification.</FormDescription>
+                <FormDescription>Image format (JPG, PNG) only. Max 5MB. Required for verification.</FormDescription>
 
               <div className="grid md:grid-cols-2 gap-4">
                  <FormField control={form.control} name="password" render={({ field }) => (
