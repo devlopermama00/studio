@@ -37,12 +37,7 @@ export async function GET(request: NextRequest) {
                 .populate('participants', 'name email role profilePhoto createdAt')
                 .populate({
                     path: 'lastMessage',
-                    model: Message,
-                    populate: {
-                        path: 'sender',
-                        model: User,
-                        select: 'name'
-                    }
+                    model: Message
                 })
                 .lean();
 
@@ -59,7 +54,7 @@ export async function GET(request: NextRequest) {
                 if (existingConvo) {
                     const lastMsg = existingConvo.lastMessage;
                     const isUnread = lastMsg &&
-                                     lastMsg.sender?._id.toString() !== adminId.toString() &&
+                                     lastMsg.sender?.toString() !== adminId.toString() &&
                                      !lastMsg.readBy.some((id: Types.ObjectId) => id.equals(adminId));
 
                     return { ...existingConvo, isUnread };
