@@ -7,7 +7,7 @@ import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { Menu, LayoutDashboard, ChevronDown, LogOut } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
@@ -174,9 +174,13 @@ export function SiteHeader() {
               </SheetTrigger>
               <SheetContent key={user?.id ?? 'logged-out'} side="right" className="w-[80vw] max-w-sm">
                 <div>
-                  <SheetHeader className="p-0 text-left mb-8">
-                    <SheetTitle className="sr-only">Main Menu</SheetTitle>
-                    <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
+                  <SheetHeader className="mb-8 text-left">
+                    <SheetTitle>
+                      <TourVistaLogo onClick={() => setIsMenuOpen(false)} />
+                    </SheetTitle>
+                    <SheetDescription className="sr-only">
+                      Main navigation menu
+                    </SheetDescription>
                   </SheetHeader>
                   <div className="flex flex-col space-y-4">
                     {navLinks.map((link) => (
