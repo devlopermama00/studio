@@ -132,22 +132,30 @@ const seedDatabase = async () => {
         
         // Seed admin user
         const adminEmail = 'saurabhcsbs@gmail.com';
-        let adminUser = await User.findOne({ email: adminEmail });
-        if (!adminUser) {
-            console.log('Admin user not found, creating one...');
-            const hashedPassword = await bcryptjs.hash('Saurabh@123', 10);
-            adminUser = await User.create({
-                name: 'Admin',
-                username: adminEmail.toLowerCase(),
-                email: adminEmail.toLowerCase(),
-                passwordHash: hashedPassword,
-                role: 'admin',
-                isVerified: true,
-            });
-            console.log('Admin user created successfully!');
+        const plainPassword = 'Saurabh@123';
+        const hashedPassword = await bcryptjs.hash(plainPassword, 10);
+
+        const adminUser = await User.findOneAndUpdate(
+            { email: adminEmail.toLowerCase() },
+            {
+                $set: {
+                    name: 'Admin',
+                    username: adminEmail.toLowerCase(),
+                    email: adminEmail.toLowerCase(),
+                    passwordHash: hashedPassword,
+                    role: 'admin',
+                    isVerified: true,
+                }
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        
+        if(adminUser) {
+            console.log('Admin user created or updated successfully!');
         } else {
-            console.log('Admin user already exists.');
+            console.log('Something went wrong with admin user setup.');
         }
+
 
         // Seed a default provider user
         const providerEmail = 'provider@tourvista.com';
