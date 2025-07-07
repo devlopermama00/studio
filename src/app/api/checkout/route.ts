@@ -70,7 +70,8 @@ export async function POST(request: NextRequest) {
                 userId: user.id,
                 bookingDate,
                 guests,
-                totalPrice,
+                totalPrice: String(totalPrice),
+                tourTitle: tour.title,
             },
         });
         
