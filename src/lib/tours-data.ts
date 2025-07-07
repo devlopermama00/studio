@@ -10,6 +10,8 @@ import { Types } from 'mongoose';
 import type { Tour as PublicTourType, Review as ReviewType } from '@/lib/types';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { getSettings } from '@/lib/settings-data';
+
 
 // This is needed to ensure the models are registered with Mongoose before use.
 Category;
@@ -112,18 +114,39 @@ export async function getPublicTours(limit?: number): Promise<PublicTourType[]> 
 export async function getPopularTours(limit?: number): Promise<PublicTourType[]> {
     await dbConnect();
     try {
-        let query = Tour.find({ approved: true, blocked: false, isPopular: true })
-            .populate('category', 'name')
-            .populate('createdBy', 'name')
-            .sort({ createdAt: -1 })
-            .lean();
+        const settings = await getSettings();
+        const popularTourIds = settings.homepage_popular_tours || [];
 
-        if (limit) {
-            query = query.limit(limit);
+        if (popularTourIds.length === 0) {
+            return [];
         }
 
-        const tours = await query.exec();
-        return transformTours(tours);
+        const objectIds = popularTourIds.map((id: string) => new Types.ObjectId(id));
+
+        const query = Tour.find({
+            _id: { $in: objectIds },
+            approved: true,
+            blocked: false
+        })
+        .populate('category', 'name')
+        .populate('createdBy', 'name')
+        .lean();
+        
+        const toursFromDb = await query.exec();
+        
+        const toursMap = new Map(toursFromDb.map(t => [t._id.toString(), t]));
+        const sortedTours = popularTourIds
+            .map((id: string) => toursMap.get(id))
+            .filter(Boolean);
+
+        let finalTours = await transformTours(sortedTours);
+
+        if (limit) {
+            finalTours = finalTours.slice(0, limit);
+        }
+
+        return finalTours;
+
     } catch (error) {
         console.error("Error fetching popular tours:", error);
         return [];

@@ -7,88 +7,91 @@ import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
 import { TourCard } from "@/components/tour-card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getPopularTours } from "@/lib/tours-data";
 import { Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { getSettings } from "@/lib/settings-data";
 
 export const dynamic = 'force-dynamic';
 
-const discoverItems = [
-  {
-    title: "Kakheti Region",
-    description: "Traditions and Wine Making in the Heart of Kakheti!",
-    image: "https://placehold.co/600x400.png",
-    hint: "kakheti wine"
-  },
-  {
-    title: "Mountain of Kazbegi",
-    description: "Nature, History and Mountains to Fill your Eyes.",
-    image: "https://placehold.co/600x400.png",
-    hint: "kazbegi mountain"
-  },
-  {
-    title: "Lovers of Real History",
-    description: "History of Georgia from the beginning until today!",
-    image: "https://placehold.co/600x400.png",
-    hint: "georgia history"
-  }
-];
-
-const destinations = [
-  { name: "Tbilisi", image: "https://placehold.co/600x400.png", hint: "tbilisi georgia", description: "The vibrant capital where history meets modernity." },
-  { name: "Batumi", image: "https://placehold.co/600x400.png", hint: "batumi georgia", description: "A dazzling city on the Black Sea coast." },
-  { name: "Gudauri", image: "https://placehold.co/600x400.png", hint: "gudauri georgia", description: "A premier ski resort with stunning mountain views." },
-  { name: "Kakheti", image: "https://placehold.co/600x400.png", hint: "kakheti georgia", description: "The historic heartland of Georgian wine." },
-  { name: "Kazbegi", image: "https://placehold.co/600x400.png", hint: "kazbegi mountains", description: "Home to the iconic Gergeti Trinity Church." },
-  { name: "Svaneti", image: "https://placehold.co/600x400.png", hint: "svaneti landscape", description: "A remote region of medieval towers and high peaks." },
-  { name: "Mtskheta", image: "https://placehold.co/600x400.png", hint: "mtskheta georgia", description: "The ancient capital and spiritual heart of Georgia." },
-  { name: "Kutaisi", image: "https://placehold.co/600x400.png", hint: "kutaisi georgia", description: "A city of legends, canyons, and monasteries." },
-];
-
-const categories = [
-    {
-        name: "City Tours",
-        image: "https://placehold.co/400x500.png",
-        hint: "tbilisi street",
-        href: "/tours?category=city"
-    },
-    {
-        name: "Mountain & Hiking",
-        image: "https://placehold.co/400x500.png",
-        hint: "caucasus mountains",
-        href: "/tours?category=hiking"
-    },
-    {
-        name: "Wine & Gastronomy",
-        image: "https://placehold.co/400x500.png",
-        hint: "georgian wine",
-        href: "/tours?category=wine"
-    },
-    {
-        name: "Historical & Cultural",
-        image: "https://placehold.co/400x500.png",
-        hint: "ancient monastery",
-        href: "/tours?category=historical"
-    },
-    {
-        name: "Multi-Day Tours",
-        image: "https://placehold.co/400x500.png",
-        hint: "georgia road trip",
-        href: "/tours?category=multi-day"
-    },
-    {
-        name: "Adventure & Extreme",
-        image: "https://placehold.co/400x500.png",
-        hint: "paragliding georgia",
-        href: "/tours?category=adventure"
-    },
-];
-
 export default async function Home() {
   const popularTours = await getPopularTours(8);
+  const settings = await getSettings();
+
+  const heroImage = settings.homepage_hero_image || "https://placehold.co/1600x900.png";
+  
+  const discoverItems = settings.homepage_discover_items || [
+    {
+      title: "Kakheti Region",
+      description: "Traditions and Wine Making in the Heart of Kakheti!",
+      image: "https://placehold.co/600x400.png",
+      hint: "kakheti wine"
+    },
+    {
+      title: "Mountain of Kazbegi",
+      description: "Nature, History and Mountains to Fill your Eyes.",
+      image: "https://placehold.co/600x400.png",
+      hint: "kazbegi mountain"
+    },
+    {
+      title: "Lovers of Real History",
+      description: "History of Georgia from the beginning until today!",
+      image: "https://placehold.co/600x400.png",
+      hint: "georgia history"
+    }
+  ];
+
+  const destinations = settings.homepage_destinations || [
+    { name: "Tbilisi", image: "https://placehold.co/600x400.png", hint: "tbilisi georgia", description: "The vibrant capital where history meets modernity." },
+    { name: "Batumi", image: "https://placehold.co/600x400.png", hint: "batumi georgia", description: "A dazzling city on the Black Sea coast." },
+    { name: "Gudauri", image: "https://placehold.co/600x400.png", hint: "gudauri georgia", description: "A premier ski resort with stunning mountain views." },
+    { name: "Kakheti", image: "https://placehold.co/600x400.png", hint: "kakheti georgia", description: "The historic heartland of Georgian wine." },
+    { name: "Kazbegi", image: "https://placehold.co/600x400.png", hint: "kazbegi mountains", description: "Home to the iconic Gergeti Trinity Church." },
+    { name: "Svaneti", image: "https://placehold.co/600x400.png", hint: "svaneti landscape", description: "A remote region of medieval towers and high peaks." },
+    { name: "Mtskheta", image: "https://placehold.co/600x400.png", hint: "mtskheta georgia", description: "The ancient capital and spiritual heart of Georgia." },
+    { name: "Kutaisi", image: "https://placehold.co/600x400.png", hint: "kutaisi georgia", description: "A city of legends, canyons, and monasteries." },
+  ];
+
+  const categories = [
+      {
+          name: "City Tours",
+          image: "https://placehold.co/400x500.png",
+          hint: "tbilisi street",
+          href: "/tours?category=city"
+      },
+      {
+          name: "Mountain & Hiking",
+          image: "https://placehold.co/400x500.png",
+          hint: "caucasus mountains",
+          href: "/tours?category=hiking"
+      },
+      {
+          name: "Wine & Gastronomy",
+          image: "https://placehold.co/400x500.png",
+          hint: "georgian wine",
+          href: "/tours?category=wine"
+      },
+      {
+          name: "Historical & Cultural",
+          image: "https://placehold.co/400x500.png",
+          hint: "ancient monastery",
+          href: "/tours?category=historical"
+      },
+      {
+          name: "Multi-Day Tours",
+          image: "https://placehold.co/400x500.png",
+          hint: "georgia road trip",
+          href: "/tours?category=multi-day"
+      },
+      {
+          name: "Adventure & Extreme",
+          image: "https://placehold.co/400x500.png",
+          hint: "paragliding georgia",
+          href: "/tours?category=adventure"
+      },
+  ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -98,7 +101,7 @@ export default async function Home() {
         <section className="relative h-[60vh] md:h-[70vh] flex items-center justify-center text-center text-white">
           <div className="absolute inset-0 bg-black/50 z-10" />
           <Image
-            src="https://placehold.co/1600x900.png"
+            src={heroImage}
             alt="Scenic view of Georgia mountains"
             fill
             style={{objectFit: "cover"}}
@@ -126,7 +129,7 @@ export default async function Home() {
               Popular Tours
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto text-center mb-12">
-                Discover our most sought-after tours, handpicked by our team for an unforgettable experience.
+                Discover our most sought-after tours, handpicked for an unforgettable experience.
             </p>
              {popularTours.length > 0 ? (
                 <>
