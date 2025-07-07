@@ -212,15 +212,15 @@ export default function UserChat({ authUser }: UserChatProps) {
     const renderMessageStatus = (message: Message) => {
         if (!conversation) return null;
         if (message.sender._id !== authUser._id) return null;
-        if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />;
+        if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin" />;
         
         const adminUser = conversation.participants.find(p => p.role === 'admin');
         if (!adminUser) return null;
         
         const isRead = message.readBy && message.readBy.includes(adminUser._id);
         
-        if (isRead) return <CheckCheck className="h-4 w-4 text-blue-500" />;
-        return <Check className="h-4 w-4 text-muted-foreground" />;
+        if (isRead) return <CheckCheck className="h-4 w-4 text-primary-foreground" />;
+        return <Check className="h-4 w-4" />;
     };
 
     if (isLoading) return <UserChatSkeleton />;
