@@ -1,7 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { io, type Socket } from "socket.io-client";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -11,52 +16,36 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
-// --- For Admin View ---
-const mockConversations = [
-  { id: 1, name: "Alex Johnson (User)", role: "user", lastMessage: "Yes, we can help with that.", unread: 0, avatar: "https://placehold.co/100x100.png" },
-  { id: 2, name: "Kazbegi Guides (Provider)", role: "provider", lastMessage: "Your booking is confirmed!", unread: 2, avatar: "https://placehold.co/100x100.png" },
-  { id: 3, name: "Tbilisi Treks (Provider)", role: "provider", lastMessage: "See you tomorrow at 10 AM.", unread: 0, avatar: "https://placehold.co/100x100.png" },
-  { id: 4, name: "Maria Garcia (User)", role: "user", lastMessage: "I have a question about my booking.", unread: 1, avatar: "https://placehold.co/100x100.png" },
-];
-
-const mockMessages = {
-  1: [
-    { sender: "other", text: "Hello! I have a question about my booking." },
-    { sender: "me", text: "Hi there, what can I help you with?" },
-    { sender: "other", text: "I need to change the date of my tour." },
-  ],
-  2: [
-    { sender: "other", text: "Your booking is confirmed!" },
-  ],
-  3: [
-     { sender: "other", text: "See you tomorrow at 10 AM." },
-  ],
-  4: [
-      { sender: "other", text: "I have a question about my booking." },
-  ]
-};
-// --- End Admin View Data ---
-
-// --- For User/Provider View ---
-const mockAdminConversation = {
-    id: 'admin',
-    name: 'TourVista Support',
-    avatar: 'https://placehold.co/100x100.png',
-    messages: [
-        { sender: 'other', text: 'Hello! Welcome to TourVista support. How can I help you today?'},
-        { sender: 'me', text: 'Hi, I have a question about one of my listed tours.' },
-        { sender: 'other', text: 'Of course, I can help with that. Which tour are you referring to?'}
-    ]
-}
-// --- End User/Provider View Data ---
-
-interface AuthUser {
-  id: string;
+interface User {
+  _id: string;
   name: string;
   email: string;
   role: "user" | "provider" | "admin";
+  profilePhoto?: string;
 }
+
+interface Message {
+  _id: string;
+  conversationId: string;
+  sender: User;
+  content: string;
+  createdAt: string;
+}
+
+interface Conversation {
+    _id: string;
+    participants: User[];
+    lastMessage?: Message;
+}
+
+
+const chatFormSchema = z.object({
+  message: z.string().min(1, "Message cannot be empty."),
+});
+
+type ChatFormValues = z.infer<typeof chatFormSchema>;
 
 const ChatSkeleton = () => (
     <Card className="h-[calc(100vh-10rem)] flex flex-col">
@@ -93,37 +82,187 @@ const ChatSkeleton = () => (
     </Card>
 )
 
-const AdminChatUI = () => {
-    const [selectedConversation, setSelectedConversation] = useState<any>(mockConversations[0]);
-    const [filteredConversations, setFilteredConversations] = useState(mockConversations);
+export default function ChatPage() {
+    const { toast } = useToast();
+    const [user, setUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [socket, setSocket] = useState<Socket | null>(null);
 
-    const handleFilterChange = (filter: "all" | "user" | "provider") => {
-        if (filter === "all") {
-            setFilteredConversations(mockConversations);
-        } else {
-            setFilteredConversations(mockConversations.filter(c => c.role === filter));
+    // Admin state
+    const [conversations, setConversations] = useState<Conversation[]>([]);
+    const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
+    const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+
+    // All users state
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isSending, setIsSending] = useState(false);
+    
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+    const form = useForm<ChatFormValues>({
+        resolver: zodResolver(chatFormSchema),
+        defaultValues: { message: "" },
+    });
+
+    useEffect(() => {
+        const fetchUserAndInitSocket = async () => {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data);
+                }
+            } catch (e) {
+                toast({ variant: 'destructive', title: 'Error', description: "Failed to fetch user data."})
+            } finally {
+                setIsLoading(false);
+            }
+
+            await fetch('/api/socket');
+            const newSocket = io();
+            setSocket(newSocket);
+        };
+        fetchUserAndInitSocket();
+
+        return () => {
+            socket?.disconnect();
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (socket && user) {
+            socket.on('connect', () => console.log('Socket connected'));
+            
+            socket.on('receiveMessage', (newMessage: Message) => {
+                if (selectedConversation?._id === newMessage.conversationId) {
+                    setMessages((prev) => [...prev, newMessage]);
+                } else {
+                    // Update conversation list with new last message for unread indicator
+                    setConversations(prev => prev.map(c => c._id === newMessage.conversationId ? {...c, lastMessage: newMessage} : c));
+                    toast({title: "New Message", description: `From ${newMessage.sender.name}`})
+                }
+            });
+        }
+    }, [socket, user, selectedConversation, toast]);
+
+    useEffect(() => {
+        const fetchConversations = async () => {
+            if (!user) return;
+            try {
+                const res = await fetch('/api/chat/conversations');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (user.role === 'admin') {
+                        setConversations(data);
+                        setFilteredConversations(data);
+                    } else {
+                        // For non-admins, there is only one conversation
+                        setSelectedConversation(data[0]);
+                    }
+                }
+            } catch (error) {
+                 toast({ variant: 'destructive', title: 'Error', description: "Failed to fetch conversations."})
+            }
+        };
+        fetchConversations();
+    }, [user, toast]);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            if (selectedConversation) {
+                socket?.emit('join', selectedConversation._id);
+                try {
+                    const res = await fetch(`/api/chat/messages/${selectedConversation._id}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setMessages(data);
+                    }
+                } catch (error) {
+                    toast({ variant: 'destructive', title: 'Error', description: "Failed to fetch messages."})
+                }
+            }
+        };
+        fetchMessages();
+
+        return () => {
+            if (selectedConversation) {
+                socket?.emit('leave', selectedConversation._id);
+            }
+        }
+
+    }, [selectedConversation, socket, toast]);
+
+     useEffect(() => {
+        if (scrollAreaRef.current) {
+            scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+        }
+    }, [messages]);
+
+    const handleSendMessage = async (values: ChatFormValues) => {
+        if (!socket || !selectedConversation || !user) return;
+        setIsSending(true);
+
+        const optimisticMessage: Message = {
+            _id: new Date().toISOString(),
+            conversationId: selectedConversation._id,
+            sender: user,
+            content: values.message,
+            createdAt: new Date().toISOString(),
+        };
+
+        setMessages(prev => [...prev, optimisticMessage]);
+        form.reset();
+
+        try {
+            const response = await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    conversationId: selectedConversation._id,
+                    content: values.message,
+                }),
+            });
+            const savedMessage = await response.json();
+            if (!response.ok) throw new Error(savedMessage.message);
+            
+            socket.emit('sendMessage', savedMessage);
+            setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? savedMessage : m));
+
+        } catch (error) {
+             toast({ variant: "destructive", title: "Error", description: "Failed to send message." });
+             setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id)); // Revert optimistic update
+        } finally {
+            setIsSending(false);
         }
     };
 
-    useEffect(() => {
-        if (!filteredConversations.find(c => c.id === selectedConversation?.id)) {
-            setSelectedConversation(filteredConversations[0] || null);
-        }
-    }, [filteredConversations, selectedConversation]);
 
-    return (
+    const handleFilterChange = (filter: "all" | "user" | "provider") => {
+        if (filter === "all") {
+            setFilteredConversations(conversations);
+        } else {
+            setFilteredConversations(conversations.filter(c => c.participants.find(p => p.role === filter && p._id !== user?._id)));
+        }
+    };
+
+    if (isLoading || !user) {
+        return <ChatSkeleton />;
+    }
+
+    const otherParticipant = selectedConversation?.participants.find(p => p._id !== user._id);
+
+    const AdminChatUI = (
         <Card className="h-[calc(100vh-10rem)] flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><MessageSquare/> Support Chat</CardTitle>
-                <CardDescription>
-                Manage conversations with all users and providers.
-                </CardDescription>
+                <CardDescription>Manage conversations with all users and providers.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 overflow-hidden p-0">
                 <div className="flex flex-col border-r">
                     <div className="p-4 border-b space-y-4">
                         <Input placeholder="Search conversations..." />
-                        <Tabs defaultValue="all" onValueChange={(value) => handleFilterChange(value as any)}>
+                         <Tabs defaultValue="all" onValueChange={(value) => handleFilterChange(value as any)}>
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="user">Users</TabsTrigger>
@@ -132,119 +271,93 @@ const AdminChatUI = () => {
                         </Tabs>
                     </div>
                     <ScrollArea className="flex-1">
-                        {filteredConversations.map(conv => (
-                            <div key={conv.id} onClick={() => setSelectedConversation(conv)} className={cn("flex items-center gap-3 p-4 cursor-pointer hover:bg-secondary", selectedConversation?.id === conv.id && "bg-secondary")}>
-                                <Avatar><AvatarImage src={conv.avatar} alt={conv.name} /><AvatarFallback>{conv.name.charAt(0)}</AvatarFallback></Avatar>
+                        {filteredConversations.map(conv => {
+                           const participant = conv.participants.find(p => p._id !== user._id);
+                           if (!participant) return null;
+                           return (
+                            <div key={conv._id} onClick={() => setSelectedConversation(conv)} className={cn("flex items-center gap-3 p-4 cursor-pointer hover:bg-secondary", selectedConversation?._id === conv._id && "bg-secondary")}>
+                                <Avatar><AvatarImage src={participant.profilePhoto} alt={participant.name} /><AvatarFallback>{participant.name.charAt(0)}</AvatarFallback></Avatar>
                                 <div className="flex-1 overflow-hidden">
-                                    <p className="font-semibold truncate">{conv.name}</p>
-                                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage}</p>
+                                    <p className="font-semibold truncate">{participant.name} <span className="text-xs text-muted-foreground capitalize">({participant.role})</span></p>
+                                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.content}</p>
                                 </div>
-                                {conv.unread > 0 && <div className="bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">{conv.unread}</div>}
                             </div>
-                        ))}
+                           )
+                        })}
                     </ScrollArea>
                 </div>
                 <div className="md:col-span-2 flex flex-col h-full">
-                    {selectedConversation ? (
+                    {selectedConversation && otherParticipant ? (
                         <>
                             <div className="p-4 border-b flex items-center gap-3">
-                                <Avatar><AvatarImage src={selectedConversation.avatar} alt={selectedConversation.name} /><AvatarFallback>{selectedConversation.name.charAt(0)}</AvatarFallback></Avatar>
-                                <h3 className="font-semibold">{selectedConversation.name}</h3>
+                                <Avatar><AvatarImage src={otherParticipant.profilePhoto} alt={otherParticipant.name} /><AvatarFallback>{otherParticipant.name.charAt(0)}</AvatarFallback></Avatar>
+                                <h3 className="font-semibold">{otherParticipant.name}</h3>
                             </div>
-                            <ScrollArea className="flex-1 p-6">
+                            <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
                                 <div className="space-y-4">
-                                    {(mockMessages as any)[selectedConversation.id]?.map((msg: any, index: number) => (
-                                        <div key={index} className={cn("flex items-end gap-2 max-w-[80%]", msg.sender === 'me' ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
-                                            <div className={cn("rounded-lg p-3", msg.sender === 'me' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}><p>{msg.text}</p></div>
+                                    {messages.map((msg) => (
+                                        <div key={msg._id} className={cn("flex items-end gap-2 max-w-[80%]", msg.sender._id === user._id ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
+                                            <div className={cn("rounded-lg p-3", msg.sender._id === user._id ? 'bg-primary text-primary-foreground' : 'bg-secondary')}><p>{msg.content}</p></div>
                                         </div>
-                                    )) ?? <p className="text-center text-muted-foreground">No messages in this conversation.</p>}
+                                    ))}
                                 </div>
                             </ScrollArea>
                             <div className="p-4 border-t">
-                                <form className="flex items-center gap-2">
-                                    <Input placeholder="Type a message..." className="flex-1" autoComplete="off" />
-                                    <Button type="submit" size="icon"><Send className="h-4 w-4"/></Button>
-                                </form>
+                                <Form {...form}>
+                                    <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
+                                        <FormField control={form.control} name="message" render={({ field }) => (
+                                            <Input {...field} placeholder="Type a message..." className="flex-1" autoComplete="off" />
+                                        )} />
+                                        <Button type="submit" size="icon" disabled={isSending}><Send className="h-4 w-4"/></Button>
+                                    </form>
+                                </Form>
                             </div>
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-muted-foreground">
-                            <p>Select a conversation to start chatting.</p>
-                        </div>
+                        <div className="flex items-center justify-center h-full text-muted-foreground"><p>Select a conversation to start chatting.</p></div>
                     )}
                 </div>
             </CardContent>
         </Card>
-    )
-};
+    );
 
-const UserChatUI = () => {
-    return (
+     const UserChatUI = (
          <Card className="h-[calc(100vh-10rem)] flex flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><MessageSquare/> Chat with Support</CardTitle>
-                <CardDescription>
-                    Have a question? Our support team is here to help.
-                </CardDescription>
+                <CardDescription>Have a question? Our support team is here to help.</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
+                {selectedConversation && otherParticipant ? (
                 <div className="flex-1 flex flex-col h-full">
                     <div className="p-4 border-b flex items-center gap-3 bg-secondary">
-                        <Avatar><AvatarImage src={mockAdminConversation.avatar} alt={mockAdminConversation.name} /><AvatarFallback>S</AvatarFallback></Avatar>
-                        <h3 className="font-semibold">{mockAdminConversation.name}</h3>
+                        <Avatar><AvatarImage src={otherParticipant.profilePhoto} alt={otherParticipant.name} /><AvatarFallback>{otherParticipant.name.charAt(0)}</AvatarFallback></Avatar>
+                        <h3 className="font-semibold">{otherParticipant.name}</h3>
                     </div>
-                    <ScrollArea className="flex-1 p-6">
+                    <ScrollArea className="flex-1 p-6" ref={scrollAreaRef}>
                         <div className="space-y-4">
-                            {mockAdminConversation.messages.map((msg, index) => (
-                                <div key={index} className={cn("flex items-end gap-2 max-w-[80%]", msg.sender === 'me' ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
-                                    <div className={cn("rounded-lg p-3", msg.sender === 'me' ? 'bg-primary text-primary-foreground' : 'bg-secondary')}><p>{msg.text}</p></div>
+                            {messages.map((msg, index) => (
+                                <div key={msg._id || index} className={cn("flex items-end gap-2 max-w-[80%]", msg.sender._id === user._id ? 'ml-auto flex-row-reverse' : 'mr-auto')}>
+                                    <div className={cn("rounded-lg p-3", msg.sender._id === user._id ? 'bg-primary text-primary-foreground' : 'bg-secondary')}><p>{msg.content}</p></div>
                                 </div>
                             ))}
                         </div>
                     </ScrollArea>
                     <div className="p-4 border-t">
-                        <form className="flex items-center gap-2">
-                            <Input placeholder="Type a message..." className="flex-1" autoComplete="off" />
-                            <Button type="submit" size="icon"><Send className="h-4 w-4"/></Button>
-                        </form>
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
+                                <FormField control={form.control} name="message" render={({ field }) => (
+                                    <Input {...field} placeholder="Type a message..." className="flex-1" autoComplete="off" />
+                                )}/>
+                                <Button type="submit" size="icon" disabled={isSending}><Send className="h-4 w-4"/></Button>
+                            </form>
+                        </Form>
                     </div>
                 </div>
+                ) : <div className="flex items-center justify-center h-full text-muted-foreground"><p>Loading conversation...</p></div>}
             </CardContent>
         </Card>
-    )
-};
+    );
 
-
-export default function ChatPage() {
-    const [user, setUser] = useState<AuthUser | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            setIsLoading(true);
-            try {
-                const res = await fetch('/api/auth/me');
-                if (res.ok) {
-                    const data = await res.json();
-                    setUser(data);
-                }
-            } catch (e) {
-                console.error(e);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchUser();
-    }, []);
-
-    if (isLoading) {
-        return <ChatSkeleton />;
-    }
-
-    if (user?.role === 'admin') {
-        return <AdminChatUI />;
-    }
-    
-    // For both 'user' and 'provider'
-    return <UserChatUI />;
+    return user.role === 'admin' ? AdminChatUI : UserChatUI;
 }
