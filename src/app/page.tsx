@@ -13,6 +13,7 @@ import { Terminal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { getSettings } from "@/lib/settings-data";
+import { slugify } from "@/lib/utils";
 
 export const dynamic = 'force-dynamic';
 
@@ -30,7 +31,8 @@ export default async function Home() {
 
   const categoriesTitle = settings.homepage_categories_title || "Browse by Category";
   const categoriesDescription = settings.homepage_categories_description || "Find the type of adventure that suits you best.";
-  
+  const categoryConfig = settings.homepage_category_config || {};
+
   const discoverTitle = settings.homepage_discover_title || "Discover The World of Georgia With Us!";
   const discoverDescription = settings.homepage_discover_description || "Discover amazing places at exclusive deals Only with Us!";
   const discoverItems = settings.homepage_discover_items || [
@@ -58,14 +60,24 @@ export default async function Home() {
   const newsletterTitle = settings.homepage_newsletter_title || "Subscribe to Our Newsletter";
   const newsletterDescription = settings.homepage_newsletter_description || "Get the latest news, updates, and special offers delivered directly to your inbox.";
 
-  const categories = [
-      { name: "City Tours", image: "https://placehold.co/400x500.png", hint: "tbilisi street", href: "/tours?category=city" },
-      { name: "Mountain & Hiking", image: "https://placehold.co/400x500.png", hint: "caucasus mountains", href: "/tours?category=hiking" },
-      { name: "Wine & Gastronomy", image: "https://placehold.co/400x500.png", hint: "georgian wine", href: "/tours?category=wine" },
-      { name: "Historical & Cultural", image: "https://placehold.co/400x500.png", hint: "ancient monastery", href: "/tours?category=historical" },
-      { name: "Multi-Day Tours", image: "https://placehold.co/400x500.png", hint: "georgia road trip", href: "/tours?category=multi-day" },
-      { name: "Adventure & Extreme", image: "https://placehold.co/400x500.png", hint: "paragliding georgia", href: "/tours?category=adventure" },
+  const staticCategories = [
+      { name: "City Tours", hint: "tbilisi street" },
+      { name: "Mountain & Hiking", hint: "caucasus mountains" },
+      { name: "Wine & Gastronomy", hint: "georgian wine" },
+      { name: "Historical & Cultural", hint: "ancient monastery" },
+      { name: "Multi-Day Tours", hint: "georgia road trip" },
+      { name: "Adventure & Extreme", hint: "paragliding georgia" },
   ];
+
+  const categories = staticCategories.map(category => {
+    const slug = slugify(category.name);
+    return {
+      name: category.name,
+      image: categoryConfig[slug] || 'https://placehold.co/400x500.png',
+      hint: category.hint,
+      href: `/tours?category=${slug}`
+    };
+  });
 
   return (
     <div className="flex flex-col min-h-screen">

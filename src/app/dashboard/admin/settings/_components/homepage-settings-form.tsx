@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { uploadFile } from "@/services/fileUploader";
 import Image from 'next/image';
+import { slugify } from "@/lib/utils";
 
 const discoverItemSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -45,6 +46,7 @@ const homepageSettingsSchema = z.object({
 
   homepage_categories_title: z.string().optional(),
   homepage_categories_description: z.string().optional(),
+  homepage_category_config: z.record(z.string()).optional(),
 
   homepage_discover_title: z.string().optional(),
   homepage_discover_description: z.string().optional(),
@@ -64,6 +66,16 @@ const homepageSettingsSchema = z.object({
 type HomepageSettingsValues = z.infer<typeof homepageSettingsSchema>;
 type PopulatedTour = { _id: string, title: string };
 
+const HOMEPAGE_CATEGORIES = [
+  "City Tours",
+  "Mountain & Hiking",
+  "Wine & Gastronomy",
+  "Historical & Cultural",
+  "Multi-Day Tours",
+  "Adventure & Extreme",
+];
+
+
 export function HomepageSettingsForm() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +94,7 @@ export function HomepageSettingsForm() {
             homepage_popular_tours: [],
             homepage_categories_title: "",
             homepage_categories_description: "",
+            homepage_category_config: {},
             homepage_discover_title: "",
             homepage_discover_description: "",
             homepage_discover_items: [],
@@ -301,6 +314,68 @@ export function HomepageSettingsForm() {
                         <FormLabel className="text-lg font-semibold">Browse by Category Section</FormLabel>
                         <FormField name="homepage_categories_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Browse by Category" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_categories_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Find the type of adventure that suits you best." /></FormControl><FormMessage /></FormItem>)} />
+                        <div className="space-y-4 rounded-md border p-4">
+                            <h4 className="font-medium">Category Images</h4>
+                            <FormDescription>Upload custom images for the category cards on the homepage.</FormDescription>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {HOMEPAGE_CATEGORIES.map((categoryName) => {
+                                    const categorySlug = slugify(categoryName);
+                                    return (
+                                        <FormField
+                                            key={categorySlug}
+                                            control={form.control}
+                                            name={`homepage_category_config.${categorySlug}`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>{categoryName}</FormLabel>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input
+                                                            readOnly
+                                                            value={field.value || ''}
+                                                            placeholder="Default image"
+                                                            className="bg-muted"
+                                                        />
+                                                        <FormControl>
+                                                            <Button asChild type="button" variant="outline" size="icon">
+                                                                <label htmlFor={`category-upload-${categorySlug}`} className="cursor-pointer">
+                                                                    <Upload className="h-4 w-4" />
+                                                                    <Input
+                                                                        id={`category-upload-${categorySlug}`}
+                                                                        type="file"
+                                                                        className="hidden"
+                                                                        accept="image/*"
+                                                                        onChange={async (e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (file) {
+                                                                                setIsSaving(true);
+                                                                                try {
+                                                                                    const url = await uploadFile(file, 'category-images');
+                                                                                    field.onChange(url);
+                                                                                } catch {
+                                                                                    toast({ variant: 'destructive', title: 'Upload failed' });
+                                                                                } finally {
+                                                                                    setIsSaving(false);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                </label>
+                                                            </Button>
+                                                        </FormControl>
+                                                    </div>
+                                                    {field.value && (
+                                                        <div className="mt-2 relative w-full max-w-xs aspect-[4/5]">
+                                                            <Image src={field.value} alt={`${categoryName} preview`} fill className="rounded-md object-cover" />
+                                                        </div>
+                                                    )}
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
 
                     <Separator />
