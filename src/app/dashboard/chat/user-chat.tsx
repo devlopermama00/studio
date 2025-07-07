@@ -113,6 +113,8 @@ export default function UserChat({ authUser }: UserChatProps) {
             });
 
             socket.on("receiveMessage", (newMessage: Message) => {
+                if (newMessage.sender._id === authUser._id) return; // Prevent duplicates
+
                 if (newMessage.conversationId === conversation._id) {
                     setMessages((prev) => [...prev, newMessage]);
                 }

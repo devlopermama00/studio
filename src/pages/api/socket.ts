@@ -47,12 +47,15 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
         socket.leave(room);
       });
 
+      // Broadcast to all clients in the room including the sender.
+      // The client-side logic will prevent duplicates for the sender.
       socket.on("sendMessage", (message) => {
-        socket.to(message.conversationId).emit("receiveMessage", message);
+        io.to(message.conversationId).emit("receiveMessage", message);
       });
 
+      // Broadcast to all clients in the room including the sender.
       socket.on("messagesSeen", ({ conversationId, userId }) => {
-        socket.to(conversationId).emit("messagesSeen", { conversationId, userId });
+        io.to(conversationId).emit("messagesSeen", { conversationId, userId });
       });
 
       socket.on("disconnect", () => {

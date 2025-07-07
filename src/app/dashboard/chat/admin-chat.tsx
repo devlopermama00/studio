@@ -121,6 +121,8 @@ export default function AdminChat() {
             socket.on("connect", () => {});
 
             socket.on("receiveMessage", (newMessage: Message) => {
+                if (newMessage.sender._id === authUser?._id) return; // Prevent duplicates
+
                 if (newMessage.conversationId === selectedConversation?._id) {
                     setMessages((prev) => [...prev, newMessage]);
                 }
@@ -148,7 +150,7 @@ export default function AdminChat() {
         };
 
         socketInitializer();
-    }, [selectedConversation?._id]);
+    }, [selectedConversation?._id, authUser?._id]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
