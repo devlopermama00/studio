@@ -11,13 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Loader2, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+
 
 interface User {
   _id: string;
@@ -25,6 +27,7 @@ interface User {
   email: string;
   role: "user" | "provider" | "admin";
   profilePhoto?: string;
+  createdAt: string;
 }
 
 interface Message {
@@ -38,7 +41,9 @@ interface Message {
 interface Conversation {
     _id: string;
     participants: User[];
-    lastMessage?: Message;
+    lastMessage?: Message | null;
+    isNew?: boolean;
+    updatedAt: string;
 }
 
 
@@ -122,6 +127,9 @@ export default function ChatPage() {
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([]);
     const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+    const [isCreatingConvo, setIsCreatingConvo] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentFilter, setCurrentFilter] = useState("all");
 
     // All users state
     const [messages, setMessages] = useState<Message[]>([]);
@@ -133,7 +141,8 @@ export default function ChatPage() {
         resolver: zodResolver(chatFormSchema),
         defaultValues: { message: "" },
     });
-
+    
+    // Fetch initial user and socket connection
     useEffect(() => {
         const fetchUserAndInitSocket = async () => {
             try {
@@ -160,6 +169,7 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Socket listeners for real-time messages
     useEffect(() => {
         if (socket && user) {
             socket.on('connect', () => console.log('Socket connected'));
@@ -179,6 +189,7 @@ export default function ChatPage() {
         }
     }, [socket, user, selectedConversation, toast]);
 
+    // Fetch conversations (or all users for admin)
     useEffect(() => {
         const fetchConversations = async () => {
             if (!user) return;
@@ -188,9 +199,7 @@ export default function ChatPage() {
                     const data = await res.json();
                     if (user.role === 'admin') {
                         setConversations(data);
-                        setFilteredConversations(data);
                     } else {
-                        // For non-admins, there is only one conversation
                         setSelectedConversation(data[0]);
                     }
                 }
@@ -201,9 +210,34 @@ export default function ChatPage() {
         fetchConversations();
     }, [user, toast]);
 
+    // Apply filters and search to conversation list
+    useEffect(() => {
+        let filtered = conversations;
+
+        if (user?.role === 'admin') {
+            if (currentFilter !== "all") {
+                filtered = filtered.filter(c => {
+                    const otherParticipant = c.participants.find(p => p._id !== user?._id);
+                    return otherParticipant?.role === currentFilter;
+                });
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(c => {
+                    const otherParticipant = c.participants.find(p => p._id !== user?._id);
+                    return otherParticipant?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        otherParticipant?.email.toLowerCase().includes(searchTerm.toLowerCase());
+                });
+            }
+        }
+        setFilteredConversations(filtered);
+    }, [searchTerm, currentFilter, conversations, user]);
+
+
+    // Fetch messages for selected conversation
     useEffect(() => {
         const fetchMessages = async () => {
-            if (selectedConversation) {
+            if (selectedConversation && !selectedConversation.isNew) {
                 socket?.emit('join', selectedConversation._id);
                 try {
                     const res = await fetch(`/api/chat/messages/${selectedConversation._id}`);
@@ -214,18 +248,21 @@ export default function ChatPage() {
                 } catch (error) {
                     toast({ variant: 'destructive', title: 'Error', description: "Failed to fetch messages."})
                 }
+            } else if (selectedConversation?.isNew) {
+                setMessages([]);
             }
         };
         fetchMessages();
 
         return () => {
-            if (selectedConversation) {
+            if (selectedConversation && !selectedConversation.isNew) {
                 socket?.emit('leave', selectedConversation._id);
             }
         }
 
     }, [selectedConversation, socket, toast]);
 
+    // Scroll to bottom on new message
      useEffect(() => {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
@@ -270,14 +307,39 @@ export default function ChatPage() {
         }
     };
 
+    const handleSelectConversation = async (conv: Conversation) => {
+        if (conv.isNew) {
+            setIsCreatingConvo(true);
+            try {
+                const otherParticipant = conv.participants.find(p => p._id !== user?._id);
+                if (!otherParticipant) return;
 
-    const handleFilterChange = (filter: "all" | "user" | "provider") => {
-        if (filter === "all") {
-            setFilteredConversations(conversations);
+                const res = await fetch('/api/chat/conversations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipientId: otherParticipant._id })
+                });
+
+                if (!res.ok) throw new Error('Failed to create conversation');
+                
+                const newRealConversation: Conversation = await res.json();
+                
+                // Replace the dummy conversation with the real one in the main list
+                setConversations(prev => prev.map(c => c._id === conv._id ? { ...newRealConversation, isNew: false } : c));
+                
+                // Select the new conversation
+                setSelectedConversation(newRealConversation);
+
+            } catch (error) {
+                toast({ variant: 'destructive', title: 'Error', description: 'Could not start conversation.' });
+            } finally {
+                setIsCreatingConvo(false);
+            }
         } else {
-            setFilteredConversations(conversations.filter(c => c.participants.find(p => p.role === filter && p._id !== user?._id)));
+            setSelectedConversation(conv);
         }
     };
+
 
     if (isLoading || !user) {
         return <ChatSkeleton />;
@@ -291,11 +353,14 @@ export default function ChatPage() {
                 <CardTitle className="flex items-center gap-2"><MessageSquare/> Support Chat</CardTitle>
                 <CardDescription>Manage conversations with all users and providers.</CardDescription>
             </CardHeader>
-            <CardContent className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4 overflow-hidden p-0">
-                <div className="flex flex-col border-r">
+            <CardContent className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-0 overflow-hidden p-0">
+                <div className="flex flex-col border-r h-full">
                     <div className="p-4 border-b space-y-4">
-                        <Input placeholder="Search conversations..." />
-                         <Tabs defaultValue="all" onValueChange={(value) => handleFilterChange(value as any)}>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input placeholder="Search users..." className="pl-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                        </div>
+                         <Tabs defaultValue="all" onValueChange={(value) => setCurrentFilter(value as any)}>
                             <TabsList className="grid w-full grid-cols-3">
                                 <TabsTrigger value="all">All</TabsTrigger>
                                 <TabsTrigger value="user">Users</TabsTrigger>
@@ -304,17 +369,18 @@ export default function ChatPage() {
                         </Tabs>
                     </div>
                     <ScrollArea className="flex-1">
+                        {filteredConversations.length === 0 && <p className="text-center text-sm text-muted-foreground p-4">No users found.</p>}
                         {filteredConversations.map(conv => {
                            const participant = conv.participants.find(p => p._id !== user._id);
                            if (!participant) return null;
                            return (
-                            <div key={conv._id} onClick={() => setSelectedConversation(conv)} className={cn("flex items-center gap-3 p-4 cursor-pointer hover:bg-secondary", selectedConversation?._id === conv._id && "bg-secondary")}>
+                            <button key={conv._id} onClick={() => handleSelectConversation(conv)} className={cn("flex w-full text-left items-center gap-3 p-4 cursor-pointer hover:bg-secondary disabled:opacity-50", selectedConversation?._id === conv._id && "bg-secondary")} disabled={isCreatingConvo}>
                                 <Avatar><AvatarImage src={participant.profilePhoto} alt={participant.name} /><AvatarFallback>{participant.name.charAt(0)}</AvatarFallback></Avatar>
                                 <div className="flex-1 overflow-hidden">
-                                    <p className="font-semibold truncate">{participant.name} <span className="text-xs text-muted-foreground capitalize">({participant.role})</span></p>
-                                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.content}</p>
+                                    <p className="font-semibold truncate flex items-center gap-2">{participant.name} <Badge variant="outline" className="capitalize">{participant.role}</Badge></p>
+                                    <p className="text-sm text-muted-foreground truncate">{conv.lastMessage?.content || "Click to start conversation"}</p>
                                 </div>
-                            </div>
+                            </button>
                            )
                         })}
                     </ScrollArea>
@@ -349,7 +415,11 @@ export default function ChatPage() {
                             </div>
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-muted-foreground"><p>Select a conversation to start chatting.</p></div>
+                        <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
+                            <MessageSquare className="h-12 w-12"/>
+                            <p className="font-medium">Select a user to start a conversation</p>
+                            <p className="text-sm">Use the panel on the left to find and chat with any user.</p>
+                        </div>
                     )}
                 </div>
             </CardContent>
