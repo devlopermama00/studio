@@ -104,7 +104,9 @@ export default function UserChat({ authUser }: UserChatProps) {
 
         const socketInitializer = async () => {
             await fetch("/api/socket");
-            socket = io();
+            socket = io(process.env.NEXT_PUBLIC_APP_URL || window.location.origin, {
+              path: "/api/socket",
+            });
 
             socket.on("connect", () => {
                 socket.emit("join", conversation._id);

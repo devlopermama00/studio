@@ -52,17 +52,19 @@ const AdminChatSkeleton = () => (
         <CardContent className="flex h-full p-0">
             <div className="border-r h-full flex flex-col w-[33%]">
                 <div className="p-4 border-b"><Skeleton className="h-10 w-full" /></div>
-                <div className="p-2 space-y-2 flex-1 overflow-y-auto">
-                    {Array.from({ length: 8 }).map((_, i) => (
-                        <div key={i} className="flex items-center gap-3 p-2 rounded-lg">
-                            <Skeleton className="h-10 w-10 rounded-full" />
-                            <div className="w-full space-y-2">
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-3 w-1/2" />
+                <ScrollArea className="flex-1">
+                    <div className="p-2 space-y-2">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                            <div key={i} className="flex items-center gap-3 p-2 rounded-lg">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div className="w-full space-y-2">
+                                    <Skeleton className="h-4 w-3/4" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                </ScrollArea>
             </div>
             <div className="flex-1 flex flex-col h-full bg-secondary">
                  <div className="flex flex-col items-center justify-center h-full text-center p-8">
@@ -112,7 +114,9 @@ export default function AdminChat() {
     useEffect(() => {
         const socketInitializer = async () => {
             await fetch("/api/socket");
-            socket = io();
+            socket = io(process.env.NEXT_PUBLIC_APP_URL || window.location.origin, {
+              path: "/api/socket",
+            });
 
             socket.on("connect", () => {});
 
@@ -203,6 +207,7 @@ export default function AdminChat() {
                 body: JSON.stringify({ conversationId: selectedConversation._id, content: data.message }),
             });
             if (!res.ok) throw new Error("Failed to send message");
+            
             const newMessage: Message = await res.json();
             setMessages(prev => [...prev, newMessage]);
             

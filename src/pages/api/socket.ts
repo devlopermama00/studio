@@ -29,7 +29,8 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     console.log("Socket is initializing");
     const io = new IOServer(res.socket.server, {
         path: '/api/socket',
-        addTrailingSlash: false
+        addTrailingSlash: false,
+        cors: { origin: "*", methods: ["GET", "POST"] }
     });
     res.socket.server.io = io;
 
