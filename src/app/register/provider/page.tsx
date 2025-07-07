@@ -33,9 +33,17 @@ const formSchema = z.object({
     .regex(/[0-9]/, { message: "Must contain at least one number." })
     .regex(/[^A-Za-z0-9]/, { message: "Must contain at least one special character." }),
   confirmPassword: z.string(),
-  companyDocument: z
+  licenseDocument: z
     .any()
-    .refine((files) => files?.length === 1, "Company document is required.")
+    .refine((files) => files?.length === 1, "Company license is required.")
+    .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
+    .refine(
+      (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
+      "Only .pdf, .jpg, .jpeg, and .png formats are supported."
+    ),
+  idDocument: z
+    .any()
+    .refine((files) => files?.length === 1, "ID document is required.")
     .refine((files) => files?.[0]?.size <= MAX_FILE_SIZE, `Max file size is 5MB.`)
     .refine(
       (files) => ACCEPTED_FILE_TYPES.includes(files?.[0]?.type),
@@ -54,8 +62,8 @@ export default function ProviderRegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [documentFileName, setDocumentFileName] = useState<string | null>(null);
-
+  const [licenseFileName, setLicenseFileName] = useState<string | null>(null);
+  const [idFileName, setIdFileName] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,29 +72,35 @@ export default function ProviderRegisterPage() {
       email: "",
       password: "",
       confirmPassword: "",
-      companyDocument: undefined,
+      licenseDocument: undefined,
+      idDocument: undefined,
     },
   });
 
-  const fileRef = form.register("companyDocument");
+  const licenseFileRef = form.register("licenseDocument");
+  const idFileRef = form.register("idDocument");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const documentFile = values.companyDocument[0] as File;
-      const companyDocumentUrl = await uploadFile(documentFile, 'provider-documents');
+      const licenseFile = values.licenseDocument[0] as File;
+      const idFile = values.idDocument[0] as File;
+      
+      const [licenseUrl, idProofUrl] = await Promise.all([
+          uploadFile(licenseFile, 'provider-documents'),
+          uploadFile(idFile, 'provider-documents')
+      ]);
       
       const response = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: values.name,
           email: values.email,
           password: values.password,
           currency: values.currency,
-          companyDocumentUrl: companyDocumentUrl,
+          licenseUrl,
+          idProofUrl,
           role: 'provider',
         }),
       });
@@ -138,14 +152,16 @@ export default function ProviderRegisterPage() {
               <div className="grid md:grid-cols-2 gap-4">
                  <FormField control={form.control} name="name" render={({ field }) => (
                     <FormItem>
+                        <FormLabel>Company or Full Name</FormLabel>
                         <FormControl>
-                            <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input placeholder="Company Name" {...field} className="pl-10" /></div>
+                            <div className="relative"><User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input placeholder="Your business name" {...field} className="pl-10" /></div>
                         </FormControl>
                         <FormMessage />
                     </FormItem>
                 )} />
                  <FormField control={form.control} name="email" render={({ field }) => (
                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
                         <FormControl>
                              <div className="relative"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input type="email" placeholder="Email Address" {...field} className="pl-10" /></div>
                         </FormControl>
@@ -156,6 +172,7 @@ export default function ProviderRegisterPage() {
               
               <FormField control={form.control} name="currency" render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Payout Currency</FormLabel>
                     <FormControl>
                         <div className="relative">
                              <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -170,44 +187,59 @@ export default function ProviderRegisterPage() {
                     <FormMessage />
                   </FormItem>
               )} />
-              
-                <FormField
-                    control={form.control}
-                    name="companyDocument"
-                    render={({ field }) => (
+
+                <div className="grid md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="licenseDocument" render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Company Document</FormLabel>
+                        <FormLabel>Company License</FormLabel>
                         <FormControl>
-                           <label className="flex items-center justify-center w-full h-24 px-4 transition bg-background border-2 border-dashed rounded-md appearance-none cursor-pointer hover:border-primary focus:outline-none">
-                                <span className="flex items-center space-x-2 text-muted-foreground">
-                                    <Upload className="w-6 h-6" />
-                                    {documentFileName ? (
-                                        <span className="font-medium">{documentFileName}</span>
+                           <label className="flex items-center justify-center w-full h-12 px-2 transition bg-background border border-input rounded-md appearance-none cursor-pointer hover:border-primary focus:outline-none">
+                                <span className="flex items-center space-x-2 text-muted-foreground overflow-hidden">
+                                    <Upload className="w-5 h-5 flex-shrink-0" />
+                                    {licenseFileName ? (
+                                        <span className="font-medium text-sm truncate">{licenseFileName}</span>
                                     ) : (
-                                        <span className="font-medium">Click to upload document</span>
+                                        <span className="font-medium text-sm">Upload License</span>
                                     )}
                                 </span>
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    accept=".pdf,.jpg,.jpeg,.png"
-                                    {...fileRef}
-                                    onChange={(e) => {
-                                        field.onChange(e.target.files);
-                                        setDocumentFileName(e.target.files?.[0]?.name || null);
-                                    }}
-                                />
+                                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" {...licenseFileRef} onChange={(e) => {
+                                    field.onChange(e.target.files);
+                                    setLicenseFileName(e.target.files?.[0]?.name || null);
+                                }}/>
                             </label>
                         </FormControl>
-                        <FormDescription>PDF, JPG, or PNG. Max 5MB. Required for verification.</FormDescription>
                         <FormMessage />
                         </FormItem>
-                    )}
-                />
+                    )} />
+                     <FormField control={form.control} name="idDocument" render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>National ID / Proof of ID</FormLabel>
+                        <FormControl>
+                           <label className="flex items-center justify-center w-full h-12 px-2 transition bg-background border border-input rounded-md appearance-none cursor-pointer hover:border-primary focus:outline-none">
+                                <span className="flex items-center space-x-2 text-muted-foreground overflow-hidden">
+                                    <Upload className="w-5 h-5 flex-shrink-0" />
+                                    {idFileName ? (
+                                        <span className="font-medium text-sm truncate">{idFileName}</span>
+                                    ) : (
+                                        <span className="font-medium text-sm">Upload ID</span>
+                                    )}
+                                </span>
+                                <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png" {...idFileRef} onChange={(e) => {
+                                    field.onChange(e.target.files);
+                                    setIdFileName(e.target.files?.[0]?.name || null);
+                                }}/>
+                            </label>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
+                <FormDescription>PDF, JPG, or PNG. Max 5MB. Required for verification.</FormDescription>
 
               <div className="grid md:grid-cols-2 gap-4">
                  <FormField control={form.control} name="password" render={({ field }) => (
                     <FormItem>
+                         <FormLabel>Password</FormLabel>
                         <FormControl>
                              <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -220,6 +252,7 @@ export default function ProviderRegisterPage() {
                  )} />
                  <FormField control={form.control} name="confirmPassword" render={({ field }) => (
                     <FormItem>
+                        <FormLabel>Confirm Password</FormLabel>
                         <FormControl>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />

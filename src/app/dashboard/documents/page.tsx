@@ -7,11 +7,15 @@ import { CheckCircle, AlertCircle, Clock, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 
 interface VerificationDocument {
     _id: string;
     status: 'pending' | 'approved' | 'rejected';
     submittedAt: string;
+    licenseUrl: string;
+    idProofUrl: string;
 }
 
 export default function DocumentsPage() {
@@ -64,15 +68,35 @@ export default function DocumentsPage() {
         const Icon = currentStatus.icon;
 
         return (
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary">
-                <Icon className={`h-8 w-8 ${currentStatus.color}`} />
-                <div>
-                    <p className="font-semibold">
-                    Current Status: <span className={`capitalize font-bold ${currentStatus.color}`}>{status}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">{currentStatus.text}</p>
+            <>
+                <div className="flex items-center gap-4 p-4 rounded-lg bg-secondary">
+                    <Icon className={`h-8 w-8 ${currentStatus.color}`} />
+                    <div>
+                        <p className="font-semibold">
+                        Current Status: <span className={`capitalize font-bold ${currentStatus.color}`}>{status}</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">{currentStatus.text}</p>
+                    </div>
                 </div>
-            </div>
+
+                <Separator className="my-6" />
+
+                <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Submitted Documents</h3>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <p className="text-sm font-medium">Company License</p>
+                        <Button variant="secondary" size="sm" asChild>
+                            <a href={document.licenseUrl} target="_blank" rel="noopener noreferrer">View Document</a>
+                        </Button>
+                    </div>
+                     <div className="flex items-center justify-between p-3 border rounded-lg">
+                        <p className="text-sm font-medium">National ID / Proof of ID</p>
+                        <Button variant="secondary" size="sm" asChild>
+                            <a href={document.idProofUrl} target="_blank" rel="noopener noreferrer">View Document</a>
+                        </Button>
+                    </div>
+                </div>
+            </>
         )
     };
 
@@ -81,11 +105,11 @@ export default function DocumentsPage() {
       <CardHeader>
         <CardTitle>Provider Verification Status</CardTitle>
         <CardDescription>
-          This page shows the status of your account verification.
+          This page shows the status of your account verification and the documents you have submitted.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? <Skeleton className="h-24 w-full" /> : <StatusDisplay />}
+        {isLoading ? <Skeleton className="h-48 w-full" /> : <StatusDisplay />}
       </CardContent>
     </Card>
   );
