@@ -33,6 +33,14 @@ const AdminNav = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                        <Link href="/dashboard/chat">
+                            <MessageSquare />
+                            Support Chat
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                         <Link href="/dashboard/admin/users">

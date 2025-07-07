@@ -32,43 +32,49 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ message: 'Admin user not found' }, { status: 404 });
             }
 
-            const [allUsers, existingConversations] = await Promise.all([
-                User.find({ _id: { $ne: adminId } }).lean(),
-                Conversation.find({ participants: adminId })
-                    .populate('participants', 'name email role profilePhoto createdAt')
-                    .populate({
-                        path: 'lastMessage',
-                        model: Message,
-                        populate: {
-                            path: 'sender',
-                            model: User,
-                            select: 'name createdAt'
-                        }
-                    })
-                    .lean()
-            ]);
-            
-            const usersInConversations = new Set();
-            existingConversations.forEach(convo => {
-                convo.participants.forEach((p: any) => {
-                    if (p._id.toString() !== adminId.toString()) {
-                        usersInConversations.add(p._id.toString());
+            const allUsers = await User.find({ _id: { $ne: adminId } }).lean();
+            const adminConversations = await Conversation.find({ participants: adminId })
+                .populate('participants', 'name email role profilePhoto createdAt')
+                .populate({
+                    path: 'lastMessage',
+                    model: Message,
+                    populate: {
+                        path: 'sender',
+                        model: User,
+                        select: 'name'
                     }
-                });
+                })
+                .lean();
+
+            const conversationsMap = new Map<string, any>();
+            adminConversations.forEach(convo => {
+                const otherParticipant = convo.participants.find((p: any) => p._id.toString() !== adminId.toString());
+                if (otherParticipant) {
+                    conversationsMap.set(otherParticipant._id.toString(), convo);
+                }
             });
 
-            const newPotentialConversations = allUsers
-                .filter(user => !usersInConversations.has(user._id.toString()))
-                .map(user => ({
-                    _id: `new_${user._id.toString()}`,
-                    isNew: true,
-                    participants: [adminUser, user],
-                    lastMessage: null,
-                    updatedAt: user.createdAt
-                }));
+            const allDisplayableItems = allUsers.map(user => {
+                const existingConvo = conversationsMap.get(user._id.toString());
+                if (existingConvo) {
+                    const lastMsg = existingConvo.lastMessage;
+                    const isUnread = lastMsg &&
+                                     lastMsg.sender?._id.toString() !== adminId.toString() &&
+                                     !lastMsg.readBy.some((id: Types.ObjectId) => id.equals(adminId));
 
-            const allDisplayableItems = [...existingConversations, ...newPotentialConversations];
-
+                    return { ...existingConvo, isUnread };
+                } else {
+                    return {
+                        _id: `new_${user._id.toString()}`,
+                        isNew: true,
+                        participants: [adminUser, user],
+                        lastMessage: null,
+                        updatedAt: user.createdAt,
+                        isUnread: false,
+                    };
+                }
+            });
+            
             allDisplayableItems.sort((a, b) => {
                 const aTime = new Date(a.lastMessage?.createdAt || a.updatedAt).getTime();
                 const bTime = new Date(b.lastMessage?.createdAt || b.updatedAt).getTime();
@@ -78,7 +84,6 @@ export async function GET(request: NextRequest) {
             responseData = allDisplayableItems;
 
         } else {
-            // Logic for non-admin users
             const adminUser = await User.findOne({ role: 'admin' });
             if (!adminUser) {
                 return NextResponse.json({ message: 'Admin user not found, cannot create conversation.' }, { status: 500 });

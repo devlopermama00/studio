@@ -27,7 +27,10 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     console.log("Socket is already running");
   } else {
     console.log("Socket is initializing");
-    const io = new IOServer(res.socket.server);
+    const io = new IOServer(res.socket.server, {
+        path: '/api/socket',
+        addTrailingSlash: false
+    });
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
@@ -44,7 +47,11 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
       });
 
       socket.on("sendMessage", (message) => {
-        socket.broadcast.to(message.conversationId).emit("receiveMessage", message);
+        socket.to(message.conversationId).emit("receiveMessage", message);
+      });
+
+      socket.on("messagesSeen", ({ conversationId, userId }) => {
+        socket.to(conversationId).emit("messagesSeen", { conversationId, userId });
       });
 
       socket.on("disconnect", () => {

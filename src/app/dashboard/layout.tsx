@@ -69,6 +69,14 @@ const UserNav = ({ user }: { user: AuthUser }) => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === "/dashboard/chat"}>
+                        <Link href="/dashboard/chat">
+                            <MessageSquare />
+                            Support Chat
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/profile"}>
                         <Link href="/dashboard/profile">
@@ -144,6 +152,14 @@ const AdminNav = () => {
                         <Link href="/dashboard/admin">
                             <LayoutDashboard />
                             Overview
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/chat')}>
+                        <Link href="/dashboard/chat">
+                            <MessageSquare />
+                            Support Chat
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -368,8 +384,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {getPageTitle()}
             </h1>
         </header>
-        <main className="flex flex-1 flex-col p-4 sm:px-6 sm:py-6 md:gap-8">
-          {children}
+        <main className="flex flex-1 flex-col p-4 sm:px-6 sm:py-6 md:gap-8 min-h-0">
+          <div className="flex-1 min-h-0">
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
