@@ -150,39 +150,30 @@ export default function AdminChat() {
             const currentConvo = selectedConversationRef.current;
             const currentUser = authUserRef.current;
             
-            // Update messages if the new message belongs to the selected conversation
-            if (currentConvo && newMessage.conversationId === currentConvo._id) {
-                 if (currentUser && newMessage.sender._id === currentUser._id) {
-                    // This is a confirmation of a message we just sent. Replace the FIRST temp message.
-                    setMessages(prev => {
-                        let replaced = false;
-                        const newMessages = prev.map(msg => {
-                            if (!replaced && msg._id.startsWith('temp_')) {
-                                replaced = true;
-                                return newMessage;
-                            }
-                            return msg;
-                        });
-                        // If no temp message was found to replace (e.g. on a different tab), add it if it doesn't exist.
-                        if (!replaced && !newMessages.some(m => m._id === newMessage._id)) {
-                            return [...newMessages, newMessage];
-                        }
+            if (currentUser && newMessage.sender._id === currentUser._id) {
+                setMessages(prev => {
+                    const newMessages = [...prev];
+                    const tempIndex = newMessages.findIndex(m => m._id.startsWith('temp_'));
+                    if (tempIndex !== -1) {
+                        newMessages[tempIndex] = newMessage;
                         return newMessages;
-                    });
-                } else {
-                    // This is a new message from the other person. Add it if it's not already there.
-                    setMessages((prevMessages) => {
-                        if (prevMessages.some(m => m._id === newMessage._id)) return prevMessages;
-                        return [...prevMessages, newMessage];
-                    });
-                    if (currentUser) {
-                        socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: currentUser._id });
                     }
+                    if (!newMessages.some(m => m._id === newMessage._id)) {
+                        return [...newMessages, newMessage];
+                    }
+                    return newMessages;
+                });
+            } else if (currentConvo && newMessage.conversationId === currentConvo._id) {
+                setMessages((prevMessages) => {
+                    if (prevMessages.some(m => m._id === newMessage._id)) return prevMessages;
+                    return [...prevMessages, newMessage];
+                });
+                if (currentUser) {
+                    socket.emit('messages_seen', { conversationId: newMessage.conversationId, userId: currentUser._id });
                 }
             }
 
-            // Always update the conversation list with the new last message and unread status
-             setConversations(prev => prev.map(c => 
+            setConversations(prev => prev.map(c => 
                 c._id === newMessage.conversationId 
                 ? { ...c, lastMessage: newMessage, updatedAt: newMessage.createdAt, isUnread: c._id !== currentConvo?._id } 
                 : c
@@ -194,7 +185,7 @@ export default function AdminChat() {
             if (currentConvo && conversationId === currentConvo._id) {
                  setMessages((prevMessages) => prevMessages.map(msg => ({
                      ...msg,
-                     readBy: [...new Set([...msg.readBy, userId])]
+                     readBy: [...new Set([...(msg.readBy || []), userId])]
                  })));
             }
         });
@@ -227,9 +218,10 @@ export default function AdminChat() {
                 const newConvoData = await res.json();
                  
                 setConversations(prev => {
-                    const newConversations = prev.map(c => c._id === convo._id ? newConvoData : c);
-                    handleFilterChange(document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all', newConversations);
-                    return newConversations;
+                    const updatedConvos = prev.map(c => c._id === convo._id ? newConvoData : c);
+                    const currentFilterValue = document.querySelector('[role="combobox"]')?.textContent?.toLowerCase() || 'all';
+                    handleFilterChange(currentFilterValue, updatedConvos);
+                    return updatedConvos;
                 });
                 
                 targetConvo = newConvoData;
@@ -242,8 +234,12 @@ export default function AdminChat() {
         setSelectedConversation(targetConvo);
         setMessages([]);
         
-        if (socket && targetConvo?._id) {
+        if (socket && targetConvo?._id && !targetConvo._id.startsWith('new_')) {
              socket.emit('join_conversation', targetConvo._id);
+        }
+
+        if (targetConvo._id.startsWith('new_')) {
+            return;
         }
 
         try {
@@ -307,12 +303,13 @@ export default function AdminChat() {
     
     const renderMessageStatus = (message: Message) => {
         if (!selectedConversation || !authUser) return null;
+        if (message.sender._id !== authUser._id) return null;
         if (message._id.startsWith('temp_')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
         
         const otherParticipant = selectedConversation.participants.find(p => p._id !== authUser._id);
         if (!otherParticipant) return null;
         
-        const isRead = message.readBy.includes(otherParticipant._id);
+        const isRead = message.readBy && message.readBy.includes(otherParticipant._id);
         
         if (isRead) return <CheckCheck className="h-4 w-4 text-blue-500" />;
         return <Check className="h-4 w-4 text-muted-foreground" />;
@@ -399,7 +396,7 @@ export default function AdminChat() {
                                                 <p className="text-sm">{message.content}</p>
                                                 <div className={cn("flex items-center gap-1.5 text-xs mt-1", message.sender._id === authUser._id ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-start")}>
                                                     <span>{format(new Date(message.createdAt), 'p')}</span>
-                                                    {message.sender._id === authUser._id && renderMessageStatus(message)}
+                                                    {renderMessageStatus(message)}
                                                 </div>
                                             </div>
                                         </div>
