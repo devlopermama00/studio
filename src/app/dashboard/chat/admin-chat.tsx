@@ -172,9 +172,8 @@ export default function AdminChat() {
             });
             const newConvoData = await res.json();
             
-            const updatedConvos = conversations.map(c => c._id === convo._id ? newConvoData : c);
-            setConversations(updatedConvos);
-            setFilteredConversations(updatedConvos);
+            setConversations(prev => prev.map(c => c._id === convo._id ? newConvoData : c));
+            setFilteredConversations(prev => prev.map(c => c._id === convo._id ? newConvoData : c));
             targetConvo = newConvoData;
         }
 
@@ -191,8 +190,8 @@ export default function AdminChat() {
             socket.emit("messagesSeen", { conversationId: targetConvo._id, userId: authUser._id });
 
             const markAsRead = (convos: Conversation[]) => convos.map(c => c._id === targetConvo._id ? { ...c, isUnread: false } : c);
-            setConversations(markAsRead);
-            setFilteredConversations(markAsRead);
+            setConversations(prev => markAsRead(prev));
+            setFilteredConversations(prev => markAsRead(prev));
             
         } catch (error) {
             toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not fetch messages" });
@@ -200,7 +199,19 @@ export default function AdminChat() {
     };
     
     const handleSendMessage = async (data: { message: string }) => {
-        if (!selectedConversation || !data.message.trim()) return;
+        if (!selectedConversation || !data.message.trim() || !authUser) return;
+
+        // Optimistic UI update
+        const optimisticMessage: Message = {
+            _id: `temp_${Date.now()}`,
+            conversationId: selectedConversation._id,
+            sender: authUser,
+            content: data.message,
+            readBy: [authUser._id],
+            createdAt: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
+        form.reset();
 
         try {
             const res = await fetch('/api/chat/messages', {
@@ -211,20 +222,24 @@ export default function AdminChat() {
             if (!res.ok) throw new Error("Failed to send message");
             
             const newMessage: Message = await res.json();
-            setMessages(prev => [...prev, newMessage]);
             
+            // Replace optimistic message with real one
+            setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? newMessage : m));
+
             const updateConvos = (convos: Conversation[]) => convos.map(c => 
                 c._id === newMessage.conversationId 
                 ? { ...c, lastMessage: newMessage, updatedAt: newMessage.createdAt } 
                 : c
-            );
+            ).sort((a,b) => new Date(b.lastMessage?.createdAt || b.updatedAt).getTime() - new Date(a.lastMessage?.createdAt || a.updatedAt).getTime());
+
             setConversations(prev => updateConvos(prev));
             setFilteredConversations(prev => updateConvos(prev));
 
             socket.emit("sendMessage", newMessage);
-            form.reset();
+            
         } catch (error) {
-             toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not send message" });
+            setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id));
+            toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not send message" });
         }
     };
     
@@ -247,6 +262,8 @@ export default function AdminChat() {
     
     const renderMessageStatus = (message: Message) => {
         if (!selectedConversation || !authUser) return null;
+        if (message._id.startsWith('temp')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        
         const otherParticipant = selectedConversation.participants.find(p => p._id !== authUser._id);
         if (!otherParticipant) return null;
         
@@ -274,9 +291,7 @@ export default function AdminChat() {
                         </Select>
                     </div>
                      <ScrollArea className="flex-1">
-                        {filteredConversations.length > 0 ? filteredConversations
-                            .sort((a,b) => new Date(b.lastMessage?.createdAt || b.updatedAt).getTime() - new Date(a.lastMessage?.createdAt || a.updatedAt).getTime())
-                            .map(convo => {
+                        {filteredConversations.length > 0 ? filteredConversations.map(convo => {
                             const otherUser = convo.participants.find(p => p._id !== authUser?._id);
                             if (!otherUser) return null;
                             

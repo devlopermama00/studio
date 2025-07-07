@@ -146,6 +146,19 @@ export default function UserChat({ authUser }: UserChatProps) {
     const handleSendMessage = async (data: { message: string }) => {
         if (!conversation || !data.message.trim()) return;
 
+        // Optimistic UI update
+        const optimisticMessage: Message = {
+            _id: `temp_${Date.now()}`,
+            conversationId: conversation._id,
+            sender: authUser,
+            content: data.message,
+            readBy: [authUser._id],
+            createdAt: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, optimisticMessage]);
+        form.reset();
+
+
         try {
             const res = await fetch('/api/chat/messages', {
                 method: 'POST',
@@ -154,18 +167,21 @@ export default function UserChat({ authUser }: UserChatProps) {
             });
             if (!res.ok) throw new Error("Failed to send message");
             const newMessage: Message = await res.json();
-            setMessages(prev => [...prev, newMessage]);
             
+            setMessages(prev => prev.map(m => m._id === optimisticMessage._id ? newMessage : m));
             setConversation(prev => prev ? { ...prev, lastMessage: newMessage } : null);
             socket.emit("sendMessage", newMessage);
-            form.reset();
+
         } catch (error) {
+             setMessages(prev => prev.filter(m => m._id !== optimisticMessage._id));
              toast({ variant: "destructive", title: "Error", description: error instanceof Error ? error.message : "Could not send message" });
         }
     };
     
     const renderMessageStatus = (message: Message) => {
         if (!conversation) return null;
+        if (message._id.startsWith('temp')) return <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        
         const adminUser = conversation.participants.find(p => p.role === 'admin');
         if (!adminUser) return null;
         
