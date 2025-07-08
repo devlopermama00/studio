@@ -3,9 +3,8 @@ import type { Metadata } from 'next';
 import { Poppins, PT_Sans } from 'next/font/google';
 import './globals.css';
 import { cn, toHslString } from "@/lib/utils"
-import { Toaster } from "@/components/ui/toaster"
-import { CurrencyProvider } from '@/context/currency-context';
 import { getSettings } from '@/lib/settings-data';
+import { Providers } from '@/context/providers';
 
 const fontHeadline = Poppins({
   subsets: ['latin'],
@@ -57,10 +56,9 @@ export default async function RootLayout({
         fontHeadline.variable,
         fontBody.variable
       )}>
-        <CurrencyProvider>
-            {children}
-        </CurrencyProvider>
-        <Toaster />
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

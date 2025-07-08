@@ -1,9 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import { colord, extend } from "colord";
-import hslPlugin from "colord/plugins/hsl";
-
-extend([hslPlugin]);
+import { colord } from "colord";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

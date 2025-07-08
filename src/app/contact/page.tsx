@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { getSettings } from "@/lib/settings-data";
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn, toHslString } from "@/lib/utils";
 
 const defaultContent = {
   title: "Get in Touch",
@@ -50,13 +50,15 @@ export default async function ContactPage() {
     hero_bg: settings.contact_page_hero_bg || defaultContent.hero_bg,
   };
 
+  const heroBgHsl = toHslString(content.hero_bg);
+
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1 bg-background">
         <section
           className="relative text-primary-foreground py-20 text-center"
-          style={!content.hero_image && content.hero_bg ? { backgroundColor: `hsl(${content.hero_bg})` } : {}}
+          style={!content.hero_image && heroBgHsl ? { backgroundColor: `hsl(${heroBgHsl})` } : {}}
         >
           {content.hero_image ? (
             <>
@@ -72,7 +74,7 @@ export default async function ContactPage() {
               />
             </>
           ) : (
-            <div className={cn(!content.hero_bg && "bg-gradient-to-r from-primary to-accent", "absolute inset-0")} />
+            <div className={cn(!heroBgHsl && "bg-gradient-to-r from-primary to-accent", "absolute inset-0")} />
           )}
 
           <div className="relative z-20 container mx-auto px-4">
@@ -85,7 +87,7 @@ export default async function ContactPage() {
 
         <section className="py-16 md:py-24">
             <div className="container mx-auto px-4">
-                <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-start">
+                <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-start">
                     <div className="space-y-8">
                         <div>
                             <h2 className="text-2xl font-headline font-semibold mb-2">{content.contact_info_title}</h2>
