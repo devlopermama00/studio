@@ -4,47 +4,47 @@ import { SiteFooter } from "@/components/site-footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Globe, Mountain, GlassWater, Landmark, CalendarDays, Zap } from "lucide-react";
 import Link from "next/link";
+import { slugify } from "@/lib/utils";
 
-const categories = [
+const categoriesData = [
     {
         name: "City Tours",
         description: "Explore the vibrant streets and historic landmarks of Georgia's most famous cities.",
         icon: Globe,
-        href: "/tours?category=city"
     },
     {
         name: "Mountain & Hiking",
         description: "Trek through breathtaking landscapes and witness the majestic beauty of the Caucasus mountains.",
         icon: Mountain,
-        href: "/tours?category=hiking"
     },
     {
         name: "Wine & Gastronomy",
         description: "Indulge in the ancient traditions of Georgian winemaking and savor delicious local cuisine.",
         icon: GlassWater,
-        href: "/tours?category=wine"
     },
     {
         name: "Historical & Cultural",
         description: "Step back in time and explore ancient monasteries, fortresses, and UNESCO World Heritage sites.",
         icon: Landmark,
-        href: "/tours?category=historical"
     },
     {
         name: "Multi-Day Tours",
         description: "Immerse yourself fully in the Georgian experience with our comprehensive multi-day adventures.",
         icon: CalendarDays,
-        href: "/tours?category=multi-day"
     },
     {
         name: "Adventure & Extreme",
         description: "Get your adrenaline pumping with thrilling activities like rafting, paragliding, and more.",
         icon: Zap,
-        href: "/tours?category=adventure"
     },
 ];
 
 export default function CategoriesPage() {
+    const categories = categoriesData.map(category => ({
+        ...category,
+        href: `/tours?category=${slugify(category.name)}`
+    }));
+
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />

@@ -1,22 +1,22 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from 'next/navigation';
 import { TourCard } from "@/components/tour-card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
-import { getPublicTours } from "@/lib/tours-data";
 import type { Tour } from "@/lib/types";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationEllipsis,
 } from "@/components/ui/pagination";
-import { useSocket } from "@/lib/socket";
+import { slugify } from "@/lib/utils";
 
 const TOURS_PER_PAGE = 16;
 
@@ -25,39 +25,39 @@ interface ToursClientProps {
 }
 
 export function ToursClient({ initialTours }: ToursClientProps) {
-  const [tours, setTours] = useState<Tour[]>(initialTours);
+  const [filteredTours, setFilteredTours] = useState<Tour[]>(initialTours);
   const [currentPage, setCurrentPage] = useState(1);
-  const socket = useSocket();
-
-  const fetchTours = useCallback(async () => {
-    const allTours = await getPublicTours();
-    setTours(allTours);
-  }, []);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (!socket) return;
-    
-    socket.on('tour_updated', fetchTours);
-    socket.on('tour_deleted', fetchTours);
+    const query = searchParams.get('query')?.toLowerCase() || '';
+    const category = searchParams.get('category')?.toLowerCase() || '';
 
-    return () => {
-        socket.off('tour_updated', fetchTours);
-        socket.off('tour_deleted', fetchTours);
-    };
-  }, [socket, fetchTours]);
+    const filtered = initialTours.filter(tour => {
+        const queryMatch = query ? 
+            tour.title.toLowerCase().includes(query) || 
+            tour.city.toLowerCase().includes(query) || 
+            tour.country.toLowerCase().includes(query) ||
+            tour.place.toLowerCase().includes(query)
+            : true;
+        
+        const categoryMatch = category ? slugify(tour.category) === category : true;
+        
+        return queryMatch && categoryMatch;
+    });
 
-  useEffect(() => {
-    const totalPages = Math.ceil(tours.length / TOURS_PER_PAGE);
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(1);
-    }
-  }, [tours, currentPage]);
+    setFilteredTours(filtered);
+    setCurrentPage(1);
+  }, [searchParams, initialTours]);
 
-  const totalPages = Math.ceil(tours.length / TOURS_PER_PAGE);
-  const paginatedTours = tours.slice(
-    (currentPage - 1) * TOURS_PER_PAGE,
-    currentPage * TOURS_PER_PAGE
-  );
+  const paginatedTours = useMemo(() => {
+      return filteredTours.slice(
+        (currentPage - 1) * TOURS_PER_PAGE,
+        currentPage * TOURS_PER_PAGE
+      );
+  }, [filteredTours, currentPage]);
+
+  const totalPages = Math.ceil(filteredTours.length / TOURS_PER_PAGE);
 
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
@@ -65,7 +65,7 @@ export function ToursClient({ initialTours }: ToursClientProps) {
     window.scrollTo({ top: 200, behavior: "smooth" });
   };
   
-  const PaginationControls = () => {
+    const PaginationControls = () => {
     if (totalPages <= 1) return null;
 
     const pageNumbers = [];
@@ -146,13 +146,13 @@ export function ToursClient({ initialTours }: ToursClientProps) {
     );
   };
   
-    if (paginatedTours.length === 0) {
+    if (filteredTours.length === 0) {
         return (
              <Alert>
                 <Terminal className="h-4 w-4" />
                 <AlertTitle>No Tours Found</AlertTitle>
                 <AlertDescription>
-                    There are currently no approved tours available. Please check back later!
+                    Try adjusting your search filters or check back later!
                 </AlertDescription>
             </Alert>
         )
