@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { Poppins, PT_Sans } from 'next/font/google';
 import './globals.css';
-import { cn } from "@/lib/utils"
+import { cn, toHslString } from "@/lib/utils"
 import { Toaster } from "@/components/ui/toaster"
 import { CurrencyProvider } from '@/context/currency-context';
 import { getSettings } from '@/lib/settings-data';
@@ -38,10 +38,16 @@ export default async function RootLayout({
 
   const themeStyle: React.CSSProperties = {};
   if (settings.primaryColor) {
-    themeStyle['--primary' as any] = settings.primaryColor;
+    const primaryHsl = toHslString(settings.primaryColor);
+    if (primaryHsl) {
+      themeStyle['--primary' as any] = primaryHsl;
+    }
   }
   if (settings.accentColor) {
-    themeStyle['--accent' as any] = settings.accentColor;
+    const accentHsl = toHslString(settings.accentColor);
+    if (accentHsl) {
+        themeStyle['--accent' as any] = accentHsl;
+    }
   }
 
   return (
