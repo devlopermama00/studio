@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { jwtVerify } from 'jose';
@@ -28,7 +29,7 @@ export async function middleware(request: NextRequest) {
 
   const isProtectedRoute = path.startsWith('/dashboard');
   const isAdminRoute = path.startsWith('/dashboard/admin');
-  const isPublicAuthRoute = path === '/login' || path === '/register';
+  const isPublicAuthRoute = path === '/login' || path.startsWith('/register');
 
   const user = await verifyToken(token);
 
@@ -56,6 +57,6 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/login',
-    '/register'
+    '/register/:path*'
   ],
 }
