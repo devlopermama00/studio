@@ -103,19 +103,23 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section
-          className={cn(
-            "py-16 md:py-24",
-            !introBgHsl && "bg-background"
-          )}
-          style={introBgHsl ? { backgroundColor: `hsl(${introBgHsl})` } : {}}
-        >
+        <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">{content.intro_title}</h2>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                {content.intro_desc}
-              </p>
+            <div
+              className={cn(
+                "rounded-lg p-12 text-center",
+                introBgHsl ? "text-primary-foreground" : "bg-secondary"
+              )}
+              style={introBgHsl ? { backgroundColor: `hsl(${introBgHsl})` } : {}}
+            >
+              <div className="max-w-3xl mx-auto">
+                <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">
+                  {content.intro_title}
+                </h2>
+                <p className={cn("text-lg leading-relaxed", introBgHsl ? "text-primary-foreground/90" : "text-muted-foreground")}>
+                  {content.intro_desc}
+                </p>
+              </div>
             </div>
           </div>
         </section>
