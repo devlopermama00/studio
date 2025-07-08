@@ -35,7 +35,7 @@ export default async function Home() {
 
   const discoverTitle = settings.homepage_discover_title || "Discover The World of Georgia With Us!";
   const discoverDescription = settings.homepage_discover_description || "Discover amazing places at exclusive deals Only with Us!";
-  const discoverItems = settings.homepage_discover_items || [
+  const discoverItems = settings.homepage_discover_items?.length > 0 ? settings.homepage_discover_items : [
     { title: "Kakheti Region", description: "Traditions and Wine Making in the Heart of Kakheti!", image: "https://placehold.co/600x400.png", hint: "kakheti wine" },
     { title: "Mountain of Kazbegi", description: "Nature, History and Mountains to Fill your Eyes.", image: "https://placehold.co/600x400.png", hint: "kazbegi mountain" },
     { title: "Lovers of Real History", description: "History of Georgia from the beginning until today!", image: "https://placehold.co/600x400.png", hint: "georgia history" }
@@ -43,7 +43,7 @@ export default async function Home() {
 
   const destinationsTitle = settings.homepage_destinations_title || "Explore by Destination";
   const destinationsDescription = settings.homepage_destinations_description || "From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.";
-  const destinations = settings.homepage_destinations || [
+  const destinations = settings.homepage_destinations?.length > 0 ? settings.homepage_destinations : [
     { name: "Tbilisi", image: "https://placehold.co/600x400.png", hint: "tbilisi georgia", description: "The vibrant capital where history meets modernity." },
     { name: "Batumi", image: "https://placehold.co/600x400.png", hint: "batumi georgia", description: "A dazzling city on the Black Sea coast." },
     { name: "Gudauri", image: "https://placehold.co/600x400.png", hint: "gudauri georgia", description: "A premier ski resort with stunning mountain views." },
@@ -234,7 +234,7 @@ export default async function Home() {
                 </div>
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {destinations.map((dest) => (
-                        <Link href="/tours" key={dest.name} className="group relative block overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
+                        <Link href={`/tours?query=${dest.name}`} key={dest.name} className="group relative block overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
                             <Image src={dest.image} alt={dest.name} width={600} height={400} data-ai-hint={dest.hint} className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                             <div className="absolute bottom-0 left-0 p-4">
