@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -22,6 +23,7 @@ const settingsFormSchema = z.object({
   siteDescription: z.string().max(200, "Description must be less than 200 characters.").optional(),
   primaryColor: z.string().optional(),
   accentColor: z.string().optional(),
+  foregroundColor: z.string().optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -35,7 +37,13 @@ export function GeneralSettingsForm() {
 
     const form = useForm<SettingsFormValues>({
         resolver: zodResolver(settingsFormSchema),
-        defaultValues: {},
+        defaultValues: {
+            siteName: "",
+            siteDescription: "",
+            primaryColor: "",
+            accentColor: "",
+            foregroundColor: "",
+        },
     });
 
     useEffect(() => {
@@ -49,6 +57,7 @@ export function GeneralSettingsForm() {
                     siteDescription: data.siteDescription || "",
                     primaryColor: data.primaryColor || "",
                     accentColor: data.accentColor || "",
+                    foregroundColor: data.foregroundColor || "",
                 });
                 setLogoUrl(data.logoUrl || null);
             } catch (error) {
@@ -133,6 +142,9 @@ export function GeneralSettingsForm() {
                             <FormItem><FormLabel>Accent Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 174 50% 50% or #47D1B5" /></FormControl><FormDescription>Used for highlights and secondary elements.</FormDescription><FormMessage /></FormItem>
                         )} />
                     </div>
+                    <FormField name="foregroundColor" render={({ field }) => (
+                        <FormItem><FormLabel>Text Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 10% 10% or #1A202C" /></FormControl><FormDescription>Changes the main text color of the site (e.g., navigation links).</FormDescription><FormMessage /></FormItem>
+                    )} />
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
                     <Button type="submit" disabled={isSaving}>

@@ -48,6 +48,12 @@ export default async function RootLayout({
         themeStyle['--accent' as any] = accentHsl;
     }
   }
+  if (settings.foregroundColor) {
+    const foregroundHsl = toHslString(settings.foregroundColor);
+    if (foregroundHsl) {
+      themeStyle['--foreground' as any] = foregroundHsl;
+    }
+  }
 
   return (
     <html lang="en" suppressHydrationWarning style={themeStyle}>
