@@ -146,7 +146,7 @@ export function SiteHeader() {
           <TourVistaLogo onClick={() => isMenuOpen && setIsMenuOpen(false)} />
           <nav className="hidden items-center gap-6 lg:flex">
              {navLinks.map((link) => {
-              const isActive = (link.href === "/" && pathname === "/") || (link.href !== "/" && pathname.startsWith(link.href));
+              const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.href}
@@ -188,7 +188,7 @@ export function SiteHeader() {
                   </SheetHeader>
                   <div className="flex flex-col space-y-4">
                     {navLinks.map((link) => {
-                      const isActive = (link.href === "/" && pathname === "/") || (link.href !== "/" && pathname.startsWith(link.href));
+                      const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
                       return (
                         <Link
                           key={link.href}
@@ -204,7 +204,7 @@ export function SiteHeader() {
                       )
                     })}
                     <Separator className="my-2" />
-                    <CurrencySelector isMobile={true}/>
+                    <CurrencySelector isMobile={true} />
                     <Separator className="my-2" />
                     <AuthButtons isMobile={true} />
                   </div>
