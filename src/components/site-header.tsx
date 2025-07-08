@@ -15,6 +15,7 @@ import { useCurrency } from "@/context/currency-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const navLinks = [
+  { href: "/", label: "Home" },
   { href: "/tours", label: "Tours" },
   { href: "/destinations", label: "Destinations" },
   { href: "/blog", label: "Blog" },
