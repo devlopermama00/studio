@@ -68,13 +68,16 @@ export async function POST(request: NextRequest) {
             success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: request.headers.get('referer') || `${appUrl}/tours/${tourId}`,
             customer_email: user.email,
-            metadata: {
-                tourId: tour._id.toString(),
-                userId: user.id,
-                bookingDate,
-                guests,
-                totalPrice: String(totalPrice),
-                tourTitle: tour.title,
+            // By placing metadata inside payment_intent_data, it gets attached to the final payment record
+            payment_intent_data: {
+                metadata: {
+                    tourId: tour._id.toString(),
+                    userId: user.id,
+                    bookingDate,
+                    guests: String(guests),
+                    totalPrice: String(totalPrice),
+                    tourTitle: tour.title,
+                },
             },
         });
         
