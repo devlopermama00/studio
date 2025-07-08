@@ -13,7 +13,7 @@ import { FooterSettingsForm } from "./_components/footer-settings-form";
 export default function AdminSettingsPage() {
     return (
         <Tabs defaultValue="general">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+            <TabsList className="sticky top-0 z-10 grid w-full grid-cols-2 h-auto p-2 -mx-4 -mt-4 mb-6 bg-secondary/95 backdrop-blur-sm sm:grid-cols-3 lg:grid-cols-6 sm:-mx-6 sm:-mt-6 border-b">
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="homepage">Homepage</TabsTrigger>
                 <TabsTrigger value="destinations">Destinations</TabsTrigger>
@@ -21,7 +21,7 @@ export default function AdminSettingsPage() {
                 <TabsTrigger value="pages">Pages</TabsTrigger>
                 <TabsTrigger value="footer">Footer</TabsTrigger>
             </TabsList>
-            <TabsContent value="general" className="mt-6">
+            <TabsContent value="general">
                  <Card>
                     <CardHeader>
                         <CardTitle>General Site Settings</CardTitle>
@@ -30,7 +30,7 @@ export default function AdminSettingsPage() {
                     <GeneralSettingsForm />
                 </Card>
             </TabsContent>
-            <TabsContent value="homepage" className="mt-6">
+            <TabsContent value="homepage">
                 <Card>
                     <CardHeader>
                         <CardTitle>Homepage Content</CardTitle>
@@ -39,7 +39,7 @@ export default function AdminSettingsPage() {
                     <HomepageSettingsForm />
                 </Card>
             </TabsContent>
-            <TabsContent value="destinations" className="mt-6">
+            <TabsContent value="destinations">
                 <Card>
                     <CardHeader>
                         <CardTitle>Destinations Page</CardTitle>
@@ -48,7 +48,7 @@ export default function AdminSettingsPage() {
                     <DestinationsSettingsForm />
                 </Card>
             </TabsContent>
-            <TabsContent value="blog" className="mt-6">
+            <TabsContent value="blog">
                 <Card>
                     <CardHeader>
                         <CardTitle>Blog Page</CardTitle>
@@ -57,10 +57,10 @@ export default function AdminSettingsPage() {
                     <BlogSettingsForm />
                 </Card>
             </TabsContent>
-            <TabsContent value="pages" className="mt-6">
+            <TabsContent value="pages">
                 <PagesSettingsForm />
             </TabsContent>
-            <TabsContent value="footer" className="mt-6">
+            <TabsContent value="footer">
                 <Card>
                     <CardHeader>
                         <CardTitle>Footer Settings</CardTitle>
