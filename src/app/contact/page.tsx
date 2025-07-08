@@ -85,7 +85,7 @@ export default async function ContactPage() {
 
         <section className="py-16 md:py-24">
             <div className="container mx-auto px-4">
-                <div className="grid lg:grid-cols-2 gap-12 items-start">
+                <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-start">
                     <div className="space-y-8">
                         <div>
                             <h2 className="text-2xl font-headline font-semibold mb-2">{content.contact_info_title}</h2>
