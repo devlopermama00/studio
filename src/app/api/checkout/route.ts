@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     try {
         const token = request.cookies.get('token')?.value;
         if (!token) {
-            return NextResponse.json({ message: 'Authentication required to book a tour.' }, { status: 401 });
+            return NextResponse.json({ message: 'SignIn required for booking tour' }, { status: 401 });
         }
 
         const { payload: user } = await jwtVerify(token, JWT_SECRET) as { payload: DecodedToken };
