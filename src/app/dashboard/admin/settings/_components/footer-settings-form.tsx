@@ -112,7 +112,7 @@ export function FooterSettingsForm() {
                             <FormField name="footer_linkedin_url" render={({ field }) => (<FormItem><FormLabel>LinkedIn URL</FormLabel><FormControl><Input {...field} placeholder="https://linkedin.com/..." /></FormControl><FormMessage /></FormItem>)} />
                          </div>
                      </div>
-                     <FormField name="footer_copyright_text" render={({ field }) => (<FormItem><FormLabel>Copyright Text</FormLabel><FormControl><Input {...field} placeholder={`© ${new Date().getFullYear()} TourVista Georgia. All rights reserved.`} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField name="footer_copyright_text" render={({ field }) => (<FormItem><FormLabel>Copyright Text</FormLabel><FormControl><Input {...field} placeholder={`© ${new Date().getFullYear()} DayTourGuides Georgia. All rights reserved.`} /></FormControl><FormMessage /></FormItem>)} />
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
                     <Button type="submit" disabled={isSaving}>

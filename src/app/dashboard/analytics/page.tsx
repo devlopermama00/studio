@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
                             Admin Announcements
                         </CardTitle>
                         <CardDescription>
-                            Important updates from the TourVista team.
+                            Important updates from the DayTourGuides team.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

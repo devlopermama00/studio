@@ -52,7 +52,7 @@ export default function ProvidersPage() {
         <section className="relative bg-secondary py-20 md:py-32">
             <div className="container mx-auto px-4 text-center">
                  <h1 className="text-4xl md:text-6xl font-headline font-bold mb-4">
-                    Partner with TourVista
+                    Partner with DayTourGuides
                 </h1>
                 <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
                     Share your passion for Georgia with a global audience. Join our network of trusted local guides and grow your tour business with us.
@@ -88,7 +88,7 @@ export default function ProvidersPage() {
                 <div>
                      <div className="mb-8">
                         <h2 className="text-3xl md:text-4xl font-headline font-semibold">Simple Steps to Success</h2>
-                        <p className="text-muted-foreground mt-2 text-lg">Getting started on TourVista is quick and straightforward.</p>
+                        <p className="text-muted-foreground mt-2 text-lg">Getting started on DayTourGuides is quick and straightforward.</p>
                     </div>
                     <div className="space-y-6">
                         {howItWorks.map(step => (
@@ -122,7 +122,7 @@ export default function ProvidersPage() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl md:text-4xl font-headline font-bold mb-4">Ready to Grow Your Business?</h2>
             <p className="text-lg opacity-90 max-w-2xl mx-auto mb-8">
-              Join hundreds of happy providers who trust TourVista to connect them with travelers. Your next adventure in business starts here.
+              Join hundreds of happy providers who trust DayTourGuides to connect them with travelers. Your next adventure in business starts here.
             </p>
             <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-white/90">
                 <Link href="/register/provider">Sign Up and Start Listing Tours</Link>

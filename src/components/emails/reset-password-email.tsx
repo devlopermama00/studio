@@ -24,7 +24,7 @@ export const ResetPasswordEmail = ({
 }: ResetPasswordEmailProps) => (
   <Html>
     <Head />
-    <Preview>Reset your password for TourVista Georgia</Preview>
+    <Preview>Reset your password for DayTourGuides Georgia</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={heading}>Reset Your Password</Heading>
@@ -32,7 +32,7 @@ export const ResetPasswordEmail = ({
           Hello {userName},
         </Text>
         <Text style={paragraph}>
-          We received a request to reset the password for your TourVista account. 
+          We received a request to reset the password for your DayTourGuides account. 
           To proceed, please click the button below. This link is valid for one hour.
         </Text>
         <Section style={{ textAlign: 'center', margin: '32px 0' }}>
@@ -47,7 +47,7 @@ export const ResetPasswordEmail = ({
         <Text style={{ ...paragraph, marginTop: '24px' }}>
           Thank you,
           <br />
-          The TourVista Team
+          The DayTourGuides Team
         </Text>
       </Container>
     </Body>

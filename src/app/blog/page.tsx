@@ -32,7 +32,7 @@ const BlogCard = ({ post }: { post: any }) => (
                 <CardDescription className="line-clamp-3">{post.content.substring(0, 150)}...</CardDescription>
             </CardContent>
             <CardFooter className="p-6 pt-0 text-sm text-muted-foreground">
-                <span>By {post.author?.name || 'TourVista'} on {format(new Date(post.publishedAt || post.createdAt), "MMM d, yyyy")}</span>
+                <span>By {post.author?.name || 'DayTourGuides'} on {format(new Date(post.publishedAt || post.createdAt), "MMM d, yyyy")}</span>
             </CardFooter>
         </Card>
     </Link>
@@ -43,7 +43,7 @@ export default async function BlogPage() {
   const posts = await getPublishedBlogPosts();
   const settings = await getSettings();
 
-  const pageTitle = settings.blog_page_title || "TourVista Georgia Blog";
+  const pageTitle = settings.blog_page_title || "DayTourGuides Georgia Blog";
   const pageDescription = settings.blog_page_description || "Travel tips, destination guides, and stories from the heart of Georgia.";
 
   return (

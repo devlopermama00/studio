@@ -22,9 +22,9 @@ const iconMap = {
 
 const defaultContent = {
   hero_image: "https://placehold.co/1600x600.png",
-  hero_title: "About TourVista",
+  hero_title: "About DayTourGuides",
   intro_title: "Your Journey Begins Here",
-  intro_desc: "At TourVista, we’ve been proudly delivering guaranteed tours across Georgia for over two years, helping travelers from around the world discover the magic of this breathtaking country.",
+  intro_desc: "At DayTourGuides, we’ve been proudly delivering guaranteed tours across Georgia for over two years, helping travelers from around the world discover the magic of this breathtaking country.",
   features_title: "What Makes Us Different?",
   features: [
     { icon: "ShieldCheck", title: "Reliable & Trusted Network", description: "We work only with handpicked, trusted suppliers and experienced local partners to ensure every part of your trip is safe, smooth, and memorable." },
@@ -84,7 +84,7 @@ export default async function AboutPage() {
           <div className="absolute inset-0 bg-black/50 z-10" />
           <Image
             src={content.hero_image}
-            alt="Team of TourVista guides"
+            alt="Team of DayTourGuides guides"
             fill
             style={{ objectFit: "cover" }}
             className="z-0"

@@ -24,7 +24,7 @@ export const sendPasswordResetEmail = async (email: string, name: string, token:
         await resend.emails.send({
             from: fromEmail,
             to: email,
-            subject: 'Reset Your TourVista Password',
+            subject: 'Reset Your DayTourGuides Password',
             react: ResetPasswordEmail({ userName: name, resetUrl: resetUrl }),
         });
     } catch (error) {

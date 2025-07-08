@@ -23,7 +23,7 @@ const fontBody = PT_Sans({
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   return {
-    title: settings.siteName || 'TourVista Georgia',
+    title: settings.siteName || 'DayTourGuides Georgia',
     description: settings.siteDescription || 'Book the best day tours in Georgia.',
   };
 }

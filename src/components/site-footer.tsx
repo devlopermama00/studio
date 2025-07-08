@@ -36,7 +36,7 @@ export async function SiteFooter() {
   const instagramUrl = settings.footer_instagram_url;
   const pinterestUrl = settings.footer_pinterest_url;
   const linkedinUrl = settings.footer_linkedin_url;
-  const copyrightText = settings.footer_copyright_text || `© ${new Date().getFullYear()} TourVista Georgia. All rights reserved.`;
+  const copyrightText = settings.footer_copyright_text || `© ${new Date().getFullYear()} DayTourGuides Georgia. All rights reserved.`;
 
   return (
     <footer className="bg-secondary text-secondary-foreground">

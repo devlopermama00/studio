@@ -66,7 +66,7 @@ export default function PayoutsPage() {
             <CardHeader>
                 <CardTitle>Payout History</CardTitle>
                 <CardDescription>
-                    A record of all payouts you have received from TourVista.
+                    A record of all payouts you have received from DayTourGuides.
                 </CardDescription>
             </CardHeader>
             <CardContent>

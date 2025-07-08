@@ -34,7 +34,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
                 <div className="flex justify-center items-center gap-6 mt-4 text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <User className="h-4 w-4"/>
-                        <span>{post.author?.name || 'TourVista'}</span>
+                        <span>{post.author?.name || 'DayTourGuides'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4"/>
@@ -63,12 +63,12 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
 
             <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    <AvatarImage src={post.author?.profilePhoto} alt={post.author?.name || 'TourVista'} />
-                    <AvatarFallback>{post.author?.name?.charAt(0).toUpperCase() || 'T'}</AvatarFallback>
+                    <AvatarImage src={post.author?.profilePhoto} alt={post.author?.name || 'DayTourGuides'} />
+                    <AvatarFallback>{post.author?.name?.charAt(0).toUpperCase() || 'D'}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-semibold text-lg">Written by {post.author?.name || 'TourVista'}</p>
-                    <p className="text-muted-foreground">Author at TourVista Georgia</p>
+                    <p className="font-semibold text-lg">Written by {post.author?.name || 'DayTourGuides'}</p>
+                    <p className="text-muted-foreground">Author at DayTourGuides Georgia</p>
                 </div>
             </div>
         </article>

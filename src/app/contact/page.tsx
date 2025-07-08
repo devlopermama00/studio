@@ -16,7 +16,7 @@ const defaultContent = {
   description: "We're here to help! Reach out to us with any questions or feedback.",
   contact_info_title: "Contact Information",
   contact_info_description: "Need help or have a question? We're here to support you.",
-  email: "contact@tourvista.ge",
+  email: "contact@daytourguides.ge",
   phone: "+995 123 456 789",
   address: "123 Freedom Square, Tbilisi, Georgia",
   hero_image: null,

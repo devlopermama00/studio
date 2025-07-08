@@ -36,7 +36,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   const [currencyCode, setCurrencyCode] = useState<string>('USD');
 
   useEffect(() => {
-    const storedCurrency = localStorage.getItem('tourvista-currency');
+    const storedCurrency = localStorage.getItem('daytourguides-currency');
     if (storedCurrency && currencies.some(c => c.code === storedCurrency)) {
       setCurrencyCode(storedCurrency);
     }
@@ -45,7 +45,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   const setCurrency = (code: string) => {
     if (currencies.some(c => c.code === code)) {
       setCurrencyCode(code);
-      localStorage.setItem('tourvista-currency', code);
+      localStorage.setItem('daytourguides-currency', code);
     }
   };
 

@@ -158,7 +158,7 @@ const seedDatabase = async () => {
 
 
         // Seed a default provider user
-        const providerEmail = 'provider@tourvista.com';
+        const providerEmail = 'provider@daytourguides.com';
         let providerUser = await User.findOne({ email: providerEmail });
         if (!providerUser) {
             console.log('Default provider user not found, creating one...');

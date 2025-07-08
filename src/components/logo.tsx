@@ -10,7 +10,7 @@ import { useSettings } from '@/context/providers';
 export function TourVistaLogo({ className, onClick }: { className?: string; onClick?: () => void; }) {
   const settings = useSettings();
   const logoUrl = settings.logoUrl;
-  const siteName = settings.siteName || 'TourVista';
+  const siteName = settings.siteName || 'DayTourGuides';
 
   if (logoUrl) {
     return (
