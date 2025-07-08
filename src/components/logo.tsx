@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 interface TourVistaLogoProps {
   className?: string;
   onClick?: () => void;
-  logoUrl?: string;
-  siteName?: string;
+  logoUrl?: string | null;
+  siteName?: string | null;
 }
 
 export function TourVistaLogo({ className, onClick, logoUrl, siteName }: TourVistaLogoProps) {
