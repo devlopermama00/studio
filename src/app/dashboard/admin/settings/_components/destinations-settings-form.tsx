@@ -14,6 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Trash2, PlusCircle, Upload } from "lucide-react";
 import { uploadFile } from "@/services/fileUploader";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const destinationItemSchema = z.object({
     name: z.string().optional(),
@@ -130,38 +131,54 @@ export function DestinationsSettingsForm() {
 
                     {/* Destination Items */}
                     <div className="space-y-4">
-                        <div className="flex justify-between items-start">
+                        <div className="flex justify-between items-center">
                              <div>
-                                <FormLabel className="text-lg font-semibold">Destination Cards</FormLabel>
+                                <h3 className="text-lg font-semibold">Destination Cards</h3>
                                 <p className="text-sm text-muted-foreground">Add or remove destinations that appear on the page.</p>
                             </div>
                             <Button type="button" variant="outline" size="sm" onClick={() => append({ name: "", description: "", image: "", hint: "" })}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Destination
                             </Button>
                         </div>
-                        <div className="space-y-4">
-                            {fields.map((field, index) => (
-                                <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
-                                    <div className="flex-1 space-y-4">
-                                        <FormField name={`destinations_page_items.${index}.name`} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                        <FormField name={`destinations_page_items.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                         <FormField name={`destinations_page_items.${index}.image`} render={({ field: formField }) => (
-                                            <FormItem>
-                                                <FormLabel>Image</FormLabel>
-                                                <div className="flex items-center gap-2">
-                                                    <Input placeholder="Image URL" {...formField} />
-                                                    <Input type="file" className="hidden" id={`destination-upload-${index}`} onChange={e => handleFileUpload(e.target.files?.[0] || null, `destinations_page_items.${index}.image`, index)} />
-                                                    <Button asChild type="button" variant="outline"><label htmlFor={`destination-upload-${index}`}><Upload className="h-4 w-4" /></label></Button>
+                        <Accordion type="multiple" className="w-full space-y-2">
+                            {fields.map((field, index) => {
+                                const itemName = form.watch(`destinations_page_items.${index}.name`);
+                                return (
+                                <AccordionItem value={`item-${index}`} key={field.id} className="border rounded-lg bg-secondary/50">
+                                    <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                                        <div className="flex justify-between w-full items-center">
+                                            <span className="font-semibold text-sm truncate pr-4">
+                                                {itemName || `Destination ${index + 1}`}
+                                            </span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="p-4 border-t">
+                                            <div className="flex gap-4 items-start">
+                                                <div className="flex-1 space-y-4">
+                                                    <FormField name={`destinations_page_items.${index}.name`} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    <FormField name={`destinations_page_items.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                    <FormField name={`destinations_page_items.${index}.image`} render={({ field: formField }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Image</FormLabel>
+                                                            <div className="flex items-center gap-2">
+                                                                <Input placeholder="Image URL" {...formField} />
+                                                                <Input type="file" className="hidden" id={`destination-upload-${index}`} onChange={e => handleFileUpload(e.target.files?.[0] || null, `destinations_page_items.${index}.image`, index)} />
+                                                                <Button asChild type="button" variant="outline"><label htmlFor={`destination-upload-${index}`}><Upload className="h-4 w-4" /></label></Button>
+                                                            </div>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )} />
+                                                    <FormField name={`destinations_page_items.${index}.hint`} render={({ field }) => (<FormItem><FormLabel>Image Search Hint</FormLabel><FormControl><Input {...field} placeholder="e.g. tbilisi georgia" /></FormControl><FormMessage /></FormItem>)} />
                                                 </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                         )} />
-                                        <FormField name={`destinations_page_items.${index}.hint`} render={({ field }) => (<FormItem><FormLabel>Image Search Hint</FormLabel><FormControl><Input {...field} placeholder="e.g. tbilisi georgia" /></FormControl><FormMessage /></FormItem>)} />
-                                    </div>
-                                    <Button type="button" variant="ghost" size="icon" className="text-red-500" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                            ))}
-                        </div>
+                                                <Button type="button" variant="ghost" size="icon" className="text-red-500" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                                            </div>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                )
+                            })}
+                        </Accordion>
                     </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">

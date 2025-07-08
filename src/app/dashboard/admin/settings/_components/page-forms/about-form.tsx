@@ -16,6 +16,7 @@ import { Loader2, Trash2, PlusCircle, ShieldCheck, CalendarCheck, Sparkles, Glob
 import { Separator } from "@/components/ui/separator";
 import { uploadFile } from "@/services/fileUploader";
 import Image from "next/image";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const featureSchema = z.object({
   icon: z.string().min(1, "Icon is required."),
@@ -190,44 +191,67 @@ export function AboutForm() {
             <FormField name="about_page_intro_desc" render={({ field }) => (<FormItem><FormLabel>Intro Section Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
             <Separator/>
             <div className="space-y-4">
+              <FormField name="about_page_features_title" render={({ field }) => (<FormItem><FormLabel>Features Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
               <div className="flex justify-between items-center">
-                <FormLabel>Features Section ("What makes us different?")</FormLabel>
+                <h4 className="font-medium">Features ("What makes us different?")</h4>
                 <Button type="button" variant="outline" size="sm" onClick={() => append({ icon: "ShieldCheck", title: "", description: "" })}><PlusCircle className="mr-2 h-4 w-4" /> Add Feature</Button>
               </div>
-              <FormField name="about_page_features_title" render={({ field }) => (<FormItem><FormLabel>Features Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-              <div className="space-y-4">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField name={`about_page_features.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Feature Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                       <FormField name={`about_page_features.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{availableIcons.map(icon => <SelectItem key={icon} value={icon}>{icon}</SelectItem>)}</SelectContent></Select></FormItem>)} />
-                      <FormField name={`about_page_features.${index}.description`} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Feature Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-              </div>
+              <Accordion type="multiple" className="w-full space-y-2">
+                {fields.map((field, index) => {
+                    const itemName = form.watch(`about_page_features.${index}.title`);
+                    return (
+                    <AccordionItem value={`feature-${index}`} key={field.id} className="border rounded-lg bg-secondary/50">
+                        <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                            <span className="font-semibold text-sm truncate pr-4">
+                                {itemName || `Feature ${index + 1}`}
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="p-4 border-t flex gap-4 items-start">
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <FormField name={`about_page_features.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Feature Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                <FormField name={`about_page_features.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{availableIcons.map(icon => <SelectItem key={icon} value={icon}>{icon}</SelectItem>)}</SelectContent></Select></FormItem>)} />
+                                <FormField name={`about_page_features.${index}.description`} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Feature Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                                </div>
+                                <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                    )
+                })}
+              </Accordion>
             </div>
              <Separator/>
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <FormLabel>Why Choose Us Section</FormLabel>
-                <Button type="button" variant="outline" size="sm" onClick={() => appendWhyChooseUs({ icon: "ShieldCheck", title: "", description: "" })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
-              </div>
               <FormField name="about_page_why_choose_us_title" render={({ field }) => (<FormItem><FormLabel>Section Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
               <FormField name="about_page_why_choose_us_description" render={({ field }) => (<FormItem><FormLabel>Section Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-              <div className="space-y-4">
-                {whyChooseUsFields.map((field, index) => (
-                  <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField name={`about_page_why_choose_us_items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Item Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                       <FormField name={`about_page_why_choose_us_items.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{availableIcons.map(icon => <SelectItem key={icon} value={icon}>{icon}</SelectItem>)}</SelectContent></Select></FormItem>)} />
-                      <FormField name={`about_page_why_choose_us_items.${index}.description`} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Item Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => removeWhyChooseUs(index)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
+               <div className="flex justify-between items-center">
+                <h4 className="font-medium">"Why Choose Us" Items</h4>
+                <Button type="button" variant="outline" size="sm" onClick={() => appendWhyChooseUs({ icon: "ShieldCheck", title: "", description: "" })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
               </div>
+              <Accordion type="multiple" className="w-full space-y-2">
+                {whyChooseUsFields.map((field, index) => {
+                  const itemName = form.watch(`about_page_why_choose_us_items.${index}.title`);
+                  return (
+                  <AccordionItem value={`why-${index}`} key={field.id} className="border rounded-lg bg-secondary/50">
+                     <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                        <span className="font-semibold text-sm truncate pr-4">
+                            {itemName || `Item ${index + 1}`}
+                        </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 border-t flex gap-4 items-start">
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField name={`about_page_why_choose_us_items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Item Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                            <FormField name={`about_page_why_choose_us_items.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{availableIcons.map(icon => <SelectItem key={icon} value={icon}>{icon}</SelectItem>)}</SelectContent></Select></FormItem>)} />
+                            <FormField name={`about_page_why_choose_us_items.${index}.description`} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Item Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => removeWhyChooseUs(index)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )})}
+              </Accordion>
             </div>
              <Separator/>
             <FormField name="about_page_cta_title" render={({ field }) => (<FormItem><FormLabel>CTA Section Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />

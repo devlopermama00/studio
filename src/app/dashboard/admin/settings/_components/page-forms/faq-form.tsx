@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2, Trash2, PlusCircle } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const faqItemSchema = z.object({
   question: z.string().min(1, "Question is required."),
@@ -99,20 +100,31 @@ export function FaqForm() {
             
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <FormLabel>Q&A Items</FormLabel>
+                <h3 className="text-lg font-semibold">Q&A Items</h3>
                 <Button type="button" variant="outline" size="sm" onClick={() => append({ question: "", answer: "" })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
               </div>
-              <div className="space-y-4">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
-                    <div className="flex-1 space-y-4">
-                      <FormField name={`faq_page_items.${index}.question`} render={({ field }) => (<FormItem><FormLabel>Question</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-                      <FormField name={`faq_page_items.${index}.answer`} render={({ field }) => (<FormItem><FormLabel>Answer</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>)} />
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-              </div>
+               <Accordion type="multiple" className="w-full space-y-2">
+                {fields.map((field, index) => {
+                  const itemName = form.watch(`faq_page_items.${index}.question`);
+                  return (
+                  <AccordionItem value={`item-${index}`} key={field.id} className="border rounded-lg bg-secondary/50">
+                      <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                        <span className="font-semibold text-sm truncate pr-4">
+                            {itemName || `Q&A ${index + 1}`}
+                        </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        <div className="p-4 border-t flex gap-4 items-start">
+                            <div className="flex-1 space-y-4">
+                            <FormField name={`faq_page_items.${index}.question`} render={({ field }) => (<FormItem><FormLabel>Question</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                            <FormField name={`faq_page_items.${index}.answer`} render={({ field }) => (<FormItem><FormLabel>Answer</FormLabel><FormControl><Textarea {...field} /></FormControl></FormItem>)} />
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )})}
+              </Accordion>
             </div>
           </CardContent>
           <CardFooter className="border-t px-6 py-4">

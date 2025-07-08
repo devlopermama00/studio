@@ -19,6 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { uploadFile } from "@/services/fileUploader";
 import Image from 'next/image';
 import { slugify } from "@/lib/utils";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const discoverItemSchema = z.object({
     title: z.string().optional(),
@@ -224,7 +225,7 @@ export function HomepageSettingsForm() {
                 <CardContent className="space-y-8">
                     {/* Hero Section */}
                     <div className="space-y-4">
-                        <FormLabel className="text-lg font-semibold">Hero Section</FormLabel>
+                        <h3 className="text-lg font-semibold">Hero Section</h3>
                         <FormField name="homepage_hero_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore Georgia’s Best Day Tours" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_hero_subtitle" render={({ field }) => (<FormItem><FormLabel>Subtitle</FormLabel><FormControl><Input {...field} placeholder="Book trusted experiences with verified guides." /></FormControl><FormMessage /></FormItem>)} />
                         
@@ -279,7 +280,7 @@ export function HomepageSettingsForm() {
 
                     {/* Popular Tours Section */}
                      <div className="space-y-4">
-                        <FormLabel className="text-lg font-semibold">Popular Tours Section</FormLabel>
+                        <h3 className="text-lg font-semibold">Popular Tours Section</h3>
                         <FormField name="homepage_popular_tours_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Popular Tours" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_popular_tours_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Discover our most sought-after tours..." /></FormControl><FormMessage /></FormItem>)} />
                         <FormDescription>Select which tours appear on the homepage.</FormDescription>
@@ -321,7 +322,7 @@ export function HomepageSettingsForm() {
 
                     {/* Category Section */}
                     <div className="space-y-4">
-                        <FormLabel className="text-lg font-semibold">Browse by Category Section</FormLabel>
+                        <h3 className="text-lg font-semibold">Browse by Category Section</h3>
                         <FormField name="homepage_categories_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Browse by Category" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_categories_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Find the type of adventure that suits you best." /></FormControl><FormMessage /></FormItem>)} />
                         <div className="space-y-4 rounded-md border p-4">
@@ -394,36 +395,52 @@ export function HomepageSettingsForm() {
                     <div className="space-y-4">
                         <div className="flex justify-between items-start">
                              <div>
-                                <FormLabel className="text-lg font-semibold">"Discover" Section</FormLabel>
-                                <FormField name="homepage_discover_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Discover The World of Georgia With Us!" /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField name="homepage_discover_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Discover amazing places at exclusive deals Only with Us!" /></FormControl><FormMessage /></FormItem>)} />
+                                <h3 className="text-lg font-semibold">"Discover" Section</h3>
                             </div>
+                        </div>
+                        <FormField name="homepage_discover_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Discover The World of Georgia With Us!" /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="homepage_discover_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Discover amazing places at exclusive deals Only with Us!" /></FormControl><FormMessage /></FormItem>)} />
+                        
+                        <div className="flex justify-between items-center pt-2">
+                             <h4 className="font-medium">Discover Items</h4>
                             <Button type="button" variant="outline" size="sm" onClick={() => appendDiscover({ title: "", description: "", image: "", hint: "" })}>
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
                             </Button>
                         </div>
-                        <div className="space-y-4">
-                            {discoverFields.map((field, index) => (
-                                <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
-                                    <div className="flex-1 space-y-4">
-                                        <FormField name={`homepage_discover_items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                        <FormField name={`homepage_discover_items.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                         <FormField name={`homepage_discover_items.${index}.image`} render={({ field: formField }) => (
-                                            <FormItem>
-                                                <FormLabel>Image</FormLabel>
-                                                <div className="flex items-center gap-2">
-                                                    <Input placeholder="Image URL" {...formField} />
-                                                    <Input type="file" className="hidden" id={`discover-upload-${index}`} onChange={e => handleFileUpload(e.target.files?.[0] || null, `homepage_discover_items.${index}.image`, index)} />
-                                                    <Button asChild type="button" variant="outline"><label htmlFor={`discover-upload-${index}`}><Upload className="h-4 w-4" /></label></Button>
-                                                </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                         )} />
-                                    </div>
-                                    <Button type="button" variant="ghost" size="icon" className="text-red-500" onClick={() => removeDiscover(index)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                            ))}
-                        </div>
+                        <Accordion type="multiple" className="w-full space-y-2">
+                            {discoverFields.map((field, index) => {
+                                const itemName = form.watch(`homepage_discover_items.${index}.title`);
+                                return (
+                                <AccordionItem value={`item-${index}`} key={field.id} className="border rounded-lg bg-secondary/50">
+                                    <AccordionTrigger className="px-4 py-2 hover:no-underline">
+                                        <span className="font-semibold text-sm truncate pr-4">
+                                            {itemName || `Item ${index + 1}`}
+                                        </span>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <div className="p-4 border-t flex gap-4 items-start">
+                                            <div className="flex-1 space-y-4">
+                                                <FormField name={`homepage_discover_items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                <FormField name={`homepage_discover_items.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                                 <FormField name={`homepage_discover_items.${index}.image`} render={({ field: formField }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Image</FormLabel>
+                                                        <div className="flex items-center gap-2">
+                                                            <Input placeholder="Image URL" {...formField} />
+                                                            <Input type="file" className="hidden" id={`discover-upload-${index}`} onChange={e => handleFileUpload(e.target.files?.[0] || null, `homepage_discover_items.${index}.image`, index)} />
+                                                            <Button asChild type="button" variant="outline"><label htmlFor={`discover-upload-${index}`}><Upload className="h-4 w-4" /></label></Button>
+                                                        </div>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                 )} />
+                                            </div>
+                                            <Button type="button" variant="ghost" size="icon" className="text-red-500" onClick={() => removeDiscover(index)}><Trash2 className="h-4 w-4" /></Button>
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                )
+                            })}
+                        </Accordion>
                     </div>
 
                      <Separator />
@@ -431,7 +448,7 @@ export function HomepageSettingsForm() {
                     {/* Destinations Section */}
                      <div className="space-y-4">
                         <div>
-                            <FormLabel className="text-lg font-semibold">"Explore by Destination" Section</FormLabel>
+                            <h3 className="text-lg font-semibold">"Explore by Destination" Section</h3>
                             <FormField name="homepage_destinations_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore by Destination" /></FormControl><FormMessage /></FormItem>)} />
                             <FormField name="homepage_destinations_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="From the vibrant capital to the serene mountains..." /></FormControl><FormMessage /></FormItem>)} />
                         </div>
@@ -441,7 +458,7 @@ export function HomepageSettingsForm() {
 
                     {/* Offers Section */}
                     <div className="space-y-4">
-                        <FormLabel className="text-lg font-semibold">Offers Banner</FormLabel>
+                        <h3 className="text-lg font-semibold">Offers Banner</h3>
                         <FormField name="homepage_offers_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Don't Miss Our Special Offers!" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_offers_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Get up to 20% off on select tours this month..." /></FormControl><FormMessage /></FormItem>)} />
                     </div>
@@ -450,7 +467,7 @@ export function HomepageSettingsForm() {
 
                      {/* Newsletter Section */}
                     <div className="space-y-4">
-                        <FormLabel className="text-lg font-semibold">Newsletter Section</FormLabel>
+                        <h3 className="text-lg font-semibold">Newsletter Section</h3>
                         <FormField name="homepage_newsletter_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Subscribe to Our Newsletter" /></FormControl><FormMessage /></FormItem>)} />
                         <FormField name="homepage_newsletter_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Get the latest news, updates, and special offers..." /></FormControl><FormMessage /></FormItem>)} />
                     </div>
