@@ -1,9 +1,30 @@
 
 import { TourVistaLogo } from "@/components/logo";
 import Link from "next/link";
-import { Facebook, Twitter, Instagram } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { Button } from "./ui/button";
 import { getSettings } from "@/lib/settings-data";
+import React from "react";
+
+// Inline SVG component for Pinterest icon
+const PinterestIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M8 20l4 -9" />
+    <path d="M10.7 14c.437 1.263 1.43 2 2.55 2c2.071 0 3.75 -1.554 3.75 -4a5 5 0 1 0 -9.7 1.7" />
+    <circle cx="12" cy="12" r="9" />
+  </svg>
+);
 
 export async function SiteFooter() {
   const settings = await getSettings();
@@ -12,6 +33,8 @@ export async function SiteFooter() {
   const facebookUrl = settings.footer_facebook_url;
   const twitterUrl = settings.footer_twitter_url;
   const instagramUrl = settings.footer_instagram_url;
+  const pinterestUrl = settings.footer_pinterest_url;
+  const linkedinUrl = settings.footer_linkedin_url;
   const copyrightText = settings.footer_copyright_text || `© ${new Date().getFullYear()} TourVista Georgia. All rights reserved.`;
 
   return (
@@ -38,6 +61,16 @@ export async function SiteFooter() {
                {instagramUrl && (
                 <Button variant="ghost" size="icon" asChild>
                   <Link href={instagramUrl} target="_blank" rel="noopener noreferrer"><Instagram className="h-5 w-5" /></Link>
+                </Button>
+              )}
+               {pinterestUrl && (
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href={pinterestUrl} target="_blank" rel="noopener noreferrer"><PinterestIcon className="h-5 w-5" /></Link>
+                </Button>
+              )}
+               {linkedinUrl && (
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href={linkedinUrl} target="_blank" rel="noopener noreferrer"><Linkedin className="h-5 w-5" /></Link>
                 </Button>
               )}
             </div>

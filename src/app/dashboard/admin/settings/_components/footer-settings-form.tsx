@@ -20,6 +20,8 @@ const footerSettingsSchema = z.object({
   footer_facebook_url: z.string().url().or(z.literal('')).optional(),
   footer_twitter_url: z.string().url().or(z.literal('')).optional(),
   footer_instagram_url: z.string().url().or(z.literal('')).optional(),
+  footer_pinterest_url: z.string().url().or(z.literal('')).optional(),
+  footer_linkedin_url: z.string().url().or(z.literal('')).optional(),
   footer_copyright_text: z.string().optional(),
 });
 
@@ -37,6 +39,8 @@ export function FooterSettingsForm() {
             footer_facebook_url: "",
             footer_twitter_url: "",
             footer_instagram_url: "",
+            footer_pinterest_url: "",
+            footer_linkedin_url: "",
             footer_copyright_text: "",
         },
     });
@@ -88,10 +92,12 @@ export function FooterSettingsForm() {
                      <div className="space-y-4">
                         <FormLabel>Social Media Links</FormLabel>
                         <CardDescription>Leave a field blank to hide the icon.</CardDescription>
-                         <div className="grid md:grid-cols-3 gap-4">
+                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                             <FormField name="footer_facebook_url" render={({ field }) => (<FormItem><FormLabel>Facebook URL</FormLabel><FormControl><Input {...field} placeholder="https://facebook.com/..." /></FormControl><FormMessage /></FormItem>)} />
                             <FormField name="footer_twitter_url" render={({ field }) => (<FormItem><FormLabel>Twitter (X) URL</FormLabel><FormControl><Input {...field} placeholder="https://twitter.com/..." /></FormControl><FormMessage /></FormItem>)} />
                             <FormField name="footer_instagram_url" render={({ field }) => (<FormItem><FormLabel>Instagram URL</FormLabel><FormControl><Input {...field} placeholder="https://instagram.com/..." /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="footer_pinterest_url" render={({ field }) => (<FormItem><FormLabel>Pinterest URL</FormLabel><FormControl><Input {...field} placeholder="https://pinterest.com/..." /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="footer_linkedin_url" render={({ field }) => (<FormItem><FormLabel>LinkedIn URL</FormLabel><FormControl><Input {...field} placeholder="https://linkedin.com/..." /></FormControl><FormMessage /></FormItem>)} />
                          </div>
                      </div>
                      <FormField name="footer_copyright_text" render={({ field }) => (<FormItem><FormLabel>Copyright Text</FormLabel><FormControl><Input {...field} placeholder={`© ${new Date().getFullYear()} TourVista Georgia. All rights reserved.`} /></FormControl><FormMessage /></FormItem>)} />
