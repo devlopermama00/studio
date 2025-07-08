@@ -141,19 +141,20 @@ export function SiteHeader() {
   
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-20 items-center justify-between px-4">
+      <div className="container mx-auto flex h-20 items-center px-4">
         <div className="flex items-center gap-6">
           <TourVistaLogo onClick={() => isMenuOpen && setIsMenuOpen(false)} />
           <nav className="hidden items-center gap-6 lg:flex">
              {navLinks.map((link) => {
-              const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+              const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href) && link.href !== "/";
+              const isHomeActive = link.href === "/" && pathname === "/";
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
                     "text-sm font-medium transition-colors hover:text-primary",
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    isActive || isHomeActive ? "text-primary" : "text-muted-foreground"
                   )}
                 >
                   {link.label}
@@ -163,7 +164,7 @@ export function SiteHeader() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-1 items-center justify-end gap-2">
             <div className="hidden lg:flex items-center">
                 <CurrencySelector />
                 <AuthButtons />
@@ -188,7 +189,8 @@ export function SiteHeader() {
                   </SheetHeader>
                   <div className="flex flex-col space-y-4">
                     {navLinks.map((link) => {
-                      const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+                      const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href) && link.href !== "/";
+                      const isHomeActive = link.href === "/" && pathname === "/";
                       return (
                         <Link
                           key={link.href}
@@ -196,7 +198,7 @@ export function SiteHeader() {
                           onClick={() => setIsMenuOpen(false)}
                           className={cn(
                             "text-lg font-medium transition-colors hover:text-primary",
-                            isActive ? "text-primary" : "text-muted-foreground"
+                            isActive || isHomeActive ? "text-primary" : "text-muted-foreground"
                           )}
                         >
                           {link.label}
