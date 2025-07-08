@@ -28,6 +28,7 @@ import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
+import { useSettings } from "@/context/providers";
 
 interface AuthUser {
   id: string;
@@ -261,6 +262,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [open, setOpen] = React.useState(true);
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const settings = useSettings();
   
   React.useEffect(() => {
     const fetchUser = async () => {
@@ -341,7 +343,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <SidebarProvider open={open} onOpenChange={setOpen} defaultOpen>
       <Sidebar>
         <SidebarHeader>
-          <TourVistaLogo />
+          <TourVistaLogo logoUrl={settings.logoUrl} siteName={settings.siteName} />
         </SidebarHeader>
         <SidebarContent className="p-2">
             {user.role === 'admin' ? <AdminNav /> : <UserNav user={user} />}

@@ -44,7 +44,7 @@ export async function SiteFooter() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           
           <div className="space-y-4">
-            <TourVistaLogo />
+            <TourVistaLogo logoUrl={settings.logoUrl} siteName={settings.siteName} />
             {footerTitle && <h3 className="font-headline font-semibold text-lg pt-2">{footerTitle}</h3>}
             <p className="text-sm text-muted-foreground max-w-xs">
               {description}

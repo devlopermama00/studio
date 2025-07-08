@@ -15,7 +15,7 @@ export function TourSearchForm() {
     const searchParams = useSearchParams();
 
     const [query, setQuery] = useState(searchParams.get('query') || '');
-    const [category, setCategory] = useState(searchParams.get('category') || '');
+    const [category, setCategory] = useState(searchParams.get('category') || 'all');
     const [categories, setCategories] = useState<Category[]>([]);
 
     useEffect(() => {
@@ -35,7 +35,7 @@ export function TourSearchForm() {
         if (query) {
             params.set('query', query);
         }
-        if (category) {
+        if (category && category !== 'all') {
             params.set('category', category);
         }
         router.push(`/tours?${params.toString()}`);
@@ -61,7 +61,7 @@ export function TourSearchForm() {
               <SelectValue placeholder="Any category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Any category</SelectItem>
+              <SelectItem value="all">Any category</SelectItem>
               {categories.map(cat => (
                 <SelectItem key={cat.id} value={slugify(cat.name)}>{cat.name}</SelectItem>
               ))}
