@@ -1,9 +1,19 @@
+
 import { TourVistaLogo } from "@/components/logo";
 import Link from "next/link";
 import { Facebook, Twitter, Instagram } from "lucide-react";
 import { Button } from "./ui/button";
+import { getSettings } from "@/lib/settings-data";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const settings = await getSettings();
+
+  const description = settings.footer_description || "Your gateway to unforgettable adventures in the heart of the Caucasus.";
+  const facebookUrl = settings.footer_facebook_url;
+  const twitterUrl = settings.footer_twitter_url;
+  const instagramUrl = settings.footer_instagram_url;
+  const copyrightText = settings.footer_copyright_text || `© ${new Date().getFullYear()} TourVista Georgia. All rights reserved.`;
+
   return (
     <footer className="bg-secondary text-secondary-foreground">
       <div className="container mx-auto px-4 py-12">
@@ -12,18 +22,24 @@ export function SiteFooter() {
           <div className="space-y-4">
             <TourVistaLogo />
             <p className="text-sm text-muted-foreground max-w-xs">
-              Your gateway to unforgettable adventures in the heart of the Caucasus.
+              {description}
             </p>
             <div className="flex space-x-2">
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="#"><Facebook className="h-5 w-5" /></Link>
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="#"><Twitter className="h-5 w-5" /></Link>
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="#"><Instagram className="h-5 w-5" /></Link>
-              </Button>
+              {facebookUrl && (
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href={facebookUrl} target="_blank" rel="noopener noreferrer"><Facebook className="h-5 w-5" /></Link>
+                </Button>
+              )}
+               {twitterUrl && (
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href={twitterUrl} target="_blank" rel="noopener noreferrer"><Twitter className="h-5 w-5" /></Link>
+                </Button>
+              )}
+               {instagramUrl && (
+                <Button variant="ghost" size="icon" asChild>
+                  <Link href={instagramUrl} target="_blank" rel="noopener noreferrer"><Instagram className="h-5 w-5" /></Link>
+                </Button>
+              )}
             </div>
           </div>
           
@@ -62,7 +78,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 TourVista Georgia. All rights reserved.</p>
+          <p>{copyrightText}</p>
         </div>
       </div>
     </footer>
