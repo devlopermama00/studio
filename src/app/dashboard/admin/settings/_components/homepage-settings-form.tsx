@@ -21,16 +21,16 @@ import Image from 'next/image';
 import { slugify } from "@/lib/utils";
 
 const discoverItemSchema = z.object({
-    title: z.string().min(1, "Title is required"),
-    description: z.string().min(1, "Description is required"),
-    image: z.string().min(1, "Image URL is required"),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    image: z.string().optional(),
     hint: z.string().optional(),
 });
 
 const destinationItemSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    description: z.string().min(1, "Description is required"),
-    image: z.string().min(1, "Image URL is required"),
+    name: z.string().optional(),
+    description: z.string().optional(),
+    image: z.string().optional(),
     hint: z.string().optional(),
 });
 
@@ -170,7 +170,6 @@ export function HomepageSettingsForm() {
             const url = await uploadFile(file, 'homepage-assets');
             form.setValue('homepage_hero_image', url, { shouldValidate: true });
 
-            // Save this single setting immediately
             const response = await fetch('/api/admin/settings', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -189,10 +188,20 @@ export function HomepageSettingsForm() {
     const handleSave = async (values: HomepageSettingsValues) => {
         setIsSaving(true);
         try {
+            const filteredValues = {
+                ...values,
+                homepage_discover_items: values.homepage_discover_items?.filter(
+                    item => item.title && item.description && item.image
+                ),
+                homepage_destinations: values.homepage_destinations?.filter(
+                    item => item.name && item.description && item.image
+                ),
+            };
+
             const response = await fetch('/api/admin/settings', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(values),
+                body: JSON.stringify(filteredValues),
             });
             if (!response.ok) throw new Error("Failed to save homepage settings.");
 
