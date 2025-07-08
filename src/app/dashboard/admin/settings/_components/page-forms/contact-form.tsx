@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -38,7 +39,17 @@ export function ContactForm() {
 
   const form = useForm<ContactPageValues>({
     resolver: zodResolver(contactPageSchema),
-    defaultValues: {},
+    defaultValues: {
+        contact_page_title: "",
+        contact_page_description: "",
+        contact_page_hero_image: "",
+        contact_page_hero_bg: "",
+        contact_info_title: "",
+        contact_info_description: "",
+        contact_page_email: "",
+        contact_page_phone: "",
+        contact_page_address: "",
+    },
   });
 
   useEffect(() => {
@@ -47,7 +58,17 @@ export function ContactForm() {
         const res = await fetch('/api/admin/settings');
         if (!res.ok) throw new Error("Failed to fetch settings.");
         const data = await res.json();
-        form.reset(data);
+        form.reset({
+            contact_page_title: data.contact_page_title || "",
+            contact_page_description: data.contact_page_description || "",
+            contact_page_hero_image: data.contact_page_hero_image || "",
+            contact_page_hero_bg: data.contact_page_hero_bg || "",
+            contact_info_title: data.contact_info_title || "",
+            contact_info_description: data.contact_info_description || "",
+            contact_page_email: data.contact_page_email || "",
+            contact_page_phone: data.contact_page_phone || "",
+            contact_page_address: data.contact_page_address || "",
+        });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not load settings." });
       } finally {

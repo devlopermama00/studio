@@ -113,7 +113,26 @@ export function HomepageSettingsForm() {
 
                 if (!settingsRes.ok) throw new Error("Failed to fetch settings.");
                 const settingsData = await settingsRes.json();
-                form.reset(settingsData);
+                form.reset({
+                    homepage_hero_image: settingsData.homepage_hero_image || "",
+                    homepage_hero_title: settingsData.homepage_hero_title || "",
+                    homepage_hero_subtitle: settingsData.homepage_hero_subtitle || "",
+                    homepage_popular_tours_title: settingsData.homepage_popular_tours_title || "",
+                    homepage_popular_tours_description: settingsData.homepage_popular_tours_description || "",
+                    homepage_popular_tours: settingsData.homepage_popular_tours || [],
+                    homepage_categories_title: settingsData.homepage_categories_title || "",
+                    homepage_categories_description: settingsData.homepage_categories_description || "",
+                    homepage_category_config: settingsData.homepage_category_config || {},
+                    homepage_discover_title: settingsData.homepage_discover_title || "",
+                    homepage_discover_description: settingsData.homepage_discover_description || "",
+                    homepage_discover_items: settingsData.homepage_discover_items || [],
+                    homepage_destinations_title: settingsData.homepage_destinations_title || "",
+                    homepage_destinations_description: settingsData.homepage_destinations_description || "",
+                    homepage_offers_title: settingsData.homepage_offers_title || "",
+                    homepage_offers_description: settingsData.homepage_offers_description || "",
+                    homepage_newsletter_title: settingsData.homepage_newsletter_title || "",
+                    homepage_newsletter_description: settingsData.homepage_newsletter_description || "",
+                });
                 
                 if (!toursRes.ok) throw new Error("Failed to fetch tours.");
                 const toursData = await toursRes.json();

@@ -53,7 +53,16 @@ export function FooterSettingsForm() {
                 const settingsRes = await fetch('/api/admin/settings');
                 if (!settingsRes.ok) throw new Error("Failed to fetch settings.");
                 const settingsData = await settingsRes.json();
-                form.reset(settingsData);
+                form.reset({
+                    footer_title: settingsData.footer_title || "",
+                    footer_description: settingsData.footer_description || "",
+                    footer_facebook_url: settingsData.footer_facebook_url || "",
+                    footer_twitter_url: settingsData.footer_twitter_url || "",
+                    footer_instagram_url: settingsData.footer_instagram_url || "",
+                    footer_pinterest_url: settingsData.footer_pinterest_url || "",
+                    footer_linkedin_url: settingsData.footer_linkedin_url || "",
+                    footer_copyright_text: settingsData.footer_copyright_text || "",
+                });
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: "Could not load settings data." });
             } finally {

@@ -29,7 +29,11 @@ export function LegalPagesForm() {
 
   const form = useForm<LegalPagesValues>({
     resolver: zodResolver(legalPagesSchema),
-    defaultValues: {},
+    defaultValues: {
+        terms_page_content: "",
+        privacy_page_content: "",
+        cancellation_page_content: "",
+    },
   });
 
   useEffect(() => {
@@ -38,7 +42,11 @@ export function LegalPagesForm() {
         const res = await fetch('/api/admin/settings');
         if (!res.ok) throw new Error("Failed to fetch settings.");
         const data = await res.json();
-        form.reset(data);
+        form.reset({
+            terms_page_content: data.terms_page_content || "",
+            privacy_page_content: data.privacy_page_content || "",
+            cancellation_page_content: data.cancellation_page_content || "",
+        });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not load settings." });
       } finally {

@@ -34,7 +34,11 @@ export function FaqForm() {
 
   const form = useForm<FaqPageValues>({
     resolver: zodResolver(faqPageSchema),
-    defaultValues: { faq_page_items: [] },
+    defaultValues: {
+        faq_page_title: "",
+        faq_page_description: "",
+        faq_page_items: []
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -48,7 +52,11 @@ export function FaqForm() {
         const res = await fetch('/api/admin/settings');
         if (!res.ok) throw new Error("Failed to fetch settings.");
         const data = await res.json();
-        form.reset(data);
+        form.reset({
+            faq_page_title: data.faq_page_title || "",
+            faq_page_description: data.faq_page_description || "",
+            faq_page_items: data.faq_page_items || [],
+        });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not load settings." });
       } finally {

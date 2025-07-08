@@ -71,7 +71,19 @@ export function AboutForm() {
         const res = await fetch('/api/admin/settings');
         if (!res.ok) throw new Error("Failed to fetch settings.");
         const data = await res.json();
-        form.reset(data);
+        form.reset({
+            about_page_hero_image: data.about_page_hero_image || "",
+            about_page_hero_title: data.about_page_hero_title || "",
+            about_page_intro_title: data.about_page_intro_title || "",
+            about_page_intro_desc: data.about_page_intro_desc || "",
+            about_page_features_title: data.about_page_features_title || "",
+            about_page_features: data.about_page_features || [],
+            about_page_why_choose_us_title: data.about_page_why_choose_us_title || "",
+            about_page_why_choose_us_description: data.about_page_why_choose_us_description || "",
+            about_page_why_choose_us_items: data.about_page_why_choose_us_items || [],
+            about_page_cta_title: data.about_page_cta_title || "",
+            about_page_cta_desc: data.about_page_cta_desc || "",
+        });
       } catch (error) {
         toast({ variant: "destructive", title: "Error", description: "Could not load settings." });
       } finally {

@@ -40,7 +40,10 @@ export function BlogSettingsForm() {
                 const settingsRes = await fetch('/api/admin/settings');
                 if (!settingsRes.ok) throw new Error("Failed to fetch settings.");
                 const settingsData = await settingsRes.json();
-                form.reset(settingsData);
+                form.reset({
+                    blog_page_title: settingsData.blog_page_title || "",
+                    blog_page_description: settingsData.blog_page_description || "",
+                });
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: "Could not load settings data." });
             } finally {

@@ -55,7 +55,11 @@ export function DestinationsSettingsForm() {
                 const settingsRes = await fetch('/api/admin/settings');
                 if (!settingsRes.ok) throw new Error("Failed to fetch settings.");
                 const settingsData = await settingsRes.json();
-                form.reset(settingsData);
+                form.reset({
+                    destinations_page_title: settingsData.destinations_page_title || "",
+                    destinations_page_description: settingsData.destinations_page_description || "",
+                    destinations_page_items: settingsData.destinations_page_items || [],
+                });
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: "Could not load settings data." });
             } finally {
