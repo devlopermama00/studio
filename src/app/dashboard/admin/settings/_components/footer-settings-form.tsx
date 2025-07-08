@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 
 const footerSettingsSchema = z.object({
+  footer_title: z.string().optional(),
   footer_description: z.string().optional(),
   footer_facebook_url: z.string().url().or(z.literal('')).optional(),
   footer_twitter_url: z.string().url().or(z.literal('')).optional(),
@@ -35,6 +36,7 @@ export function FooterSettingsForm() {
     const form = useForm<FooterSettingsValues>({
         resolver: zodResolver(footerSettingsSchema),
         defaultValues: {
+            footer_title: "",
             footer_description: "",
             footer_facebook_url: "",
             footer_twitter_url: "",
@@ -88,6 +90,7 @@ export function FooterSettingsForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSave)}>
                 <CardContent className="space-y-8">
+                     <FormField name="footer_title" render={({ field }) => (<FormItem><FormLabel>Footer Title</FormLabel><FormControl><Input {...field} placeholder="DayTourGuides" /></FormControl><FormMessage /></FormItem>)} />
                      <FormField name="footer_description" render={({ field }) => (<FormItem><FormLabel>Footer Description</FormLabel><FormControl><Textarea {...field} placeholder="Your gateway to unforgettable adventures..." /></FormControl><FormMessage /></FormItem>)} />
                      <div className="space-y-4">
                         <FormLabel>Social Media Links</FormLabel>

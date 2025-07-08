@@ -29,6 +29,7 @@ const PinterestIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export async function SiteFooter() {
   const settings = await getSettings();
 
+  const footerTitle = settings.footer_title;
   const description = settings.footer_description || "Your gateway to unforgettable adventures in the heart of the Caucasus.";
   const facebookUrl = settings.footer_facebook_url;
   const twitterUrl = settings.footer_twitter_url;
@@ -44,6 +45,7 @@ export async function SiteFooter() {
           
           <div className="space-y-4">
             <TourVistaLogo />
+            {footerTitle && <h3 className="font-headline font-semibold text-lg pt-2">{footerTitle}</h3>}
             <p className="text-sm text-muted-foreground max-w-xs">
               {description}
             </p>
