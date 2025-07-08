@@ -9,11 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, Trash2, PlusCircle, ShieldCheck, CalendarCheck, Sparkles, Globe, MousePointerClick, Star } from "lucide-react";
+import { Loader2, Trash2, PlusCircle, ShieldCheck, CalendarCheck, Sparkles, Globe, MousePointerClick, Star, Upload } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { uploadFile } from "@/services/fileUploader";
+import Image from "next/image";
 
 const featureSchema = z.object({
   icon: z.string().min(1, "Icon is required."),
@@ -22,6 +24,7 @@ const featureSchema = z.object({
 });
 
 const aboutPageSchema = z.object({
+  about_page_hero_image: z.string().optional(),
   about_page_hero_title: z.string().optional(),
   about_page_intro_title: z.string().optional(),
   about_page_intro_desc: z.string().optional(),
@@ -42,6 +45,7 @@ export function AboutForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const form = useForm<AboutPageValues>({
     resolver: zodResolver(aboutPageSchema),
@@ -76,6 +80,27 @@ export function AboutForm() {
     };
     fetchData();
   }, [form, toast]);
+  
+  const handleHeroImageUpload = async (file: File | null) => {
+    if (!file) return;
+    setIsUploading(true);
+    try {
+        const url = await uploadFile(file, 'about-page-assets');
+        form.setValue('about_page_hero_image', url, { shouldValidate: true });
+        // Save immediately
+        const response = await fetch('/api/admin/settings', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ about_page_hero_image: url }),
+        });
+        if (!response.ok) throw new Error("Failed to save hero image.");
+        toast({ title: "Success", description: "Hero image updated." });
+    } catch (error) {
+        toast({ variant: "destructive", title: "Upload Failed", description: "Could not upload hero image." });
+    } finally {
+        setIsUploading(false);
+    }
+  };
 
   const handleSave = async (values: AboutPageValues) => {
     setIsSaving(true);
@@ -105,6 +130,48 @@ export function AboutForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSave)}>
           <CardContent className="space-y-6">
+            <FormField
+              control={form.control}
+              name="about_page_hero_image"
+              render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Hero Background Image</FormLabel>
+                  <div className="flex items-center gap-2">
+                  <Input
+                      readOnly
+                      placeholder="Upload an image to see URL"
+                      value={field.value || ''}
+                      className="flex-1 bg-muted"
+                  />
+                  <FormControl>
+                      <Button asChild type="button" variant="outline">
+                      <label htmlFor="about-hero-image-upload" className="cursor-pointer flex items-center">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Upload
+                          <Input
+                          id="about-hero-image-upload"
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => handleHeroImageUpload(e.target.files?.[0] || null)}
+                          disabled={isUploading}
+                          />
+                      </label>
+                      </Button>
+                  </FormControl>
+                  </div>
+                  {isUploading && <Loader2 className="h-5 w-5 animate-spin my-2" />}
+                  
+                  {field.value && !isUploading && (
+                  <div className="mt-2 relative w-full max-w-sm aspect-video">
+                      <Image src={field.value} alt="Hero preview" fill className="rounded-md object-cover" />
+                  </div>
+                  )}
+                  <FormDescription>Upload an image for the hero section background. The image is saved automatically upon successful upload.</FormDescription>
+                  <FormMessage />
+              </FormItem>
+              )}
+            />
             <FormField name="about_page_hero_title" render={({ field }) => (<FormItem><FormLabel>Hero Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
             <Separator/>
             <FormField name="about_page_intro_title" render={({ field }) => (<FormItem><FormLabel>Intro Section Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
@@ -156,8 +223,8 @@ export function AboutForm() {
 
           </CardContent>
           <CardFooter className="border-t px-6 py-4">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save About Page
+            <Button type="submit" disabled={isSaving || isUploading}>
+              {(isSaving || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save About Page
             </Button>
           </CardFooter>
         </form>

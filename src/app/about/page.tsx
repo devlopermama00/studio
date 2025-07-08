@@ -21,6 +21,7 @@ const iconMap = {
 };
 
 const defaultContent = {
+  hero_image: "https://placehold.co/1600x600.png",
   hero_title: "About TourVista",
   intro_title: "Your Journey Begins Here",
   intro_desc: "At TourVista, we’ve been proudly delivering guaranteed tours across Georgia for over two years, helping travelers from around the world discover the magic of this breathtaking country.",
@@ -60,6 +61,7 @@ export default async function AboutPage() {
   const reviews = await getPublicReviews(9);
   const settings = await getSettings();
   const content = {
+      hero_image: settings.about_page_hero_image || defaultContent.hero_image,
       hero_title: settings.about_page_hero_title || defaultContent.hero_title,
       intro_title: settings.about_page_intro_title || defaultContent.intro_title,
       intro_desc: settings.about_page_intro_desc || defaultContent.intro_desc,
@@ -81,7 +83,7 @@ export default async function AboutPage() {
         <section className="relative h-[40vh] flex items-center justify-center text-center text-white">
           <div className="absolute inset-0 bg-black/50 z-10" />
           <Image
-            src="https://placehold.co/1600x600.png"
+            src={content.hero_image}
             alt="Team of TourVista guides"
             fill
             style={{ objectFit: "cover" }}
