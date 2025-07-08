@@ -6,14 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GeneralSettingsForm } from "./_components/general-settings-form";
 import { HomepageSettingsForm } from "./_components/homepage-settings-form";
 import { DestinationsSettingsForm } from "./_components/destinations-settings-form";
+import { BlogSettingsForm } from "./_components/blog-settings-form";
 
 export default function AdminSettingsPage() {
     return (
         <Tabs defaultValue="general">
-            <TabsList className="grid w-full max-w-lg grid-cols-3">
+            <TabsList className="grid w-full max-w-xl grid-cols-4">
                 <TabsTrigger value="general">General</TabsTrigger>
                 <TabsTrigger value="homepage">Homepage</TabsTrigger>
                 <TabsTrigger value="destinations">Destinations</TabsTrigger>
+                <TabsTrigger value="blog">Blog</TabsTrigger>
             </TabsList>
             <TabsContent value="general" className="mt-6">
                  <Card>
@@ -40,6 +42,15 @@ export default function AdminSettingsPage() {
                         <CardDescription>Manage the content for the main /destinations page.</CardDescription>
                     </CardHeader>
                     <DestinationsSettingsForm />
+                </Card>
+            </TabsContent>
+            <TabsContent value="blog" className="mt-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Blog Page</CardTitle>
+                        <CardDescription>Manage the content for the main /blog page.</CardDescription>
+                    </CardHeader>
+                    <BlogSettingsForm />
                 </Card>
             </TabsContent>
         </Tabs>

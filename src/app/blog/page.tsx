@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { getPublishedBlogPosts } from "@/lib/blog-data";
+import { getSettings } from "@/lib/settings-data";
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,10 @@ const BlogCard = ({ post }: { post: any }) => (
 
 export default async function BlogPage() {
   const posts = await getPublishedBlogPosts();
+  const settings = await getSettings();
+
+  const pageTitle = settings.blog_page_title || "TourVista Georgia Blog";
+  const pageDescription = settings.blog_page_description || "Travel tips, destination guides, and stories from the heart of Georgia.";
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -49,10 +54,10 @@ export default async function BlogPage() {
           <div className="container mx-auto px-4">
             <Rss className="mx-auto h-12 w-12 text-primary mb-4" />
             <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">
-              TourVista Georgia Blog
+              {pageTitle}
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Travel tips, destination guides, and stories from the heart of Georgia.
+              {pageDescription}
             </p>
           </div>
         </section>
