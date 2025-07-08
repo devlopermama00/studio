@@ -52,6 +52,16 @@ export async function POST(req: NextRequest) {
         return new NextResponse('Webhook Error: Missing metadata.', { status: 400 });
       }
 
+      // Robustly get payment intent ID
+      const paymentIntentId = typeof session.payment_intent === 'string'
+          ? session.payment_intent
+          : session.payment_intent?.id;
+      
+      if (!paymentIntentId) {
+        console.error('Webhook Error: Could not extract Payment Intent ID from session.');
+        return new NextResponse('Webhook Error: Missing Payment Intent ID.', { status: 400 });
+      }
+
       try {
         await dbConnect();
         
@@ -61,7 +71,7 @@ export async function POST(req: NextRequest) {
           bookingDate: new Date(bookingDate),
           guests: parseInt(guests, 10),
           totalPrice: parseFloat(totalPrice),
-          paymentId: session.payment_intent, 
+          paymentId: paymentIntentId, 
           status: 'confirmed',
         });
 
