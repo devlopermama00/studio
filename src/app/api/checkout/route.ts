@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
         const isOfferActive = tour.discountPrice && tour.discountPrice > 0 && tour.offerExpiresAt && new Date(tour.offerExpiresAt) > now;
         const finalPricePerGuest = isOfferActive ? tour.discountPrice : tour.price;
         const totalPrice = finalPricePerGuest * guests;
+        
+        const requestUrl = new URL(request.url);
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}`;
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -62,8 +65,8 @@ export async function POST(request: NextRequest) {
                 },
             ],
             mode: 'payment',
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: request.headers.get('referer') || `${process.env.NEXT_PUBLIC_APP_URL}/tours/${tourId}`,
+            success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: request.headers.get('referer') || `${appUrl}/tours/${tourId}`,
             customer_email: user.email,
             metadata: {
                 tourId: tour._id.toString(),
