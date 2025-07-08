@@ -61,7 +61,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseW
             lastMessage: newMessage._id,
         });
 
-        const populatedMessage = await Message.findById(newMessage._id).populate('sender', 'name email role profilePhoto');
+        const populatedMessage = await Message.findById(newMessage._id)
+            .populate('sender', 'name email role profilePhoto')
+            .lean();
 
         // Broadcast to all clients in the room, including the sender
         io.to(conversationId).emit('receive_message', populatedMessage);
