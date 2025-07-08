@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -125,10 +124,15 @@ export function GeneralSettingsForm() {
         try {
             const uploadedUrl = await uploadFile(file, 'site-assets');
             
+            const payload = { 
+                faviconUrl: uploadedUrl,
+                faviconVersion: Date.now().toString()
+            };
+
             const response = await fetch('/api/admin/settings', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ faviconUrl: uploadedUrl }),
+                body: JSON.stringify(payload),
             });
             if (!response.ok) throw new Error("Failed to save new favicon.");
 
