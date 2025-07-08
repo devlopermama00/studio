@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { getSettings } from "@/lib/settings-data";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 const defaultContent = {
   title: "Get in Touch",
@@ -17,6 +19,8 @@ const defaultContent = {
   email: "contact@tourvista.ge",
   phone: "+995 123 456 789",
   address: "123 Freedom Square, Tbilisi, Georgia",
+  hero_image: null,
+  hero_bg: null,
 };
 
 const ContactInfoItem = ({ icon: Icon, title, value, href }: { icon: React.ElementType, title: string, value: string, href: string }) => (
@@ -42,19 +46,41 @@ export default async function ContactPage() {
     email: settings.contact_page_email || defaultContent.email,
     phone: settings.contact_page_phone || defaultContent.phone,
     address: settings.contact_page_address || defaultContent.address,
+    hero_image: settings.contact_page_hero_image || defaultContent.hero_image,
+    hero_bg: settings.contact_page_hero_bg || defaultContent.hero_bg,
   };
 
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1 bg-background">
-        <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-20 text-center">
-            <div className="container mx-auto px-4">
-                <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">{content.title}</h1>
-                <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-                    {content.description}
-                </p>
-            </div>
+        <section
+          className="relative text-primary-foreground py-20 text-center"
+          style={!content.hero_image && content.hero_bg ? { backgroundColor: `hsl(${content.hero_bg})` } : {}}
+        >
+          {content.hero_image ? (
+            <>
+              <div className="absolute inset-0 bg-black/50 z-10" />
+              <Image
+                src={content.hero_image}
+                alt="Contact us background"
+                fill
+                style={{ objectFit: 'cover' }}
+                className="z-0"
+                priority
+                data-ai-hint="contact people"
+              />
+            </>
+          ) : (
+            <div className={cn(!content.hero_bg && "bg-gradient-to-r from-primary to-accent", "absolute inset-0")} />
+          )}
+
+          <div className="relative z-20 container mx-auto px-4">
+              <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">{content.title}</h1>
+              <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
+                  {content.description}
+              </p>
+          </div>
         </section>
 
         <section className="py-16 md:py-24">

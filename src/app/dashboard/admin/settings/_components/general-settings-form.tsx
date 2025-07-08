@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 import { uploadFile } from "@/services/fileUploader";
 import Image from "next/image";
+import { HslColorInput } from "@/components/ui/hsl-color-input";
 
 const settingsFormSchema = z.object({
   siteName: z.string().min(3, "Site name must be at least 3 characters.").optional(),
@@ -127,10 +128,10 @@ export function GeneralSettingsForm() {
                     )} />
                     <div className="grid md:grid-cols-2 gap-4">
                         <FormField name="primaryColor" render={({ field }) => (
-                            <FormItem><FormLabel>Primary Color (HSL)</FormLabel><FormControl><Input {...field} placeholder="e.g. 204 75% 50%" /></FormControl><FormDescription>Changes the main brand color of the site.</FormDescription><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Primary Color (HSL)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g. 204 75% 50%" /></FormControl><FormDescription>Changes the main brand color of the site.</FormDescription><FormMessage /></FormItem>
                         )} />
                         <FormField name="accentColor" render={({ field }) => (
-                            <FormItem><FormLabel>Accent Color (HSL)</FormLabel><FormControl><Input {...field} placeholder="e.g. 174 50% 50%" /></FormControl><FormDescription>Used for highlights and secondary elements.</FormDescription><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Accent Color (HSL)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g. 174 50% 50%" /></FormControl><FormDescription>Used for highlights and secondary elements.</FormDescription><FormMessage /></FormItem>
                         )} />
                     </div>
                 </CardContent>
