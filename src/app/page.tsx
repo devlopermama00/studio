@@ -43,15 +43,10 @@ export default async function Home() {
 
   const destinationsTitle = settings.homepage_destinations_title || "Explore by Destination";
   const destinationsDescription = settings.homepage_destinations_description || "From the vibrant capital to the serene mountains, find tours in your favorite part of Georgia.";
-  const destinations = settings.homepage_destinations?.length > 0 ? settings.homepage_destinations : [
+  const destinations = settings.destinations_page_items?.length > 0 ? settings.destinations_page_items : [
     { name: "Tbilisi", image: "https://placehold.co/600x400.png", hint: "tbilisi georgia", description: "The vibrant capital where history meets modernity." },
     { name: "Batumi", image: "https://placehold.co/600x400.png", hint: "batumi georgia", description: "A dazzling city on the Black Sea coast." },
-    { name: "Gudauri", image: "https://placehold.co/600x400.png", hint: "gudauri georgia", description: "A premier ski resort with stunning mountain views." },
     { name: "Kakheti", image: "https://placehold.co/600x400.png", hint: "kakheti georgia", description: "The historic heartland of Georgian wine." },
-    { name: "Kazbegi", image: "https://placehold.co/600x400.png", hint: "kazbegi mountains", description: "Home to the iconic Gergeti Trinity Church." },
-    { name: "Svaneti", image: "https://placehold.co/600x400.png", hint: "svaneti landscape", description: "A remote region of medieval towers and high peaks." },
-    { name: "Mtskheta", image: "https://placehold.co/600x400.png", hint: "mtskheta georgia", description: "The ancient capital and spiritual heart of Georgia." },
-    { name: "Kutaisi", image: "https://placehold.co/600x400.png", hint: "kutaisi georgia", description: "A city of legends, canyons, and monasteries." },
   ];
   
   const offersTitle = settings.homepage_offers_title || "Don't Miss Our Special Offers!";
@@ -232,18 +227,24 @@ export default async function Home() {
                         {destinationsDescription}
                     </p>
                 </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {destinations.map((dest) => (
-                        <Link href={`/tours?query=${dest.name}`} key={dest.name} className="group relative block overflow-hidden rounded-lg shadow-lg transform transition-transform hover:-translate-y-1">
-                            <Image src={dest.image} alt={dest.name} width={600} height={400} data-ai-hint={dest.hint} className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                            <div className="absolute bottom-0 left-0 p-4">
-                                <h3 className="text-white text-2xl font-bold font-headline">{dest.name}</h3>
-                                <p className="text-white/90 text-sm">{dest.description}</p>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
+                 <Carousel opts={{ align: "start", loop: true }} className="w-full">
+                    <CarouselContent className="-ml-4">
+                        {destinations.map((dest) => (
+                            <CarouselItem key={dest.name} className="pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                                <Link href={`/tours?query=${dest.name}`} className="group relative block overflow-hidden rounded-lg shadow-lg">
+                                    <Image src={dest.image} alt={dest.name} width={600} height={400} data-ai-hint={dest.hint} className="w-full h-80 object-cover transition-transform duration-300 group-hover:scale-105" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                                    <div className="absolute bottom-0 left-0 p-4">
+                                        <h3 className="text-white text-2xl font-bold font-headline">{dest.name}</h3>
+                                        <p className="text-white/90 text-sm">{dest.description}</p>
+                                    </div>
+                                </Link>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="hidden md:flex left-2 bg-background/50 hover:bg-background/80" />
+                    <CarouselNext className="hidden md:flex right-2 bg-background/50 hover:bg-background/80" />
+                </Carousel>
             </div>
         </section>
         

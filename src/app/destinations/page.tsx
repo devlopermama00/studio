@@ -18,9 +18,9 @@ const defaultDestinations = [
 
 export default async function DestinationsPage() {
   const settings = await getSettings();
-  const destinations = settings.homepage_destinations?.length > 0 ? settings.homepage_destinations : defaultDestinations;
-  const pageTitle = settings.homepage_destinations_title || "Discover Georgia, Destination by Destination";
-  const pageDescription = settings.homepage_destinations_description || "From the ancient streets of Tbilisi to the soaring peaks of the Caucasus, Georgia is a country of breathtaking diversity. Explore our top destinations to find the perfect backdrop for your next adventure.";
+  const destinations = settings.destinations_page_items?.length > 0 ? settings.destinations_page_items : defaultDestinations;
+  const pageTitle = settings.destinations_page_title || "Discover Georgia, Destination by Destination";
+  const pageDescription = settings.destinations_page_description || "From the ancient streets of Tbilisi to the soaring peaks of the Caucasus, Georgia is a country of breathtaking diversity. Explore our top destinations to find the perfect backdrop for your next adventure.";
 
   return (
     <div className="flex flex-col min-h-screen">

@@ -27,14 +27,6 @@ const discoverItemSchema = z.object({
     hint: z.string().optional(),
 });
 
-const destinationItemSchema = z.object({
-    name: z.string().optional(),
-    description: z.string().optional(),
-    image: z.string().optional(),
-    hint: z.string().optional(),
-});
-
-
 const homepageSettingsSchema = z.object({
   homepage_hero_image: z.string().optional(),
   homepage_hero_title: z.string().optional(),
@@ -54,7 +46,6 @@ const homepageSettingsSchema = z.object({
 
   homepage_destinations_title: z.string().optional(),
   homepage_destinations_description: z.string().optional(),
-  homepage_destinations: z.array(destinationItemSchema).optional(),
   
   homepage_offers_title: z.string().optional(),
   homepage_offers_description: z.string().optional(),
@@ -100,7 +91,6 @@ export function HomepageSettingsForm() {
             homepage_discover_items: [],
             homepage_destinations_title: "",
             homepage_destinations_description: "",
-            homepage_destinations: [],
             homepage_offers_title: "",
             homepage_offers_description: "",
             homepage_newsletter_title: "",
@@ -111,11 +101,6 @@ export function HomepageSettingsForm() {
     const { fields: discoverFields, append: appendDiscover, remove: removeDiscover } = useFieldArray({
         control: form.control,
         name: "homepage_discover_items",
-    });
-
-    const { fields: destinationFields, append: appendDestination, remove: removeDestination } = useFieldArray({
-        control: form.control,
-        name: "homepage_destinations",
     });
 
     useEffect(() => {
@@ -192,9 +177,6 @@ export function HomepageSettingsForm() {
                 ...values,
                 homepage_discover_items: values.homepage_discover_items?.filter(
                     item => item.title && item.description && item.image
-                ),
-                homepage_destinations: values.homepage_destinations?.filter(
-                    item => item.name && item.description && item.image
                 ),
             };
 
@@ -429,37 +411,10 @@ export function HomepageSettingsForm() {
                      
                     {/* Destinations Section */}
                      <div className="space-y-4">
-                        <div className="flex justify-between items-start">
-                             <div>
-                                <FormLabel className="text-lg font-semibold">"Explore by Destination" Section</FormLabel>
-                                <FormField name="homepage_destinations_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore by Destination" /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField name="homepage_destinations_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="From the vibrant capital to the serene mountains..." /></FormControl><FormMessage /></FormItem>)} />
-                            </div>
-                            <Button type="button" variant="outline" size="sm" onClick={() => appendDestination({ name: "", description: "", image: "", hint: "" })}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Add Item
-                            </Button>
-                        </div>
-                        <div className="space-y-4">
-                            {destinationFields.map((field, index) => (
-                                <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
-                                    <div className="flex-1 space-y-4">
-                                        <FormField name={`homepage_destinations.${index}.name`} render={({ field }) => (<FormItem><FormLabel>Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                        <FormField name={`homepage_destinations.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                         <FormField name={`homepage_destinations.${index}.image`} render={({ field: formField }) => (
-                                            <FormItem>
-                                                <FormLabel>Image</FormLabel>
-                                                <div className="flex items-center gap-2">
-                                                    <Input placeholder="Image URL" {...formField} />
-                                                    <Input type="file" className="hidden" id={`destination-upload-${index}`} onChange={e => handleFileUpload(e.target.files?.[0] || null, `homepage_destinations.${index}.image`, index)} />
-                                                    <Button asChild type="button" variant="outline"><label htmlFor={`destination-upload-${index}`}><Upload className="h-4 w-4" /></label></Button>
-                                                </div>
-                                                <FormMessage />
-                                            </FormItem>
-                                         )} />
-                                    </div>
-                                    <Button type="button" variant="ghost" size="icon" className="text-red-500" onClick={() => removeDestination(index)}><Trash2 className="h-4 w-4" /></Button>
-                                </div>
-                            ))}
+                        <div>
+                            <FormLabel className="text-lg font-semibold">"Explore by Destination" Section</FormLabel>
+                            <FormField name="homepage_destinations_title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} placeholder="Explore by Destination" /></FormControl><FormMessage /></FormItem>)} />
+                            <FormField name="homepage_destinations_description" render={({ field }) => (<FormItem><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="From the vibrant capital to the serene mountains..." /></FormControl><FormMessage /></FormItem>)} />
                         </div>
                     </div>
 
