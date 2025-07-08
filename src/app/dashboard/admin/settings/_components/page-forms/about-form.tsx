@@ -17,6 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { uploadFile } from "@/services/fileUploader";
 import Image from "next/image";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { HslColorInput } from "@/components/ui/hsl-color-input";
 
 const featureSchema = z.object({
   icon: z.string().min(1, "Icon is required."),
@@ -29,6 +30,7 @@ const aboutPageSchema = z.object({
   about_page_hero_title: z.string().optional(),
   about_page_intro_title: z.string().optional(),
   about_page_intro_desc: z.string().optional(),
+  about_page_intro_bg: z.string().optional(),
   about_page_features_title: z.string().optional(),
   about_page_features: z.array(featureSchema).optional(),
   about_page_why_choose_us_title: z.string().optional(),
@@ -51,8 +53,18 @@ export function AboutForm() {
   const form = useForm<AboutPageValues>({
     resolver: zodResolver(aboutPageSchema),
     defaultValues: {
+      about_page_hero_image: "",
+      about_page_hero_title: "",
+      about_page_intro_title: "",
+      about_page_intro_desc: "",
+      about_page_intro_bg: "",
+      about_page_features_title: "",
       about_page_features: [],
+      about_page_why_choose_us_title: "",
+      about_page_why_choose_us_description: "",
       about_page_why_choose_us_items: [],
+      about_page_cta_title: "",
+      about_page_cta_desc: "",
     },
   });
 
@@ -77,6 +89,7 @@ export function AboutForm() {
             about_page_hero_title: data.about_page_hero_title || "",
             about_page_intro_title: data.about_page_intro_title || "",
             about_page_intro_desc: data.about_page_intro_desc || "",
+            about_page_intro_bg: data.about_page_intro_bg || "",
             about_page_features_title: data.about_page_features_title || "",
             about_page_features: data.about_page_features || [],
             about_page_why_choose_us_title: data.about_page_why_choose_us_title || "",
@@ -189,6 +202,21 @@ export function AboutForm() {
             <Separator/>
             <FormField name="about_page_intro_title" render={({ field }) => (<FormItem><FormLabel>Intro Section Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
             <FormField name="about_page_intro_desc" render={({ field }) => (<FormItem><FormLabel>Intro Section Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+             <FormField
+              name="about_page_intro_bg"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Intro Section Background Color</FormLabel>
+                  <FormControl>
+                    <HslColorInput {...field} placeholder="e.g., 204 20% 95% or #F0F2F4" />
+                  </FormControl>
+                  <FormDescription>
+                    Sets the background color for the intro section. Leave blank to use the default theme background.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Separator/>
             <div className="space-y-4">
               <FormField name="about_page_features_title" render={({ field }) => (<FormItem><FormLabel>Features Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />

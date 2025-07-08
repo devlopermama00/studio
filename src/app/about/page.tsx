@@ -10,6 +10,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { getPublicReviews } from "@/lib/reviews-data";
 import { getSettings } from "@/lib/settings-data";
+import { cn, toHslString } from "@/lib/utils";
 
 const iconMap = {
   ShieldCheck,
@@ -25,6 +26,7 @@ const defaultContent = {
   hero_title: "About DayTourGuides",
   intro_title: "Your Journey Begins Here",
   intro_desc: "At DayTourGuides, we’ve been proudly delivering guaranteed tours across Georgia for over two years, helping travelers from around the world discover the magic of this breathtaking country.",
+  intro_bg: null,
   features_title: "What Makes Us Different?",
   features: [
     { icon: "ShieldCheck", title: "Reliable & Trusted Network", description: "We work only with handpicked, trusted suppliers and experienced local partners to ensure every part of your trip is safe, smooth, and memorable." },
@@ -65,6 +67,7 @@ export default async function AboutPage() {
       hero_title: settings.about_page_hero_title || defaultContent.hero_title,
       intro_title: settings.about_page_intro_title || defaultContent.intro_title,
       intro_desc: settings.about_page_intro_desc || defaultContent.intro_desc,
+      intro_bg: settings.about_page_intro_bg || defaultContent.intro_bg,
       features_title: settings.about_page_features_title || defaultContent.features_title,
       features: settings.about_page_features?.length > 0 ? settings.about_page_features : defaultContent.features,
       why_choose_us_title: settings.about_page_why_choose_us_title || defaultContent.why_choose_us_title,
@@ -75,6 +78,8 @@ export default async function AboutPage() {
       cta_title: settings.about_page_cta_title || defaultContent.cta_title,
       cta_desc: settings.about_page_cta_desc || defaultContent.cta_desc,
   };
+
+  const introBgHsl = toHslString(content.intro_bg);
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -98,7 +103,13 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        <section className="py-16 md:py-24 bg-background">
+        <section
+          className={cn(
+            "py-16 md:py-24",
+            !introBgHsl && "bg-background"
+          )}
+          style={introBgHsl ? { backgroundColor: `hsl(${introBgHsl})` } : {}}
+        >
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
               <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">{content.intro_title}</h2>
