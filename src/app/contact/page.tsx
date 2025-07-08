@@ -44,7 +44,7 @@ export default async function ContactPage() {
     contact_info_title: settings.contact_info_title || defaultContent.contact_info_title,
     contact_info_description: settings.contact_info_description || defaultContent.contact_info_description,
     email: settings.contact_page_email || defaultContent.email,
-    phone: settings.contact_page_phone || defaultContent.phone,
+    phone: settings.contact_page_phone,
     address: settings.contact_page_address || defaultContent.address,
     hero_image: settings.contact_page_hero_image || defaultContent.hero_image,
     hero_bg: settings.contact_page_hero_bg || defaultContent.hero_bg,
@@ -95,7 +95,7 @@ export default async function ContactPage() {
                         </div>
                         <div className="space-y-6">
                             <ContactInfoItem icon={Mail} title="Email" value={content.email} href={`mailto:${content.email}`} />
-                            <ContactInfoItem icon={Phone} title="Phone" value={content.phone} href={`tel:${content.phone}`} />
+                            {content.phone && <ContactInfoItem icon={Phone} title="Phone" value={content.phone} href={`tel:${content.phone}`} />}
                             <ContactInfoItem icon={MapPin} title="Office Address" value={content.address} href="#" />
                         </div>
                     </div>
