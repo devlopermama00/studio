@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { uploadFile } from "@/services/fileUploader";
 
 interface Category {
     _id: string;
@@ -30,6 +32,7 @@ const formSchema = z.object({
   category: z.string().optional(),
   tags: z.string().optional(),
   published: z.boolean().default(false),
+  featureImage: z.string().optional(),
 });
 
 const EditPostSkeleton = () => (
@@ -56,6 +59,8 @@ export default function EditBlogPostPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingData, setIsFetchingData] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +70,7 @@ export default function EditBlogPostPage() {
       published: false,
       category: "",
       tags: "",
+      featureImage: "",
     }
   });
 
@@ -80,9 +86,11 @@ export default function EditBlogPostPage() {
             const postData = await postRes.json();
             form.reset({
                 ...postData,
+                featureImage: postData.featureImage || "",
                 category: postData.category?._id || postData.category || "",
                 tags: Array.isArray(postData.tags) ? postData.tags.join(', ') : '',
             });
+            setImagePreview(postData.featureImage);
 
             if (!catRes.ok) throw new Error('Failed to fetch categories');
             const catData = await catRes.json();
@@ -100,8 +108,14 @@ export default function EditBlogPostPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+        let imageUrl = values.featureImage;
+        if (newImageFile) {
+            imageUrl = await uploadFile(newImageFile, 'blog-images');
+        }
+
         const payload = {
             ...values,
+            featureImage: imageUrl,
             tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
         };
 
@@ -150,6 +164,30 @@ export default function EditBlogPostPage() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
             <FormField name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+            
+            <FormItem>
+              <FormLabel>Feature Image</FormLabel>
+              <FormControl>
+                  <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                              setNewImageFile(file);
+                              setImagePreview(URL.createObjectURL(file));
+                          }
+                      }}
+                  />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+            {imagePreview && (
+                <div className="relative mt-4 aspect-video w-full max-w-lg">
+                    <Image src={imagePreview} alt="Feature image preview" fill className="rounded-md object-cover" />
+                </div>
+            )}
+            
             <FormField 
                 name="content" 
                 render={({ field }) => (

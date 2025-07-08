@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { uploadFile } from "@/services/fileUploader";
 
 interface Category {
     _id: string;
@@ -30,6 +32,7 @@ const formSchema = z.object({
   category: z.string().optional(),
   tags: z.string().optional(),
   published: z.boolean().default(true),
+  featureImage: z.any().optional(),
 });
 
 export default function AddBlogPostPage() {
@@ -38,6 +41,20 @@ export default function AddBlogPostPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      content: "",
+      published: true,
+      category: "",
+      tags: "",
+    },
+  });
+
+  const imageFileRef = form.register("featureImage");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -55,22 +72,17 @@ export default function AddBlogPostPage() {
     fetchCategories();
   }, [toast]);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      content: "",
-      published: true,
-      category: "",
-      tags: "",
-    },
-  });
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+        let imageUrl;
+        if (values.featureImage && values.featureImage.length > 0) {
+            imageUrl = await uploadFile(values.featureImage[0], 'blog-images');
+        }
+
         const payload = {
             ...values,
+            featureImage: imageUrl,
             tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
         };
 
@@ -115,6 +127,38 @@ export default function AddBlogPostPage() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
             <FormField name="title" render={({ field }) => (<FormItem><FormLabel>Title</FormLabel><FormControl><Input placeholder="Your amazing blog post title" {...field} /></FormControl><FormMessage /></FormItem>)} />
+            
+            <FormField
+                control={form.control}
+                name="featureImage"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Feature Image</FormLabel>
+                        <FormControl>
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                {...imageFileRef}
+                                onChange={(e) => {
+                                    field.onChange(e.target.files);
+                                    if (e.target.files && e.target.files[0]) {
+                                        setImagePreview(URL.createObjectURL(e.target.files[0]));
+                                    } else {
+                                        setImagePreview(null);
+                                    }
+                                }}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            {imagePreview && (
+                <div className="relative mt-4 aspect-video w-full max-w-lg">
+                    <Image src={imagePreview} alt="Feature image preview" fill className="rounded-md object-cover" />
+                </div>
+            )}
+
             <FormField 
                 name="content" 
                 render={({ field }) => (
