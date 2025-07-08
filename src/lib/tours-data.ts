@@ -1,4 +1,5 @@
 
+
 'use server';
 
 import dbConnect from '@/lib/db';
@@ -37,74 +38,99 @@ async function verifyToken(token: string): Promise<DecodedToken | null> {
     }
 }
 
-const transformTours = async (tours: any[]): Promise<PublicTourType[]> => {
-    if (!tours || tours.length === 0) {
-        return [];
-    }
+// Helper function to execute and format tour aggregation pipelines
+async function executeTourPipeline(pipeline: any[]): Promise<PublicTourType[]> {
+    const toursFromDb = await Tour.aggregate(pipeline);
 
-    const tourIds = tours.map(t => t._id);
-
-    const ratings = await Review.aggregate([
-        { $match: { tourId: { $in: tourIds } } },
-        { $group: { _id: '$tourId', avgRating: { $avg: '$rating' } } }
-    ]);
-
-    const ratingsMap = new Map(ratings.map(r => [r._id.toString(), r.avgRating]));
-    const now = new Date();
-
-    const transformedTours = tours.map(tour => {
-        const rating = ratingsMap.get(tour._id.toString()) || 0;
-        const isOfferActive = tour.discountPrice && tour.discountPrice > 0 && tour.offerExpiresAt && new Date(tour.offerExpiresAt) > now;
-        
+    const tours = toursFromDb.map(tour => {
+        // Ensure images always have a fallback
+        if (!tour.images || tour.images.length === 0) {
+            tour.images = ["https://placehold.co/800x600.png"];
+        }
         return {
-            id: tour._id.toString(),
-            title: tour.title,
-            country: tour.country,
-            city: tour.city,
-            place: tour.place,
-            images: tour.images && tour.images.length > 0 ? tour.images : ["https://placehold.co/800x600.png"],
-            durationInHours: tour.durationInHours,
-            currency: tour.currency,
-            price: isOfferActive ? tour.discountPrice : tour.price,
-            originalPrice: isOfferActive ? tour.price : undefined,
-            tourType: tour.tourType,
-            category: tour.category?.name || 'Uncategorized',
-            groupSize: tour.groupSize,
-            overview: tour.overview,
-            languages: tour.languages || [],
-            highlights: tour.highlights || [],
-            inclusions: tour.inclusions || [],
-            exclusions: tour.exclusions || [],
-            importantInformation: tour.importantInformation,
-            itinerary: tour.itinerary?.map((i: any) => ({ title: i.title, description: i.description })) || [],
-            providerId: tour.createdBy?._id?.toString() || '',
-            providerName: tour.createdBy?.name || 'Unknown Provider',
-            rating: parseFloat(rating.toFixed(1)),
-            reviews: [],
-            approved: tour.approved,
+            ...tour,
+            id: tour.id.toString(),
+            providerId: tour.providerId?.toString(),
         };
     });
 
-    return transformedTours.filter((t): t is PublicTourType => t !== null);
+    return JSON.parse(JSON.stringify(tours));
+}
+
+// Reusable aggregation stages for tour lookups and projection
+const TOUR_LOOKUPS = [
+    { $lookup: { from: 'reviews', localField: '_id', foreignField: 'tourId', as: 'reviewData' } },
+    { $lookup: { from: 'categories', localField: 'category', foreignField: '_id', as: 'categoryData' } },
+    { $unwind: { path: '$categoryData', preserveNullAndEmptyArrays: true } },
+    { $lookup: { from: 'users', localField: 'createdBy', foreignField: '_id', as: 'creatorData' } },
+    { $unwind: { path: '$creatorData', preserveNullAndEmptyArrays: true } },
+];
+
+const TOUR_PROJECTION = {
+    $project: {
+        _id: 0,
+        id: '$_id',
+        title: 1,
+        country: 1,
+        city: 1,
+        place: 1,
+        images: { $ifNull: ['$images', []] },
+        durationInHours: 1,
+        currency: 1,
+        tourType: 1,
+        groupSize: 1,
+        overview: 1,
+        languages: 1,
+        highlights: 1,
+        inclusions: 1,
+        exclusions: 1,
+        importantInformation: 1,
+        itinerary: 1,
+        approved: 1,
+        providerId: '$creatorData._id',
+        providerName: '$creatorData.name',
+        category: '$categoryData.name',
+        rating: { $ifNull: [{ $round: [{ $avg: '$reviewData.rating' }, 1] }, 0] },
+        price: {
+            $cond: {
+                if: {
+                    $and: [
+                        { $ne: ["$discountPrice", null] }, { $gt: ['$discountPrice', 0] },
+                        { $ne: ["$offerExpiresAt", null] }, { $gt: ['$offerExpiresAt', new Date()] }
+                    ]
+                },
+                then: '$discountPrice',
+                else: '$price'
+            }
+        },
+        originalPrice: {
+            $cond: {
+                if: {
+                    $and: [
+                        { $ne: ["$discountPrice", null] }, { $gt: ['$discountPrice', 0] },
+                        { $ne: ["$offerExpiresAt", null] }, { $gt: ['$offerExpiresAt', new Date()] }
+                    ]
+                },
+                then: '$price',
+                else: '$$REMOVE'
+            }
+        },
+        reviews: { $literal: [] } // Placeholder
+    }
 };
 
 
 export async function getPublicTours(limit?: number): Promise<PublicTourType[]> {
     await dbConnect();
-    
     try {
-        let query = Tour.find({ approved: true, blocked: false })
-            .populate('category', 'name')
-            .populate('createdBy', 'name')
-            .sort({ createdAt: -1 })
-            .lean();
-
-        if (limit) {
-            query = query.limit(limit);
-        }
+        const pipeline: any[] = [
+            { $match: { approved: true, blocked: false } },
+            { $sort: { createdAt: -1 } },
+        ];
+        if (limit) pipeline.push({ $limit: limit });
+        pipeline.push(...TOUR_LOOKUPS, TOUR_PROJECTION);
         
-        const tours = await query.exec();
-        return transformTours(tours);
+        return executeTourPipeline(pipeline);
     } catch (error) {
         console.error("Error in getPublicTours:", error);
         return [];
@@ -122,30 +148,20 @@ export async function getPopularTours(limit?: number): Promise<PublicTourType[]>
         }
 
         const objectIds = popularTourIds.map((id: string) => new Types.ObjectId(id));
-
-        const query = Tour.find({
-            _id: { $in: objectIds },
-            approved: true,
-            blocked: false
-        })
-        .populate('category', 'name')
-        .populate('createdBy', 'name')
-        .lean();
         
-        const toursFromDb = await query.exec();
-        
-        const toursMap = new Map(toursFromDb.map(t => [t._id.toString(), t]));
-        const sortedTours = popularTourIds
-            .map((id: string) => toursMap.get(id))
-            .filter(Boolean);
-
-        let finalTours = await transformTours(sortedTours);
+        const pipeline: any[] = [
+            { $match: { _id: { $in: objectIds }, approved: true, blocked: false } },
+            { $addFields: { __order: { $indexOfArray: [objectIds, "$_id"] } } },
+            { $sort: { __order: 1 } },
+        ];
 
         if (limit) {
-            finalTours = finalTours.slice(0, limit);
+            pipeline.push({ $limit: limit });
         }
 
-        return finalTours;
+        pipeline.push(...TOUR_LOOKUPS, TOUR_PROJECTION);
+        
+        return executeTourPipeline(pipeline);
 
     } catch (error) {
         console.error("Error fetching popular tours:", error);
@@ -158,23 +174,25 @@ export async function getToursOnSale(limit?: number): Promise<PublicTourType[]> 
     await dbConnect();
     try {
         const now = new Date();
-        let query = Tour.find({
-            approved: true,
-            blocked: false,
-            discountPrice: { $gt: 0 },
-            offerExpiresAt: { $gt: now }
-        })
-        .populate('category', 'name')
-        .populate('createdBy', 'name')
-        .sort({ createdAt: -1 })
-        .lean();
-
+        const pipeline: any[] = [
+            {
+                $match: {
+                    approved: true,
+                    blocked: false,
+                    discountPrice: { $gt: 0 },
+                    offerExpiresAt: { $gt: now }
+                }
+            },
+            { $sort: { offerExpiresAt: 1 } },
+        ];
+        
         if (limit) {
-            query = query.limit(limit);
+            pipeline.push({ $limit: limit });
         }
 
-        const tours = await query.exec();
-        return transformTours(tours);
+        pipeline.push(...TOUR_LOOKUPS, TOUR_PROJECTION);
+        
+        return executeTourPipeline(pipeline);
     } catch (error) {
         console.error("Error fetching tours on sale:", error);
         return [];
@@ -276,3 +294,4 @@ export async function getPublicTourById(id: string): Promise<PublicTourType | nu
         return null;
     }
 }
+
