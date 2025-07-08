@@ -68,7 +68,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
                 </Avatar>
                 <div>
                     <p className="font-semibold text-lg">Written by {post.author?.name || 'DayTourGuides'}</p>
-                    <p className="text-muted-foreground">Author at DayTourGuides Georgia</p>
+                    <p className="text-muted-foreground">Author at DayTourGuides</p>
                 </div>
             </div>
         </article>
