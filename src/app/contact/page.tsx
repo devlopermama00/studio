@@ -7,17 +7,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { getSettings } from "@/lib/settings-data";
 
-export default function ContactPage() {
+const defaultContent = {
+  title: "Get in Touch",
+  description: "Have a question or need help with a booking? We'd love to hear from you. Fill out the form below or use our contact details to reach us.",
+  email: "contact@tourvista.ge",
+  phone: "+995 123 456 789",
+  address: "123 Freedom Square, Tbilisi, Georgia",
+};
+
+export default async function ContactPage() {
+  const settings = await getSettings();
+  const content = {
+    title: settings.contact_page_title || defaultContent.title,
+    description: settings.contact_page_description || defaultContent.description,
+    email: settings.contact_page_email || defaultContent.email,
+    phone: settings.contact_page_phone || defaultContent.phone,
+    address: settings.contact_page_address || defaultContent.address,
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1 bg-secondary">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="text-center max-w-3xl mx-auto mb-12">
-            <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">Get in Touch</h1>
+            <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">{content.title}</h1>
             <p className="text-lg text-muted-foreground">
-              Have a question or need help with a booking? We'd love to hear from you. Fill out the form below or use our contact details to reach us.
+              {content.description}
             </p>
           </div>
 
@@ -30,7 +48,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold font-headline">Email</h3>
                   <p className="text-muted-foreground">Our support team will get back to you within 24 hours.</p>
-                  <a href="mailto:contact@tourvista.ge" className="text-primary font-medium hover:underline">contact@tourvista.ge</a>
+                  <a href={`mailto:${content.email}`} className="text-primary font-medium hover:underline">{content.email}</a>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -40,7 +58,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-xl font-semibold font-headline">Phone</h3>
                   <p className="text-muted-foreground">Speak with our team for immediate assistance.</p>
-                  <a href="tel:+995123456789" className="text-primary font-medium hover:underline">+995 123 456 789</a>
+                  <a href={`tel:${content.phone}`} className="text-primary font-medium hover:underline">{content.phone}</a>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -49,7 +67,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold font-headline">Office</h3>
-                  <p className="text-muted-foreground">123 Freedom Square, Tbilisi, Georgia</p>
+                  <p className="text-muted-foreground">{content.address}</p>
                    <p className="text-sm text-muted-foreground">Mon-Fri, 9am - 6pm</p>
                 </div>
               </div>

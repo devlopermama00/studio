@@ -9,34 +9,34 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 import { getPublicReviews } from "@/lib/reviews-data";
+import { getSettings } from "@/lib/settings-data";
 
-const features = [
-  {
-    icon: ShieldCheck,
-    title: "Reliable & Trusted Network",
-    description: "We work only with handpicked, trusted suppliers and experienced local partners to ensure every part of your trip is safe, smooth, and memorable."
-  },
-  {
-    icon: CalendarCheck,
-    title: "Guaranteed Departures",
-    description: "No more worrying about cancellations. Our tours run as planned, whether you’re a solo traveler or part of a group."
-  },
-  {
-    icon: Sparkles,
-    title: "Authentic Local Experiences",
-    description: "From ancient monasteries and scenic mountains to cozy wine cellars and vibrant cities, we go beyond the usual routes to show you the real Georgia."
-  },
-  {
-    icon: Globe,
-    title: "Quality Service, Global Hospitality",
-    description: "Whether you’re from Europe, the Middle East, or Asia, our team speaks your language—both literally and culturally."
-  },
-  {
-    icon: MousePointerClick,
-    title: "Easy Booking, Full Support",
-    description: "Our online platform is user-friendly and secure, and our team is available 24/7 to assist with planning, booking, and any questions along the way."
-  }
-];
+const iconMap = {
+  ShieldCheck,
+  CalendarCheck,
+  Sparkles,
+  Globe,
+  MousePointerClick,
+  Star,
+};
+
+const defaultContent = {
+  hero_title: "About TourVista",
+  intro_title: "Your Journey Begins Here",
+  intro_desc: "At TourVista, we’ve been proudly delivering guaranteed tours across Georgia for over two years, helping travelers from around the world discover the magic of this breathtaking country.",
+  features_title: "What Makes Us Different?",
+  features: [
+    { icon: "ShieldCheck", title: "Reliable & Trusted Network", description: "We work only with handpicked, trusted suppliers and experienced local partners to ensure every part of your trip is safe, smooth, and memorable." },
+    { icon: "CalendarCheck", title: "Guaranteed Departures", description: "No more worrying about cancellations. Our tours run as planned, whether you’re a solo traveler or part of a group." },
+    { icon: "Sparkles", title: "Authentic Local Experiences", description: "From ancient monasteries and scenic mountains to cozy wine cellars and vibrant cities, we go beyond the usual routes to show you the real Georgia." },
+    { icon: "Globe", title: "Quality Service, Global Hospitality", description: "Whether you’re from Europe, the Middle East, or Asia, our team speaks your language—both literally and culturally." },
+    { icon: "MousePointerClick", title: "Easy Booking, Full Support", description: "Our online platform is user-friendly and secure, and our team is available 24/7 to assist with planning, booking, and any questions along the way." }
+  ],
+  reviews_title: "What Our Travelers Say",
+  reviews_desc: "Real stories from our adventurous guests.",
+  cta_title: "Join Our Happy Travelers",
+  cta_desc: "Join hundreds of happy travelers who trusted us to create their unforgettable Georgian adventure. Your journey begins here—with the people who know Georgia best."
+};
 
 const StarRating = ({ rating }: { rating: number }) => (
     <div className="flex items-center gap-1">
@@ -51,6 +51,18 @@ const StarRating = ({ rating }: { rating: number }) => (
 
 export default async function AboutPage() {
   const reviews = await getPublicReviews(9);
+  const settings = await getSettings();
+  const content = {
+      hero_title: settings.about_page_hero_title || defaultContent.hero_title,
+      intro_title: settings.about_page_intro_title || defaultContent.intro_title,
+      intro_desc: settings.about_page_intro_desc || defaultContent.intro_desc,
+      features_title: settings.about_page_features_title || defaultContent.features_title,
+      features: settings.about_page_features?.length > 0 ? settings.about_page_features : defaultContent.features,
+      reviews_title: settings.reviews_title || defaultContent.reviews_title,
+      reviews_desc: settings.reviews_desc || defaultContent.reviews_desc,
+      cta_title: settings.about_page_cta_title || defaultContent.cta_title,
+      cta_desc: settings.about_page_cta_desc || defaultContent.cta_desc,
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -69,7 +81,7 @@ export default async function AboutPage() {
           />
           <div className="relative z-20 container mx-auto px-4">
             <h1 className="text-4xl md:text-6xl font-headline font-bold drop-shadow-lg">
-              About TourVista
+              {content.hero_title}
             </h1>
           </div>
         </section>
@@ -77,9 +89,9 @@ export default async function AboutPage() {
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">Your Journey Begins Here</h2>
+              <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">{content.intro_title}</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                At TourVista, we’ve been proudly delivering guaranteed tours across Georgia for over two years, helping travelers from around the world discover the magic of this breathtaking country.
+                {content.intro_desc}
               </p>
             </div>
           </div>
@@ -88,22 +100,25 @@ export default async function AboutPage() {
         <section className="py-16 md:py-24 bg-secondary">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">What Makes Us Different?</h2>
+              <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">{content.features_title}</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                <Card key={index} className="text-center flex flex-col h-full">
-                  <CardHeader>
-                    <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit">
-                      <feature.icon className="w-8 h-8" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <CardTitle className="mb-2 text-xl font-headline">{feature.title}</CardTitle>
-                    <p className="text-muted-foreground">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+              {content.features.map((feature: any, index: number) => {
+                const Icon = iconMap[feature.icon as keyof typeof iconMap] || ShieldCheck;
+                return (
+                  <Card key={index} className="text-center flex flex-col h-full">
+                    <CardHeader>
+                      <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit">
+                        <Icon className="w-8 h-8" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <CardTitle className="mb-2 text-xl font-headline">{feature.title}</CardTitle>
+                      <p className="text-muted-foreground">{feature.description}</p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -111,16 +126,14 @@ export default async function AboutPage() {
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
-              <h2 className="text-3xl md:text-4xl font-headline font-semibold">What Our Travelers Say</h2>
+              <h2 className="text-3xl md:text-4xl font-headline font-semibold">{content.reviews_title}</h2>
               <p className="text-muted-foreground text-lg mt-4">
-                Real stories from our adventurous guests.
+                {content.reviews_desc}
               </p>
             </div>
             {reviews && reviews.length > 0 ? (
               <Carousel
-                opts={{
-                  align: "start",
-                }}
+                opts={{ align: "start" }}
                 className="w-full max-w-6xl mx-auto"
               >
                 <CarouselContent className="-ml-4">
@@ -166,9 +179,9 @@ export default async function AboutPage() {
         
         <section className="py-16 md:py-24 bg-secondary">
           <div className="container mx-auto px-4 text-center max-w-4xl">
-              <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">Join Our Happy Travelers</h2>
+              <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">{content.cta_title}</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
-                Join hundreds of happy travelers who trusted us to create their unforgettable Georgian adventure. Your journey begins here—with the people who know Georgia best.
+                {content.cta_desc}
               </p>
           </div>
         </section>
