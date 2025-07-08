@@ -14,6 +14,7 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 // This endpoint is for Stripe webhooks to verify payments and create bookings.
 export async function POST(req: NextRequest) {
+  console.log('--- Stripe Webhook Hit ---');
   try {
     const buf = await req.text();
     const sig = headers().get('stripe-signature');
@@ -31,39 +32,40 @@ export async function POST(req: NextRequest) {
     let event: Stripe.Event;
 
     try {
+      console.log('Attempting to construct Stripe event...');
       event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
+      console.log(`✅ Stripe event constructed successfully. ID: ${event.id}, Type: ${event.type}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       console.log(`❌ Webhook signature verification failed: ${errorMessage}`);
       return new NextResponse(`Webhook Error: ${errorMessage}`, { status: 400 });
     }
 
-    // Successfully constructed event.
-    console.log('✅ Success:', event.id);
-
     if (event.type === 'checkout.session.completed') {
+      console.log('Processing checkout.session.completed event...');
       const session = event.data.object as Stripe.Checkout.Session;
       
-      // Extract metadata
       const { tourId, userId, bookingDate, guests, totalPrice } = session.metadata || {};
+      console.log('Webhook Metadata:', { tourId, userId, bookingDate, guests, totalPrice });
       
       if (!tourId || !userId || !bookingDate || !guests || !totalPrice) {
         console.error('Webhook Error: Missing metadata from checkout session.');
         return new NextResponse('Webhook Error: Missing metadata.', { status: 400 });
       }
 
-      // Robustly get payment intent ID
       const paymentIntentId = typeof session.payment_intent === 'string'
           ? session.payment_intent
           : session.payment_intent?.id;
       
       if (!paymentIntentId) {
         console.error('Webhook Error: Could not extract Payment Intent ID from session.');
-        return new NextResponse('Webhook Error: Missing Payment Intent ID.', { status: 400 });
+        return new NextResponse('Webhook Error: Missing Payment Intent ID.', { status: 500 });
       }
+      console.log(`Payment Intent ID: ${paymentIntentId}`);
 
       try {
         await dbConnect();
+        console.log('Database connected. Creating new booking...');
         
         const newBooking = new Booking({
           tourId: new Types.ObjectId(tourId),
@@ -76,18 +78,20 @@ export async function POST(req: NextRequest) {
         });
 
         await newBooking.save();
-        console.log(`Booking created successfully: ${newBooking._id}`);
+        console.log(`✅ Booking created successfully: ${newBooking._id}`);
 
       } catch (dbError) {
-        console.error('Database error on webhook processing:', dbError);
+        console.error('❌ Database error on webhook processing:', dbError);
         return new NextResponse('Webhook database error', { status: 500 });
       }
+    } else {
+        console.log(`Received unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true });
 
   } catch (error) {
-    console.error('Unhandled error in Stripe webhook handler:', error);
+    console.error('❌ Unhandled error in Stripe webhook handler:', error);
     return new NextResponse('Internal Server Error in webhook.', { status: 500 });
   }
 }
