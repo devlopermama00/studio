@@ -56,7 +56,7 @@ export default async function RootLayout({
         fontHeadline.variable,
         fontBody.variable
       )}>
-        <Providers>
+        <Providers settings={settings}>
           {children}
         </Providers>
       </body>
