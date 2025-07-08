@@ -22,9 +22,13 @@ const fontBody = PT_Sans({
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
+  const faviconUrl = settings.faviconUrl || '/favicon.ico';
   return {
     title: settings.siteName || 'DayTourGuides Georgia',
     description: settings.siteDescription || 'Book the best day tours in Georgia.',
+    icons: {
+      icon: faviconUrl,
+    }
   };
 }
 

@@ -34,7 +34,9 @@ export function GeneralSettingsForm() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [logoUrl, setLogoUrl] = useState<string | null>(null);
+    const [faviconUrl, setFaviconUrl] = useState<string | null>(null);
     const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+    const [isUploadingFavicon, setIsUploadingFavicon] = useState(false);
 
     const form = useForm<SettingsFormValues>({
         resolver: zodResolver(settingsFormSchema),
@@ -63,6 +65,7 @@ export function GeneralSettingsForm() {
                     mutedForegroundColor: data.mutedForegroundColor || "",
                 });
                 setLogoUrl(data.logoUrl || null);
+                setFaviconUrl(data.faviconUrl || null);
             } catch (error) {
                 toast({ variant: "destructive", title: "Error", description: "Could not load site settings." });
             } finally {
@@ -114,6 +117,30 @@ export function GeneralSettingsForm() {
         }
     };
     
+    const handleFaviconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingFavicon(true);
+        try {
+            const uploadedUrl = await uploadFile(file, 'site-assets');
+            
+            const response = await fetch('/api/admin/settings', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ faviconUrl: uploadedUrl }),
+            });
+            if (!response.ok) throw new Error("Failed to save new favicon.");
+
+            setFaviconUrl(uploadedUrl);
+            toast({ title: "Success", description: "Favicon has been updated. Changes will apply on next page load." });
+        } catch (error) {
+            toast({ variant: "destructive", title: "Upload Failed", description: "Could not upload new favicon." });
+        } finally {
+            setIsUploadingFavicon(false);
+        }
+    };
+
     if (isLoading) {
         return <Skeleton className="h-[500px] w-full" />;
     }
@@ -122,14 +149,25 @@ export function GeneralSettingsForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSave)}>
                 <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <FormLabel htmlFor="logo">Logo Upload</FormLabel>
-                        <div className="flex items-center gap-4">
-                            {logoUrl && <Image src={logoUrl} alt="logo" width={120} height={40} className="h-10 w-auto bg-muted p-1 rounded-md" />}
-                            <Input id="logo" type="file" onChange={handleLogoUpload} disabled={isUploadingLogo} />
-                            {isUploadingLogo && <Loader2 className="h-5 w-5 animate-spin" />}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <FormLabel htmlFor="logo">Logo Upload</FormLabel>
+                            <div className="flex items-center gap-4">
+                                {logoUrl && <Image src={logoUrl} alt="logo" width={120} height={40} className="h-10 w-auto bg-muted p-1 rounded-md" />}
+                                <Input id="logo" type="file" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                                {isUploadingLogo && <Loader2 className="h-5 w-5 animate-spin" />}
+                            </div>
+                            <p className="text-sm text-muted-foreground">Recommended size: 200x50px. Uploading saves it immediately.</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">Recommended size: 200x50px. Uploading a new logo saves it immediately.</p>
+                         <div className="space-y-2">
+                            <FormLabel htmlFor="favicon">Favicon Upload</FormLabel>
+                            <div className="flex items-center gap-4">
+                                {faviconUrl && <Image src={faviconUrl} alt="favicon" width={40} height={40} className="h-10 w-10 bg-muted p-1 rounded-md" />}
+                                <Input id="favicon" type="file" onChange={handleFaviconUpload} disabled={isUploadingFavicon} />
+                                {isUploadingFavicon && <Loader2 className="h-5 w-5 animate-spin" />}
+                            </div>
+                            <p className="text-sm text-muted-foreground">Recommended: 48x48px (PNG/ICO). Uploading saves immediately.</p>
+                        </div>
                     </div>
                     <FormField name="siteName" render={({ field }) => (
                         <FormItem><FormLabel>Site Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
