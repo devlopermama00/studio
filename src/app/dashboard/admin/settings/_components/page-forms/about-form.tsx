@@ -27,6 +27,9 @@ const aboutPageSchema = z.object({
   about_page_intro_desc: z.string().optional(),
   about_page_features_title: z.string().optional(),
   about_page_features: z.array(featureSchema).optional(),
+  about_page_why_choose_us_title: z.string().optional(),
+  about_page_why_choose_us_description: z.string().optional(),
+  about_page_why_choose_us_items: z.array(featureSchema).optional(),
   about_page_cta_title: z.string().optional(),
   about_page_cta_desc: z.string().optional(),
 });
@@ -44,12 +47,18 @@ export function AboutForm() {
     resolver: zodResolver(aboutPageSchema),
     defaultValues: {
       about_page_features: [],
+      about_page_why_choose_us_items: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "about_page_features",
+  });
+  
+  const { fields: whyChooseUsFields, append: appendWhyChooseUs, remove: removeWhyChooseUs } = useFieldArray({
+    control: form.control,
+    name: "about_page_why_choose_us_items",
   });
 
   useEffect(() => {
@@ -103,7 +112,7 @@ export function AboutForm() {
             <Separator/>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <FormLabel>Features Section</FormLabel>
+                <FormLabel>Features Section ("What makes us different?")</FormLabel>
                 <Button type="button" variant="outline" size="sm" onClick={() => append({ icon: "ShieldCheck", title: "", description: "" })}><PlusCircle className="mr-2 h-4 w-4" /> Add Feature</Button>
               </div>
               <FormField name="about_page_features_title" render={({ field }) => (<FormItem><FormLabel>Features Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
@@ -116,6 +125,27 @@ export function AboutForm() {
                       <FormField name={`about_page_features.${index}.description`} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Feature Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
                     </div>
                     <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+             <Separator/>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <FormLabel>Why Choose Us Section</FormLabel>
+                <Button type="button" variant="outline" size="sm" onClick={() => appendWhyChooseUs({ icon: "ShieldCheck", title: "", description: "" })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+              </div>
+              <FormField name="about_page_why_choose_us_title" render={({ field }) => (<FormItem><FormLabel>Section Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+              <FormField name="about_page_why_choose_us_description" render={({ field }) => (<FormItem><FormLabel>Section Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+              <div className="space-y-4">
+                {whyChooseUsFields.map((field, index) => (
+                  <div key={field.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField name={`about_page_why_choose_us_items.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Item Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                       <FormField name={`about_page_why_choose_us_items.${index}.icon`} render={({ field }) => (<FormItem><FormLabel>Icon</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{availableIcons.map(icon => <SelectItem key={icon} value={icon}>{icon}</SelectItem>)}</SelectContent></Select></FormItem>)} />
+                      <FormField name={`about_page_why_choose_us_items.${index}.description`} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Item Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" className="text-red-500 mt-6" onClick={() => removeWhyChooseUs(index)}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                 ))}
               </div>

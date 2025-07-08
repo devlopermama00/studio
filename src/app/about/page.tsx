@@ -32,6 +32,13 @@ const defaultContent = {
     { icon: "Globe", title: "Quality Service, Global Hospitality", description: "Whether you’re from Europe, the Middle East, or Asia, our team speaks your language—both literally and culturally." },
     { icon: "MousePointerClick", title: "Easy Booking, Full Support", description: "Our online platform is user-friendly and secure, and our team is available 24/7 to assist with planning, booking, and any questions along the way." }
   ],
+  why_choose_us_title: "Why Choose Us",
+  why_choose_us_description: "These popular destinations have a lot to offer",
+  why_choose_us_items: [
+      { icon: "ShieldCheck", title: "What makes us different?", description: "Reliable & Trusted Network - We work only with handpicked, trusted suppliers and experienced local partners to ensure every part of your trip is safe, smooth, and memorable." },
+      { icon: "CalendarCheck", title: "Guaranteed Departures", description: "No more worrying about cancellations. Our tours run as planned, whether you’re a solo traveler or part of a group." },
+      { icon: "Globe", title: "Quality Service, Global Hospitality", description: "Whether you’re from Europe, the Middle East, Asia or the Americas, our team speaks your language—both literally and culturally." }
+  ],
   reviews_title: "What Our Travelers Say",
   reviews_desc: "Real stories from our adventurous guests.",
   cta_title: "Join Our Happy Travelers",
@@ -58,6 +65,9 @@ export default async function AboutPage() {
       intro_desc: settings.about_page_intro_desc || defaultContent.intro_desc,
       features_title: settings.about_page_features_title || defaultContent.features_title,
       features: settings.about_page_features?.length > 0 ? settings.about_page_features : defaultContent.features,
+      why_choose_us_title: settings.about_page_why_choose_us_title || defaultContent.why_choose_us_title,
+      why_choose_us_description: settings.about_page_why_choose_us_description || defaultContent.why_choose_us_description,
+      why_choose_us_items: settings.about_page_why_choose_us_items?.length > 0 ? settings.about_page_why_choose_us_items : defaultContent.why_choose_us_items,
       reviews_title: settings.reviews_title || defaultContent.reviews_title,
       reviews_desc: settings.reviews_desc || defaultContent.reviews_desc,
       cta_title: settings.about_page_cta_title || defaultContent.cta_title,
@@ -125,6 +135,33 @@ export default async function AboutPage() {
 
         <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4">
+            <div className="text-center mb-12 max-w-3xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-headline font-semibold mb-4">{content.why_choose_us_title}</h2>
+              <p className="text-lg text-muted-foreground">{content.why_choose_us_description}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {content.why_choose_us_items.map((item: any, index: number) => {
+                const Icon = iconMap[item.icon as keyof typeof iconMap] || ShieldCheck;
+                return (
+                  <Card key={index} className="text-center flex flex-col h-full">
+                    <CardHeader>
+                      <div className="mx-auto bg-primary/10 text-primary p-3 rounded-full w-fit">
+                        <Icon className="w-8 h-8" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <CardTitle className="mb-2 text-xl font-headline">{item.title}</CardTitle>
+                      <p className="text-muted-foreground">{item.description}</p>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 md:py-24 bg-secondary">
+          <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-12">
               <h2 className="text-3xl md:text-4xl font-headline font-semibold">{content.reviews_title}</h2>
               <p className="text-muted-foreground text-lg mt-4">
@@ -177,7 +214,7 @@ export default async function AboutPage() {
           </div>
         </section>
         
-        <section className="py-16 md:py-24 bg-secondary">
+        <section className="py-16 md:py-24 bg-background">
           <div className="container mx-auto px-4 text-center max-w-4xl">
               <h2 className="text-2xl md:text-3xl font-headline font-semibold mb-4">{content.cta_title}</h2>
               <p className="text-lg text-muted-foreground leading-relaxed">
