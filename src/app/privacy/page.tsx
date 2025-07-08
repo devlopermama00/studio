@@ -38,7 +38,7 @@ export default async function PrivacyPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1 bg-secondary">
         <LegalLayout>
             <PrivacyContent content={content} />

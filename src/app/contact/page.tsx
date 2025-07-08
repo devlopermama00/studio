@@ -54,7 +54,7 @@ export default async function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1 bg-background">
         <section
           className="relative text-primary-foreground py-20 text-center"

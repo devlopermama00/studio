@@ -4,15 +4,17 @@ import { SiteFooter } from "@/components/site-footer";
 import { TourSearchForm } from "@/components/tour-search-form";
 import { getPublicTours } from "@/lib/tours-data";
 import { ToursClient } from "./tours-client";
+import { getSettings } from "@/lib/settings-data";
 
 export const dynamic = 'force-dynamic';
 
 export default async function ToursPage() {
   const initialTours = await getPublicTours();
+  const settings = await getSettings();
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1">
         <section className="py-12 bg-secondary">
           <div className="container mx-auto px-4">

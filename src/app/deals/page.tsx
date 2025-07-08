@@ -6,13 +6,15 @@ import { getToursOnSale } from "@/lib/tours-data";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, Percent } from "lucide-react";
 import type { Tour } from "@/lib/types";
+import { getSettings } from "@/lib/settings-data";
 
 export default async function DealsPage() {
   const deals: Tour[] = await getToursOnSale();
+  const settings = await getSettings();
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1">
          <section className="py-12 bg-secondary text-center">
           <div className="container mx-auto px-4">

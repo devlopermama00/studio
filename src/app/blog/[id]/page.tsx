@@ -11,11 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { getPublishedBlogPostById } from "@/lib/blog-data";
+import { getSettings } from "@/lib/settings-data";
 
 export const dynamic = 'force-dynamic';
 
 export default async function BlogPostPage({ params }: { params: { id: string } }) {
   const post = await getPublishedBlogPostById(params.id);
+  const settings = await getSettings();
 
   if (!post) {
     notFound();
@@ -23,7 +25,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1">
         <article className="container relative max-w-3xl mx-auto py-12 px-4">
             <div className="text-center mb-8">
@@ -68,7 +70,7 @@ export default async function BlogPostPage({ params }: { params: { id: string } 
                 </Avatar>
                 <div>
                     <p className="font-semibold text-lg">Written by {post.author?.name || 'DayTourGuides'}</p>
-                    <p className="text-muted-foreground">Author at DayTourGuides</p>
+                    <p className="text-muted-foreground">Author</p>
                 </div>
             </div>
         </article>

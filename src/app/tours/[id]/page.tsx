@@ -1,5 +1,4 @@
 
-
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
@@ -14,10 +13,12 @@ import { Star, MapPin, Clock, Users, MessageSquare, Check, X, Languages, Globe, 
 import { getPublicTourById } from "@/lib/tours-data";
 import { BookingCard } from "@/components/booking-card";
 import { TourActionButtons } from "@/components/tour-action-buttons";
+import { getSettings } from "@/lib/settings-data";
 
 
 export default async function TourDetailPage({ params }: { params: { id: string } }) {
   const tour = await getPublicTourById(params.id);
+  const settings = await getSettings();
 
   if (!tour) {
     notFound();
@@ -50,7 +51,7 @@ export default async function TourDetailPage({ params }: { params: { id: string 
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1 bg-secondary">
         <div className="container mx-auto px-4 py-8 md:py-12">
           {/* Tour Header */}

@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -7,13 +6,12 @@ import { TourVistaLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Menu, LayoutDashboard, ChevronDown, LogOut } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
 import { useCurrency } from "@/context/currency-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useSettings } from "@/context/providers";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -29,6 +27,10 @@ interface AuthUser {
   email: string;
   role: "user" | "provider" | "admin";
   profilePhoto?: string;
+}
+
+interface Settings {
+    [key: string]: any;
 }
 
 const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
@@ -73,12 +75,11 @@ const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
 };
 
 
-export function SiteHeader() {
+export function SiteHeader({ settings }: { settings: Settings }) {
   const pathname = usePathname();
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const settings = useSettings();
 
   useEffect(() => {
     async function fetchUser() {
@@ -98,12 +99,12 @@ export function SiteHeader() {
       }
     }
     fetchUser();
-  }, [pathname]); // Re-fetch user on path change to ensure state is fresh
-  
+  }, [pathname]);
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
-    window.location.href = '/'; // Force a full page reload to home
+    window.location.href = '/';
   };
 
   const AuthButtons = ({ isMobile = false }: { isMobile?: boolean }) => {
@@ -145,7 +146,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-20 items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <TourVistaLogo onClick={() => isMenuOpen && setIsMenuOpen(false)} logoUrl={settings.logoUrl} siteName={settings.siteName} />
+          <TourVistaLogo onClick={() => isMenuOpen && setIsMenuOpen(false)} logoUrl={settings?.logoUrl} siteName={settings?.siteName} />
           <nav className="hidden items-center gap-6 lg:flex">
              {navLinks.map((link) => {
               const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href) && link.href !== "/";
@@ -182,7 +183,7 @@ export function SiteHeader() {
                 <div>
                   <SheetHeader className="mb-8 text-left">
                     <SheetTitle>
-                      <TourVistaLogo onClick={() => setIsMenuOpen(false)} logoUrl={settings.logoUrl} siteName={settings.siteName}/>
+                      <TourVistaLogo onClick={() => setIsMenuOpen(false)} logoUrl={settings?.logoUrl} siteName={settings?.siteName}/>
                     </SheetTitle>
                     <SheetDescription className="sr-only">
                       Main navigation menu

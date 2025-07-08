@@ -48,7 +48,7 @@ export default async function BlogPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1">
          <section className="py-12 bg-secondary text-center">
           <div className="container mx-auto px-4">

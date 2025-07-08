@@ -25,7 +25,7 @@ export default async function FAQPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1 bg-secondary">
         <div className="container mx-auto px-4 py-16 md:py-24">
             <div className="text-center max-w-3xl mx-auto mb-12">

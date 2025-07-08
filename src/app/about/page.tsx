@@ -83,7 +83,7 @@ export default async function AboutPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1">
         <section className="relative h-[40vh] flex items-center justify-center text-center text-white">
           <div className="absolute inset-0 bg-black/50 z-10" />

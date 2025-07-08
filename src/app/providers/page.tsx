@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Laptop, Wallet, ArrowRight, LogIn, ShieldCheck, List } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { getSettings } from "@/lib/settings-data";
 
 const benefits = [
     {
@@ -43,10 +44,11 @@ const howItWorks = [
   }
 ];
 
-export default function ProvidersPage() {
+export default async function ProvidersPage() {
+  const settings = await getSettings();
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
+      <SiteHeader settings={settings} />
       <main className="flex-1">
         
         <section className="relative bg-secondary py-20 md:py-32">
