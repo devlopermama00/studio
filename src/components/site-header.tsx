@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -13,6 +12,7 @@ import { Skeleton } from "./ui/skeleton";
 import { Separator } from "./ui/separator";
 import { useCurrency } from "@/context/currency-context";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useSettings } from "@/context/settings-context";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -28,10 +28,6 @@ interface AuthUser {
   email: string;
   role: "user" | "provider" | "admin";
   profilePhoto?: string;
-}
-
-interface Settings {
-    [key: string]: any;
 }
 
 const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
@@ -76,11 +72,12 @@ const CurrencySelector = ({ isMobile = false }: { isMobile?: boolean }) => {
 };
 
 
-export function SiteHeader({ settings }: { settings: Settings }) {
+export function SiteHeader() {
   const pathname = usePathname();
   const [user, setUser] = React.useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const settings = useSettings();
 
   useEffect(() => {
     async function fetchUser() {

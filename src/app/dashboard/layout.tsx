@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from "react";
@@ -28,7 +27,7 @@ import { TourVistaLogo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { useSettings } from "@/context/providers";
+import { useSettings } from "@/context/settings-context";
 
 interface AuthUser {
   id: string;
