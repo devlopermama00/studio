@@ -24,6 +24,7 @@ const settingsFormSchema = z.object({
   primaryColor: z.string().optional(),
   accentColor: z.string().optional(),
   foregroundColor: z.string().optional(),
+  mutedForegroundColor: z.string().optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -43,6 +44,7 @@ export function GeneralSettingsForm() {
             primaryColor: "",
             accentColor: "",
             foregroundColor: "",
+            mutedForegroundColor: "",
         },
     });
 
@@ -58,6 +60,7 @@ export function GeneralSettingsForm() {
                     primaryColor: data.primaryColor || "",
                     accentColor: data.accentColor || "",
                     foregroundColor: data.foregroundColor || "",
+                    mutedForegroundColor: data.mutedForegroundColor || "",
                 });
                 setLogoUrl(data.logoUrl || null);
             } catch (error) {
@@ -142,9 +145,14 @@ export function GeneralSettingsForm() {
                             <FormItem><FormLabel>Accent Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 174 50% 50% or #47D1B5" /></FormControl><FormDescription>Used for highlights and secondary elements.</FormDescription><FormMessage /></FormItem>
                         )} />
                     </div>
-                    <FormField name="foregroundColor" render={({ field }) => (
-                        <FormItem><FormLabel>Text Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 10% 10% or #1A202C" /></FormControl><FormDescription>Changes the main text color of the site (e.g., navigation links).</FormDescription><FormMessage /></FormItem>
-                    )} />
+                     <div className="grid md:grid-cols-2 gap-4">
+                        <FormField name="foregroundColor" render={({ field }) => (
+                            <FormItem><FormLabel>Text Color</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 10% 10% or #1A202C" /></FormControl><FormDescription>Changes the main text color of the site.</FormDescription><FormMessage /></FormItem>
+                        )} />
+                        <FormField name="mutedForegroundColor" render={({ field }) => (
+                            <FormItem><FormLabel>Inactive Nav Link Color</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 10% 40% or #5A6A7A" /></FormControl><FormDescription>Changes color of inactive nav links and other muted text.</FormDescription><FormMessage /></FormItem>
+                        )} />
+                    </div>
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
                     <Button type="submit" disabled={isSaving}>

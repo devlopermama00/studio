@@ -54,6 +54,12 @@ export default async function RootLayout({
       themeStyle['--foreground' as any] = foregroundHsl;
     }
   }
+  if (settings.mutedForegroundColor) {
+    const mutedForegroundHsl = toHslString(settings.mutedForegroundColor);
+    if (mutedForegroundHsl) {
+      themeStyle['--muted-foreground' as any] = mutedForegroundHsl;
+    }
+  }
 
   return (
     <html lang="en" suppressHydrationWarning style={themeStyle}>

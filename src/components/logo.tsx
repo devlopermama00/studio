@@ -14,13 +14,13 @@ export function TourVistaLogo({ className, onClick }: { className?: string; onCl
 
   if (logoUrl) {
     return (
-      <Link href="/" onClick={onClick} className={cn("relative h-10 w-32", className)}>
+      <Link href="/" onClick={onClick} className={cn("relative h-12 w-40", className)}>
         <Image
           src={logoUrl}
           alt={`${siteName} logo`}
           fill
           style={{ objectFit: 'contain' }}
-          sizes="128px"
+          sizes="160px"
           priority
         />
       </Link>
