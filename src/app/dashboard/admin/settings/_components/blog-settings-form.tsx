@@ -80,7 +80,7 @@ export function BlogSettingsForm() {
         <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSave)}>
                 <CardContent className="space-y-8">
-                    <FormField name="blog_page_title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} placeholder="TourVista Georgia Blog" /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField name="blog_page_title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} placeholder="DayTourGuides Georgia Blog" /></FormControl><FormMessage /></FormItem>)} />
                     <FormField name="blog_page_description" render={({ field }) => (<FormItem><FormLabel>Page Description</FormLabel><FormControl><Input {...field} placeholder="Travel tips, destination guides, and stories from the heart of Georgia." /></FormControl><FormMessage /></FormItem>)} />
                 </CardContent>
                 <CardFooter className="border-t px-6 py-4">
