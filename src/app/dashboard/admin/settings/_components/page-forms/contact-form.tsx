@@ -12,10 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const contactPageSchema = z.object({
   contact_page_title: z.string().optional(),
   contact_page_description: z.string().optional(),
+  contact_info_title: z.string().optional(),
+  contact_info_description: z.string().optional(),
   contact_page_email: z.string().email().optional().or(z.literal('')),
   contact_page_phone: z.string().optional(),
   contact_page_address: z.string().optional(),
@@ -77,8 +80,12 @@ export function ContactForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSave)}>
           <CardContent className="space-y-6">
-            <FormField name="contact_page_title" render={({ field }) => (<FormItem><FormLabel>Page Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
-            <FormField name="contact_page_description" render={({ field }) => (<FormItem><FormLabel>Page Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+            <FormField name="contact_page_title" render={({ field }) => (<FormItem><FormLabel>Page Header Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+            <FormField name="contact_page_description" render={({ field }) => (<FormItem><FormLabel>Page Header Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+            <Separator />
+            <FormField name="contact_info_title" render={({ field }) => (<FormItem><FormLabel>Contact Info Title</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+            <FormField name="contact_info_description" render={({ field }) => (<FormItem><FormLabel>Contact Info Description</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField name="contact_page_email" render={({ field }) => (<FormItem><FormLabel>Contact Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl></FormItem>)} />
               <FormField name="contact_page_phone" render={({ field }) => (<FormItem><FormLabel>Contact Phone</FormLabel><FormControl><Input {...field} /></FormControl></FormItem>)} />

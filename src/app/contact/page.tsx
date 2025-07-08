@@ -11,17 +11,34 @@ import { getSettings } from "@/lib/settings-data";
 
 const defaultContent = {
   title: "Get in Touch",
-  description: "Have a question or need help with a booking? We'd love to hear from you. Fill out the form below or use our contact details to reach us.",
+  description: "We're here to help! Reach out to us with any questions or feedback.",
+  contact_info_title: "Contact Information",
+  contact_info_description: "Need help or have a question? We're here to support you.",
   email: "contact@tourvista.ge",
   phone: "+995 123 456 789",
   address: "123 Freedom Square, Tbilisi, Georgia",
 };
+
+const ContactInfoItem = ({ icon: Icon, title, value, href }: { icon: React.ElementType, title: string, value: string, href: string }) => (
+    <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 mt-1">
+            <Icon className="h-6 w-6 text-primary" />
+        </div>
+        <div>
+            <h3 className="font-semibold">{title}</h3>
+            <a href={href} className="text-muted-foreground hover:text-primary transition-colors break-all">{value}</a>
+        </div>
+    </div>
+);
+
 
 export default async function ContactPage() {
   const settings = await getSettings();
   const content = {
     title: settings.contact_page_title || defaultContent.title,
     description: settings.contact_page_description || defaultContent.description,
+    contact_info_title: settings.contact_info_title || defaultContent.contact_info_title,
+    contact_info_description: settings.contact_info_description || defaultContent.contact_info_description,
     email: settings.contact_page_email || defaultContent.email,
     phone: settings.contact_page_phone || defaultContent.phone,
     address: settings.contact_page_address || defaultContent.address,
@@ -31,82 +48,63 @@ export default async function ContactPage() {
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1 bg-background">
+        <section className="bg-gradient-to-r from-primary to-accent text-primary-foreground py-20 text-center">
+            <div className="container mx-auto px-4">
+                <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">{content.title}</h1>
+                <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
+                    {content.description}
+                </p>
+            </div>
+        </section>
+
         <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="text-center max-w-3xl mx-auto mb-12">
-              <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">{content.title}</h1>
-              <p className="text-lg text-muted-foreground">
-                {content.description}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              <Card>
-                <CardHeader className="flex-row items-center gap-4 pb-2">
-                  <div className="p-3 bg-primary/10 rounded-full flex-shrink-0"><Mail className="w-6 h-6 text-primary" /></div>
-                  <CardTitle className="font-headline text-xl">Email</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-2 text-sm">Our support team will get back to you within 24 hours.</p>
-                  <a href={`mailto:${content.email}`} className="font-semibold text-primary break-all hover:underline text-base">{content.email}</a>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex-row items-center gap-4 pb-2">
-                  <div className="p-3 bg-primary/10 rounded-full flex-shrink-0"><Phone className="w-6 h-6 text-primary" /></div>
-                  <CardTitle className="font-headline text-xl">Phone</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-2 text-sm">Speak with our team for immediate assistance.</p>
-                  <a href={`tel:${content.phone}`} className="font-semibold text-primary break-all hover:underline text-base">{content.phone}</a>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex-row items-center gap-4 pb-2">
-                  <div className="p-3 bg-primary/10 rounded-full flex-shrink-0"><MapPin className="w-6 h-6 text-primary" /></div>
-                  <CardTitle className="font-headline text-xl">Office</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-2 text-sm">{content.address}</p>
-                  <p className="font-semibold text-primary text-base">Mon-Fri, 9am - 6pm</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="max-w-4xl mx-auto w-full">
-              <Card>
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl md:text-3xl font-headline">Send us a Message</CardTitle>
-                  <CardDescription>Fill out the form and we'll be in touch.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form className="space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" placeholder="John Doe" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" placeholder="name@example.com" />
-                      </div>
+            <div className="container mx-auto px-4">
+                <div className="grid lg:grid-cols-2 gap-12 items-start">
+                    <div className="space-y-8">
+                        <div>
+                            <h2 className="text-2xl font-headline font-semibold mb-2">{content.contact_info_title}</h2>
+                            <p className="text-muted-foreground">{content.contact_info_description}</p>
+                        </div>
+                        <div className="space-y-6">
+                            <ContactInfoItem icon={Mail} title="Email" value={content.email} href={`mailto:${content.email}`} />
+                            <ContactInfoItem icon={Phone} title="Phone" value={content.phone} href={`tel:${content.phone}`} />
+                            <ContactInfoItem icon={MapPin} title="Office Address" value={content.address} href="#" />
+                        </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="subject">Subject</Label>
-                      <Input id="subject" placeholder="e.g., Question about a tour" />
+
+                    <div>
+                        <Card className="shadow-lg">
+                            <CardHeader>
+                                <CardTitle className="text-2xl font-headline">Send us a Message</CardTitle>
+                                <CardDescription>Fill out the form and we'll be in touch.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form className="space-y-4">
+                                    <div className="grid sm:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Full Name</Label>
+                                        <Input id="name" placeholder="John Doe" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email">Email Address</Label>
+                                        <Input id="email" type="email" placeholder="name@example.com" />
+                                    </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                    <Label htmlFor="subject">Subject</Label>
+                                    <Input id="subject" placeholder="e.g., Question about a tour" />
+                                    </div>
+                                    <div className="space-y-2">
+                                    <Label htmlFor="message">Message</Label>
+                                    <Textarea id="message" placeholder="Your message here..." className="min-h-[150px]" />
+                                    </div>
+                                    <Button type="submit" size="lg" className="w-full">Send Message</Button>
+                                </form>
+                            </CardContent>
+                        </Card>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="message">Message</Label>
-                      <Textarea id="message" placeholder="Your message here..." className="min-h-[150px]" />
-                    </div>
-                    <Button type="submit" size="lg" className="w-full sm:w-auto">Send Message</Button>
-                  </form>
-                </CardContent>
-              </Card>
+                </div>
             </div>
-          </div>
         </section>
       </main>
       <SiteFooter />
