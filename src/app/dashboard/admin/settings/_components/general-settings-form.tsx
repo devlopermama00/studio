@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -128,10 +127,10 @@ export function GeneralSettingsForm() {
                     )} />
                     <div className="grid md:grid-cols-2 gap-4">
                         <FormField name="primaryColor" render={({ field }) => (
-                            <FormItem><FormLabel>Primary Color (HSL or HEX)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g. 204 75% 50% or #00AEEF" /></FormControl><FormDescription>Changes the main brand color of the site.</FormDescription><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Primary Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 75% 50% or #00AEEF" /></FormControl><FormDescription>Changes the main brand color of the site.</FormDescription><FormMessage /></FormItem>
                         )} />
                         <FormField name="accentColor" render={({ field }) => (
-                            <FormItem><FormLabel>Accent Color (HSL or HEX)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g. 174 50% 50% or #47D1B5" /></FormControl><FormDescription>Used for highlights and secondary elements.</FormDescription><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Accent Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 174 50% 50% or #47D1B5" /></FormControl><FormDescription>Used for highlights and secondary elements.</FormDescription><FormMessage /></FormItem>
                         )} />
                     </div>
                 </CardContent>

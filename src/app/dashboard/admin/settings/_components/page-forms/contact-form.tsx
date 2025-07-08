@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -151,7 +150,7 @@ export function ContactForm() {
               )}
             />
             <FormField name="contact_page_hero_bg" render={({ field }) => (
-              <FormItem><FormLabel>Background Color (HSL or HEX)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 75% 50% or #00AEEF" /></FormControl><FormDescription>Fallback if no image is set.</FormDescription><FormMessage /></FormItem>
+              <FormItem><FormLabel>Background Color (HSL, HEX, or RGB)</FormLabel><FormControl><HslColorInput {...field} placeholder="e.g., 204 75% 50% or #00AEEF" /></FormControl><FormDescription>Fallback if no image is set.</FormDescription><FormMessage /></FormItem>
             )} />
 
             <Separator />
