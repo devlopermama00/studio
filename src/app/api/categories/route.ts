@@ -28,8 +28,12 @@ export async function GET() {
     try {
         await dbConnect();
         await seedCategories();
-        const categories = await Category.find({}).sort({ name: 1 });
-        return NextResponse.json(categories);
+        const categories = await Category.find({}).sort({ name: 1 }).lean();
+        const formattedCategories = categories.map(cat => ({
+            id: cat._id.toString(),
+            name: cat.name,
+        }));
+        return NextResponse.json(formattedCategories);
     } catch (error) {
         console.error('Error fetching categories:', error);
         return NextResponse.json({ message: 'Error fetching categories' }, { status: 500 });
