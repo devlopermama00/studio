@@ -145,18 +145,21 @@ export function SiteHeader() {
         <div className="flex items-center gap-6">
           <TourVistaLogo onClick={() => isMenuOpen && setIsMenuOpen(false)} />
           <nav className="hidden items-center gap-6 lg:flex">
-             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  pathname === link.href ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+             {navLinks.map((link) => {
+              const isActive = (link.href === "/" && pathname === "/") || (link.href !== "/" && pathname.startsWith(link.href));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  {link.label}
+                </Link>
+              )
+            })}
           </nav>
         </div>
 
@@ -184,19 +187,22 @@ export function SiteHeader() {
                     </SheetDescription>
                   </SheetHeader>
                   <div className="flex flex-col space-y-4">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={cn(
-                          "text-lg font-medium transition-colors hover:text-primary",
-                          pathname === link.href ? "text-primary" : "text-muted-foreground"
-                        )}
-                      >
-                        {link.label}
-                      </Link>
-                    ))}
+                    {navLinks.map((link) => {
+                      const isActive = (link.href === "/" && pathname === "/") || (link.href !== "/" && pathname.startsWith(link.href));
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setIsMenuOpen(false)}
+                          className={cn(
+                            "text-lg font-medium transition-colors hover:text-primary",
+                            isActive ? "text-primary" : "text-muted-foreground"
+                          )}
+                        >
+                          {link.label}
+                        </Link>
+                      )
+                    })}
                     <Separator className="my-2" />
                     <CurrencySelector isMobile={true}/>
                     <Separator className="my-2" />
