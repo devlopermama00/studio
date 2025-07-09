@@ -309,118 +309,257 @@ export default function AdminChat() {
     if (isLoading) return <AdminChatSkeleton />;
 
     return (
-        <Card className="h-full">
-            <CardContent className="flex h-full p-0">
-                <div className={cn("border-r h-full flex flex-col min-h-0 w-full md:max-w-xs md:flex", selectedConversation ? 'hidden md:flex' : 'flex')}>
-                    <div className="p-4 border-b">
-                        <Select onValueChange={(value) => handleFilterChange(value, conversations)} defaultValue="all">
-                            <SelectTrigger><SelectValue placeholder="Filter by role" /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Users</SelectItem>
-                                <SelectItem value="user">Users</SelectItem>
-                                <SelectItem value="provider">Providers</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <ScrollArea className="flex-1">
-                        {filteredConversations.length > 0 ? filteredConversations.map(convo => {
-                            const otherUser = convo.participants.find(p => p._id !== authUser?._id);
-                            if (!otherUser) return null;
-                            
-                            return (
-                                <div key={convo._id}
-                                    onClick={() => handleSelectConversation(convo)}
-                                    className={cn(
-                                        "flex items-center gap-3 p-3 m-2 rounded-lg cursor-pointer hover:bg-secondary",
-                                        {"bg-secondary": selectedConversation?._id === convo._id}
-                                    )}
-                                >
-                                    <div className="relative">
-                                        <Avatar>
-                                            <AvatarImage src={otherUser.profilePhoto} />
-                                            <AvatarFallback>{otherUser.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                        </Avatar>
-                                         {convo.isUnread && <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />}
-                                    </div>
-                                    <div className="flex-1 overflow-hidden">
-                                        <div className="flex justify-between items-baseline">
-                                            <p className={cn("truncate font-semibold", {"font-bold text-foreground": convo.isUnread})}>{otherUser.name}</p>
-                                            {convo.lastMessage && <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{formatTimestamp(convo.lastMessage.createdAt)}</p>}
-                                        </div>
-                                        <p className={cn("text-sm text-muted-foreground truncate", {"text-foreground": convo.isUnread})}>
-                                            {convo.lastMessage ? convo.lastMessage.content : `Role: ${otherUser.role}`}
-                                        </p>
-                                    </div>
-                                </div>
-                            )
-                        }) : <p className="p-4 text-sm text-muted-foreground">No conversations found.</p>}
-                    </ScrollArea>
-                </div>
+       <Card className="h-full bg-background fixed w-full md:w-[calc(97%-var(--sidebar-width))] ">
+      <CardContent className="flex h-full p-0 ">
+        {/* Sidebar / Conversation List */}
+        <div
+          className={cn(
+            "border-r mb-28 flex flex-col  w-full md:max-w-sm pr-4 md:pr-0",
+            selectedConversation ? "hidden md:flex" : "flex"
+          )}
+        >
+          {/* Header: Filter */}
+          <div className="sticky top-0 z-20 p-4 border-b bg-background">
+            <Select
+              onValueChange={(value) => handleFilterChange(value, conversations)}
+              defaultValue="all"
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="user">Users</SelectItem>
+                <SelectItem value="provider">Providers</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-                <div className={cn("flex-1 flex-col h-full bg-secondary/50", selectedConversation ? 'flex' : 'hidden md:flex')}>
-                    {selectedConversation && authUser ? (
-                        <>
-                            <div className="p-4 border-b flex items-center gap-3 bg-background shadow-sm flex-shrink-0">
-                                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSelectedConversation(null)}>
-                                    <ArrowLeft className="h-5 w-5" />
-                                </Button>
-                                <Avatar>
-                                     <AvatarImage src={selectedConversation.participants.find(p => p._id !== authUser._id)?.profilePhoto} />
-                                     <AvatarFallback>{selectedConversation.participants.find(p => p._id !== authUser._id)?.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p className="font-semibold">{selectedConversation.participants.find(p => p._id !== authUser._id)?.name}</p>
-                                    <p className="text-xs text-muted-foreground">Joined {formatDistanceToNow(new Date(selectedConversation.participants.find(p => p._id !== authUser._id)?.createdAt || Date.now()))} ago</p>
-                                </div>
-                            </div>
-                            <div className="flex-1 relative">
-                                <div className="absolute inset-0 overflow-y-auto p-4 md:p-6 space-y-4">
-                                    {messages.map(message => (
-                                        <div key={message._id} className={cn("flex items-end gap-2", message.sender._id === authUser._id ? "justify-end" : "justify-start")}>
-                                            {message.sender._id !== authUser._id && (
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage src={message.sender.profilePhoto} />
-                                                    <AvatarFallback>{message.sender.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                                </Avatar>
-                                            )}
-                                            <div className={cn("max-w-xs md:max-w-md p-3 rounded-lg shadow-sm", message.sender._id === authUser._id ? "bg-primary text-primary-foreground" : "bg-background")}>
-                                                <p className="text-sm">{message.content}</p>
-                                                <div className={cn("flex items-center gap-1.5 text-xs mt-1", message.sender._id === authUser._id ? "text-primary-foreground/70 justify-end" : "text-muted-foreground justify-start")}>
-                                                    <span>{format(new Date(message.createdAt), 'p')}</span>
-                                                    {renderMessageStatus(message)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    <div ref={messagesEndRef} />
-                                </div>
-                            </div>
-                            <div className="p-4 border-t bg-background flex-shrink-0">
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(handleSendMessage)} className="flex items-center gap-2">
-                                        <FormField control={form.control} name="message" render={({ field }) => (
-                                            <FormItem className="flex-1">
-                                                <FormControl>
-                                                    <Input placeholder="Type a message..." autoComplete="off" {...field} />
-                                                </FormControl>
-                                            </FormItem>
-                                        )} />
-                                        <Button type="submit" size="icon" disabled={form.formState.isSubmitting}>
-                                             {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                                        </Button>
-                                    </form>
-                                </Form>
-                            </div>
-                        </>
-                    ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                           <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
-                           <h3 className="text-xl font-semibold">Select a conversation</h3>
-                           <p className="text-muted-foreground">Choose a user from the list to start chatting.</p>
+          {/* Scrollable Chat List (mobile and desktop) */}
+          <div className="flex-1 overflow-y-auto md:block ">
+            <div className="space-y-1 p-2">
+              {filteredConversations.length > 0 ? (
+                filteredConversations.map((convo) => {
+                  const otherUser = convo.participants.find(
+                    (p) => p._id !== authUser?._id
+                  );
+                  if (!otherUser) return null;
+
+                  return (
+                    <div
+                      key={convo._id}
+                      onClick={() => handleSelectConversation(convo)}
+                      className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-accent",
+                        {
+                          "bg-accent":
+                            selectedConversation?._id === convo._id,
+                        }
+                      )}
+                    >
+                      <div className="relative">
+                        <Avatar>
+                          <AvatarImage src={otherUser.profilePhoto} />
+                          <AvatarFallback>
+                            {otherUser.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {convo.isUnread && (
+                          <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+                        )}
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="flex justify-between items-center">
+                          <p
+                            className={cn(
+                              "truncate font-medium",
+                              {
+                                "font-bold text-foreground": convo.isUnread,
+                              }
+                            )}
+                          >
+                            {otherUser.name}
+                          </p>
+                          {convo.lastMessage && (
+                            <p className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                              {formatTimestamp(convo.lastMessage.createdAt)}
+                            </p>
+                          )}
                         </div>
-                    )}
+                        <p
+                          className={cn(
+                            "text-sm text-muted-foreground truncate",
+                            {
+                              "text-foreground": convo.isUnread,
+                            }
+                          )}
+                        >
+                          {convo.lastMessage
+                            ? convo.lastMessage.content
+                            : `Role: ${otherUser.role}`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="p-4 text-sm text-muted-foreground">
+                  No conversations found.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Chat Panel */}
+        <div
+          className={cn(
+            "flex-1 flex flex-col h-full bg-muted pr-4 md:pr-0",
+            selectedConversation ? "flex" : "hidden md:flex"
+          )}
+        >
+          {selectedConversation && authUser ? (
+            <>
+              {/* Chat Header */}
+              <div className="p-4 border-b bg-background sticky top-0 z-20 flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => setSelectedConversation(null)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <Avatar>
+                  <AvatarImage
+                    src={
+                      selectedConversation.participants.find(
+                        (p) => p._id !== authUser._id
+                      )?.profilePhoto
+                    }
+                  />
+                  <AvatarFallback>
+                    {
+                      selectedConversation.participants.find(
+                        (p) => p._id !== authUser._id
+                      )?.name.charAt(0).toUpperCase()
+                    }
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold">
+                    {
+                      selectedConversation.participants.find(
+                        (p) => p._id !== authUser._id
+                      )?.name
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Joined {formatDistanceToNow(
+                      new Date(
+                        selectedConversation.participants.find(
+                          (p) => p._id !== authUser._id
+                        )?.createdAt || Date.now()
+                      )
+                    )} ago
+                  </p>
                 </div>
-            </CardContent>
-        </Card>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-4 py-24 space-y-4">
+                {messages.map((message) => (
+                  <div
+                    key={message._id}
+                    className={cn(
+                      "flex items-end gap-2",
+                      message.sender._id === authUser._id
+                        ? "justify-end"
+                        : "justify-start"
+                    )}
+                  >
+                    {message.sender._id !== authUser._id && (
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={message.sender.profilePhoto} />
+                        <AvatarFallback>
+                          {message.sender.name.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+                    <div
+                      className={cn(
+                        "max-w-xs md:max-w-sm p-3 rounded-xl shadow-sm",
+                        message.sender._id === authUser._id
+                          ? "bg-primary text-primary-foreground rounded-br-none"
+                          : "bg-background rounded-bl-none"
+                      )}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                      <div
+                        className={cn(
+                          "flex items-center gap-1.5 text-xs mt-1 ",
+                          message.sender._id === authUser._id
+                            ? "text-primary-foreground/70 justify-end "
+                            : "text-muted-foreground justify-start"
+                        )}
+                      >
+                        <span>{format(new Date(message.createdAt), "p")}</span>
+                        {renderMessageStatus(message)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Message Input */}
+              <div className="p-4 border-t bg-background sticky bottom-0 z-20">
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(handleSendMessage)}
+                    className="flex items-center gap-2"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input
+                              placeholder="Type a message..."
+                              autoComplete="off"
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <Button
+                      type="submit"
+                      size="icon"
+                      disabled={form.formState.isSubmitting}
+                    >
+                      {form.formState.isSubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </form>
+                </Form>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+              <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold">Select a conversation</h3>
+              <p className="text-muted-foreground">
+                Choose a user from the list to start chatting.
+              </p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
     );
 }
