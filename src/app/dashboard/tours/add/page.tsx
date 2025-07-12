@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 import { useSocket } from "@/lib/socket";
 
 interface Category {
-    _id: string;
+    id: string;
     name: string;
 }
 
@@ -383,9 +383,9 @@ export default function AddTourPage() {
                     <FormItem>
                     <FormLabel>Category</FormLabel>
                     {isFetchingCategories ? <Skeleton className="h-10 w-full" /> : (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl><SelectTrigger><SelectValue placeholder="Select a tour category" /></SelectTrigger></FormControl>
-                        <SelectContent>{categories.map(category => (<SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>))}</SelectContent>
+                        <SelectContent>{categories.map(category => (<SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>))}</SelectContent>
                     </Select>
                     )}
                     <FormMessage />
@@ -449,3 +449,4 @@ export default function AddTourPage() {
     </Card>
   );
 }
+
