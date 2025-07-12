@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -54,6 +55,14 @@ const UserNav = ({ user }: { user: AuthUser }) => {
                     </SidebarMenuItem>
                 )}
                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/bookings')}>
+                        <Link href="/dashboard/bookings">
+                            <BookCopy />
+                            My Bookings
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/wishlist"}>
                         <Link href="/dashboard/wishlist">
                             <Heart />
@@ -93,6 +102,14 @@ const ProviderNav = () => {
                         <Link href="/dashboard/tours">
                             <Map />
                             My Tours
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/provider-bookings')}>
+                        <Link href="/dashboard/provider-bookings">
+                            <BookCopy />
+                            Bookings
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -152,6 +169,14 @@ const AdminNav = () => {
                         <Link href="/dashboard/chat">
                             <MessageSquare />
                             Support Chat
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/bookings')}>
+                        <Link href="/dashboard/admin/bookings">
+                            <BookCopy />
+                            Bookings
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -329,8 +354,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <TourVistaLogo logoUrl={settings.logoUrl} siteName={settings.siteName} />
         </SidebarHeader>
         <SidebarContent className="p-2">
-            {user.role === 'admin' ? <AdminNav /> : <UserNav user={user} />}
+            <UserNav user={user} />
             {user.role === 'provider' && <ProviderNav />}
+            {user.role === 'admin' && <AdminNav />}
         </SidebarContent>
         <SidebarFooter>
            <SidebarMenu>
