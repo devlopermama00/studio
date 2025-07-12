@@ -74,6 +74,11 @@ export async function POST(request: NextRequest) {
         if (!user) {
             return NextResponse.json({ message: 'User not found.' }, { status: 404 });
         }
+
+        // Check if provider is verified
+        if (user.role === 'provider' && !user.isVerified) {
+            return NextResponse.json({ message: 'Your provider account must be approved by an admin before you can create tours.' }, { status: 403 });
+        }
         
         const body = await request.json();
         
@@ -84,15 +89,27 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const newTour = new Tour({
+        const newTourData: any = {
             ...body,
             createdBy: new Types.ObjectId(decoded.id),
             approved: decoded.role === 'admin',
-        });
+        };
+
+        if (!body.discountPrice || parseFloat(body.discountPrice) <= 0) {
+            delete newTourData.discountPrice;
+            delete newTourData.offerExpiresAt;
+        }
+
+        const newTour = new Tour(newTourData);
 
         await newTour.save();
+        
+        const populatedTour = await Tour.findById(newTour._id)
+            .populate('category', 'name')
+            .populate('createdBy', 'name')
+            .lean();
 
-        return NextResponse.json(newTour, { status: 201 });
+        return NextResponse.json(populatedTour, { status: 201 });
 
     } catch (error) {
         console.error('Error creating tour:', error);
