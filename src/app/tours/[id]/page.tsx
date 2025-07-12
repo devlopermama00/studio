@@ -106,7 +106,7 @@ export default async function TourDetailPage({ params }: { params: { id: string 
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-2xl font-headline font-semibold mb-4">About this tour</h2>
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{tour.overview}</p>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">{tour.overview}</p>
                   
                   <Separator className="my-6" />
 
