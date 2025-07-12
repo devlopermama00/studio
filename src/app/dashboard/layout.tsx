@@ -53,14 +53,6 @@ const UserNav = ({ user }: { user: AuthUser }) => {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 )}
-                <SidebarMenuItem>
-                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/bookings"}>
-                        <Link href="/dashboard/bookings">
-                            <BookOpen />
-                            My Bookings
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === "/dashboard/wishlist"}>
                         <Link href="/dashboard/wishlist">
@@ -168,14 +160,6 @@ const AdminNav = () => {
                         <Link href="/dashboard/admin/users">
                             <Users />
                             Users
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/admin/bookings')}>
-                        <Link href="/dashboard/admin/bookings">
-                            <BookCopy />
-                            Bookings
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>

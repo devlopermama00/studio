@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import Tour from '@/models/Tour';
-import Booking from '@/models/Booking';
 import { Types } from 'mongoose';
 
 interface DecodedToken {
@@ -40,33 +39,12 @@ export async function GET(request: NextRequest) {
         const providers = await User.find({ role: 'provider' }).select('_id name');
         
         const payoutData = await Promise.all(providers.map(async (provider) => {
-            const tours = await Tour.find({ createdBy: provider._id }).select('_id');
-            const tourIds = tours.map(t => t._id);
-
-            const unpaidBookings = await Booking.aggregate([
-                { $match: { tourId: { $in: tourIds }, status: 'completed', payoutStatus: 'unpaid' } },
-                { $group: { _id: null, total: { $sum: '$totalPrice' } } }
-            ]);
-
-            const processingBookings = await Booking.aggregate([
-                { $match: { tourId: { $in: tourIds }, status: 'completed', payoutStatus: 'processing' } },
-                { $group: { _id: null, total: { $sum: '$totalPrice' } } }
-            ]);
-
-            const lastPayout = await Booking.findOne({ tourId: { $in: tourIds }, payoutStatus: 'paid' })
-                .sort({ paidOutAt: -1 })
-                .limit(1);
-
-            const unpaidGross = unpaidBookings.length > 0 ? unpaidBookings[0].total : 0;
-            const processingGross = processingBookings.length > 0 ? processingBookings[0].total : 0;
-            const commissionRate = 0.25;
-
             return {
                 providerId: provider._id.toString(),
                 providerName: provider.name,
-                pendingBalance: unpaidGross * (1 - commissionRate),
-                processingBalance: processingGross * (1 - commissionRate),
-                lastPayoutDate: lastPayout?.paidOutAt || null,
+                pendingBalance: 0,
+                processingBalance: 0,
+                lastPayoutDate: null,
             };
         }));
         
@@ -93,17 +71,8 @@ export async function POST(request: NextRequest) {
         
         const tours = await Tour.find({ createdBy: new Types.ObjectId(providerId) }).select('_id');
         const tourIds = tours.map(t => t._id);
-
-        const result = await Booking.updateMany(
-            { tourId: { $in: tourIds }, status: 'completed', payoutStatus: 'unpaid' },
-            { $set: { payoutStatus: 'processing' } }
-        );
-
-        if (result.matchedCount === 0) {
-            return NextResponse.json({ message: 'No unpaid bookings to process for this provider.' }, { status: 404 });
-        }
         
-        return NextResponse.json({ message: 'Payout processing started.', modifiedCount: result.modifiedCount });
+        return NextResponse.json({ message: 'Payout processing started.', modifiedCount: 0 });
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';

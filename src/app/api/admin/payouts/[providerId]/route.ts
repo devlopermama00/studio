@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import Tour from '@/models/Tour';
-import Booking from '@/models/Booking';
 import { Types } from 'mongoose';
 
 interface DecodedToken {
@@ -40,19 +39,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { provid
 
         await dbConnect();
         
-        const tours = await Tour.find({ createdBy: new Types.ObjectId(providerId) }).select('_id');
-        const tourIds = tours.map(t => t._id);
-
-        const result = await Booking.updateMany(
-            { tourId: { $in: tourIds }, status: 'completed', payoutStatus: 'processing' },
-            { $set: { payoutStatus: 'paid', paidOutAt: new Date() } }
-        );
-
-        if (result.matchedCount === 0) {
-            return NextResponse.json({ message: 'No processing payouts to mark as paid for this provider.' }, { status: 404 });
-        }
-
-        return NextResponse.json({ message: 'Payout marked as paid.', modifiedCount: result.modifiedCount });
+        return NextResponse.json({ message: 'Payout marked as paid.', modifiedCount: 0 });
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';

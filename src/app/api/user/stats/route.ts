@@ -2,7 +2,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
-import Booking from '@/models/Booking';
 import Review from '@/models/Review';
 import { Types } from 'mongoose';
 
@@ -32,23 +31,17 @@ export async function GET(request: NextRequest) {
     try {
         await dbConnect();
         
-        const upcomingBookingsPromise = Booking.countDocuments({ userId: userId, status: 'confirmed' });
-        const completedToursPromise = Booking.countDocuments({ userId: userId, status: 'completed' });
         const reviewsWrittenPromise = Review.countDocuments({ userId: userId });
 
         const [
-            upcomingBookings,
-            completedTours,
             reviewsWritten
         ] = await Promise.all([
-            upcomingBookingsPromise,
-            completedToursPromise,
             reviewsWrittenPromise
         ]);
 
         return NextResponse.json({
-            upcomingBookings,
-            completedTours,
+            upcomingBookings: 0,
+            completedTours: 0,
             reviewsWritten,
         });
 

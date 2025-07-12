@@ -50,25 +50,25 @@ export default function AdminReportsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Financial & Booking Reports</CardTitle>
-                    <CardDescription>Export sales, revenue, and booking data.</CardDescription>
+                    <CardTitle>Financial & Tour Reports</CardTitle>
+                    <CardDescription>Export tour and financial data.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex justify-between items-center p-4 border rounded-lg">
                         <div>
-                            <h3 className="font-semibold">All Bookings</h3>
-                            <p className="text-sm text-muted-foreground">Export a detailed CSV of all bookings.</p>
+                            <h3 className="font-semibold">All Tours</h3>
+                            <p className="text-sm text-muted-foreground">Export a detailed CSV of all tours.</p>
                         </div>
-                        <Button variant="outline" onClick={() => handleExport("all_bookings")}>
+                        <Button variant="outline" onClick={() => handleExport("all_tours")}>
                             <Download className="mr-2 h-4 w-4" /> Export
                         </Button>
                     </div>
                      <div className="flex justify-between items-center p-4 border rounded-lg">
                         <div>
                             <h3 className="font-semibold">Monthly Revenue</h3>
-                            <p className="text-sm text-muted-foreground">Export revenue totals by month.</p>
+                            <p className="text-sm text-muted-foreground">Export revenue totals by month. (Feature unavailable)</p>
                         </div>
-                        <Button variant="outline" onClick={() => handleExport("monthly_revenue")}>
+                        <Button variant="outline" onClick={() => handleExport("monthly_revenue")} disabled>
                             <Download className="mr-2 h-4 w-4" /> Export
                         </Button>
                     </div>

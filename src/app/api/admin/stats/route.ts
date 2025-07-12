@@ -5,7 +5,6 @@ import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import Tour from '@/models/Tour';
 import Document from '@/models/Document';
-import Booking from '@/models/Booking';
 
 interface DecodedToken {
     id: string;
@@ -39,93 +38,38 @@ export async function GET(request: NextRequest) {
         const totalUsersPromise = User.countDocuments({});
         const totalProvidersPromise = User.countDocuments({ role: 'provider' });
         const totalToursPromise = Tour.countDocuments({});
-        const totalBookingsPromise = Booking.countDocuments({});
         
         const pendingProviderApprovalsPromise = Document.countDocuments({ status: 'pending' });
         const pendingTourApprovalsPromise = Tour.countDocuments({ approved: false });
 
-        const revenueDataPromise = Booking.aggregate([
-            { $match: { status: { $in: ['confirmed', 'completed'] } } },
-            { $group: { _id: null, total: { $sum: '$totalPrice' } } }
-        ]);
-        
-        const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-        const monthlyRevenueDataPromise = Booking.aggregate([
-            { $match: { status: { $in: ['confirmed', 'completed'] }, createdAt: { $gte: sixMonthsAgo } } },
-            {
-                $group: {
-                    _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
-                    total: { $sum: '$totalPrice' }
-                }
-            },
-            { $sort: { '_id.year': 1, '_id.month': 1 } }
-        ]);
-
-        const topToursPromise = Booking.aggregate([
-            { $group: { _id: '$tourId', count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 5 },
-            { $lookup: { from: 'tours', localField: '_id', foreignField: '_id', as: 'tourData' } },
-            { $unwind: '$tourData' },
-            { $project: { _id: 0, title: '$tourData.title', bookings: '$count' } }
-        ]);
         
         const [
             totalUsers,
             totalProviders,
             totalTours,
-            totalBookings,
             pendingProviderApprovals,
             pendingTourApprovals,
-            revenueData,
-            monthlyRevenueData,
-            topTours
         ] = await Promise.all([
             totalUsersPromise,
             totalProvidersPromise,
             totalToursPromise,
-            totalBookingsPromise,
             pendingProviderApprovalsPromise,
             pendingTourApprovalsPromise,
-            revenueDataPromise,
-            monthlyRevenueDataPromise,
-            topToursPromise,
         ]);
 
         const totalPendingApprovals = pendingProviderApprovals + pendingTourApprovals;
-        const totalRevenue = revenueData.length > 0 ? revenueData[0].total : 0;
-        
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const monthlyRevenue = [];
-        const monthMap = new Map();
-        monthlyRevenueData.forEach(item => {
-            monthMap.set(item._id.month, item.total);
-        });
-
-        for (let i = 5; i >= 0; i--) {
-            const d = new Date();
-            d.setMonth(d.getMonth() - i);
-            const month = d.getMonth() + 1;
-            const monthName = monthNames[d.getMonth()];
-            monthlyRevenue.push({
-                month: monthName,
-                revenue: monthMap.get(month) || 0,
-            });
-        }
 
         return NextResponse.json({
-            totalRevenue,
+            totalRevenue: 0,
             totalUsers,
             totalProviders,
             totalTours,
-            totalBookings,
+            totalBookings: 0,
             totalPendingApprovals,
             pendingProviderApprovals,
             pendingTourApprovals,
-            monthlyRevenue,
-            topTours,
+            monthlyRevenue: [],
+            topTours: [],
         });
 
     } catch (error) {

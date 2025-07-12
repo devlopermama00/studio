@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '@/lib/db';
 import User from '@/models/User';
 import Tour from '@/models/Tour';
-import Booking from '@/models/Booking';
 import { Types } from 'mongoose';
 
 interface DecodedToken {
@@ -42,38 +41,8 @@ export async function GET(request: NextRequest) {
         if (tours.length === 0) {
             return NextResponse.json([]); // No tours, so no payouts
         }
-        const tourIds = tours.map(t => t._id);
-
-        const commissionRate = 0.25;
-
-        // Fetch all paid bookings and group them by the date they were paid out
-        const payouts = await Booking.aggregate([
-            { $match: { tourId: { $in: tourIds }, status: 'completed', payoutStatus: 'paid' } },
-            {
-                $project: { // Project to calculate net amount before grouping
-                    paidOutAt: { $dateToString: { format: "%Y-%m-%d", date: "$paidOutAt" } },
-                    netAmount: { $multiply: ["$totalPrice", 1 - commissionRate] }
-                }
-            },
-            {
-                $group: {
-                    _id: '$paidOutAt', // Group by the formatted date string
-                    totalPayout: { $sum: '$netAmount' },
-                    count: { $sum: 1 }
-                }
-            },
-            { $sort: { '_id': -1 } } // Sort by date descending
-        ]);
-
-        const formattedPayouts = payouts.map(p => ({
-            id: p._id, // The date string
-            date: p._id,
-            amount: p.totalPayout,
-            bookingCount: p.count,
-            status: 'Paid',
-        }));
-
-        return NextResponse.json(formattedPayouts);
+        
+        return NextResponse.json([]);
 
     } catch (error) {
          console.error('Error fetching payout history:', error);

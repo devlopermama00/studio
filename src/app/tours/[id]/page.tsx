@@ -11,9 +11,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, MapPin, Clock, Users, MessageSquare, Check, X, Languages, Globe, Plane, UserCheck, Shield } from "lucide-react";
 import { getPublicTourById } from "@/lib/tours-data";
-import { BookingCard } from "@/components/booking-card";
 import { TourActionButtons } from "@/components/tour-action-buttons";
 import { getSettings } from "@/lib/settings-data";
+import { Button } from "@/components/ui/button";
 
 
 export default async function TourDetailPage({ params }: { params: { id: string } }) {
@@ -216,12 +216,10 @@ export default async function TourDetailPage({ params }: { params: { id: string 
 
             {/* Right/Sticky Column */}
             <div className="lg:col-span-1">
-              <BookingCard
-                price={tour.price}
-                originalPrice={tour.originalPrice}
-                tourId={tour.id}
-                currencyCode={tour.currency}
-              />
+              <div className="sticky top-24 p-6 bg-card rounded-lg shadow-sm border">
+                <h3 className="text-xl font-bold mb-4">Booking is currently unavailable.</h3>
+                <p className="text-muted-foreground">We are updating our payment system. Please check back later.</p>
+              </div>
             </div>
           </div>
         </div>

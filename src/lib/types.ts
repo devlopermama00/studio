@@ -51,15 +51,3 @@ export type Tour = {
   reviews: Review[];
   approved: boolean;
 };
-
-export type Booking = {
-  id: string;
-  userId: string;
-  tourId: string;
-  tourTitle: string;
-  tourImage: string;
-  bookingDate: string;
-  guests: number;
-  totalPrice: number;
-  status: "pending" | "confirmed" | "cancelled" | "completed" | "cancellation-requested";
-};

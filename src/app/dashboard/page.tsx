@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import AdminDashboardPage from "./admin/page";
 import AnalyticsPage from "./analytics/page"; // This is the provider dashboard
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { BookOpen, Star, Map } from "lucide-react";
+import { Heart, Star, Map } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface AuthUser {
@@ -68,7 +68,7 @@ const UserDashboard = ({ user }: { user: AuthUser }) => {
     }
 
     const statCards = [
-        { title: "Upcoming Bookings", value: stats?.upcomingBookings ?? 0, icon: BookOpen, description: "Ready for your next adventure." },
+        { title: "Tours Wishlisted", value: stats?.upcomingBookings ?? 0, icon: Heart, description: "Your next potential adventures." },
         { title: "Completed Tours", value: stats?.completedTours ?? 0, icon: Map, description: "Memories made, stories to tell." },
         { title: "Reviews Written", value: stats?.reviewsWritten ?? 0, icon: Star, description: "Your feedback helps others." },
     ];

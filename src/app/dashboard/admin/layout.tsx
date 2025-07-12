@@ -49,14 +49,6 @@ const AdminNav = () => {
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                        <Link href="/dashboard/admin/bookings">
-                            <BookCopy />
-                            Bookings
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild>
                         <Link href="/dashboard/admin/payouts">
