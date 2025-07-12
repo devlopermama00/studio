@@ -53,8 +53,9 @@ export async function createCheckoutSession(
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
+      customer_email: user.email, // Pre-fill email on Stripe checkout
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/tours/${tourId}`,
       metadata: {
         tourId: tour._id.toString(),
