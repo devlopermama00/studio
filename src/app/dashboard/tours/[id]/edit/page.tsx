@@ -222,8 +222,8 @@ export default function EditTourPage() {
             throw new Error(data.message || "Failed to update tour.");
         }
 
-        toast({ title: "Success!", description: "Tour has been updated and sent for re-approval." });
-        router.push('/dashboard/tours');
+        toast({ title: "Success!", description: "Tour has been updated." });
+        router.push('/dashboard/admin/tours');
         router.refresh();
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
@@ -242,13 +242,13 @@ export default function EditTourPage() {
       <CardHeader>
         <div className="flex items-center gap-4">
              <Button asChild variant="outline" size="icon">
-                <Link href="/dashboard/tours">
+                <Link href="/dashboard/admin/tours">
                     <ArrowLeft className="h-4 w-4" />
                 </Link>
             </Button>
             <div>
-                <CardTitle>Edit Tour</CardTitle>
-                <CardDescription>Update the details for this tour. Submitting will require re-approval.</CardDescription>
+                <CardTitle>Edit Tour (Admin)</CardTitle>
+                <CardDescription>Update the details for this tour.</CardDescription>
             </div>
         </div>
       </CardHeader>
@@ -264,7 +264,7 @@ export default function EditTourPage() {
             </div>
 
             <FormField name="overview" render={({ field }) => (<FormItem><FormLabel>Overview of Tour</FormLabel><FormControl><Textarea className="min-h-[120px]" {...field} /></FormControl><FormMessage /></FormItem>)} />
-            
+
             <div className="space-y-2">
                 <Label>Tour Photos</Label>
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
@@ -290,7 +290,7 @@ export default function EditTourPage() {
                 </FormControl>
                 <FormDescription>Minimum 3 photos required. Upload new images to add to the existing ones.</FormDescription>
             </div>
-
+            
             <Separator />
             
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
