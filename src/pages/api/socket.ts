@@ -2,7 +2,7 @@
 import type { Server as HTTPServer } from 'http';
 import type { Socket as NetSocket } from 'net';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { Server as IOServer } from 'socket.io';
+import { Server as IOServer, type Socket } from 'socket.io';
 import dbConnect from '@/lib/db';
 import Message from '@/models/Message';
 import Conversation from '@/models/Conversation';
@@ -25,22 +25,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponseWithSocket) {
-  if (res.socket.server.io) {
-    console.log('Socket is already running');
-    res.end();
-    return;
-  }
-
-  console.log('New Socket.io server...');
-  await dbConnect();
-  const io = new IOServer(res.socket.server, {
-    path: '/api/socket',
-    addTrailingSlash: false,
-  });
-  res.socket.server.io = io;
-
-  io.on('connection', (socket) => {
+const onConnection = (socket: Socket) => {
     console.log('A user connected:', socket.id);
 
     socket.on('join_conversation', (conversationId) => {
@@ -50,6 +35,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseW
 
     socket.on('send_message', async ({ conversationId, senderId, content }) => {
       try {
+        await dbConnect();
         const newMessage = await Message.create({
           conversationId,
           sender: new Types.ObjectId(senderId),
@@ -66,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseW
             .lean();
 
         // Broadcast to all clients in the room, including the sender
-        io.to(conversationId).emit('receive_message', populatedMessage);
+        socket.server.to(conversationId).emit('receive_message', populatedMessage);
       } catch (error) {
         console.error('Error sending message:', error);
         socket.emit('error', 'Failed to send message.');
@@ -75,13 +61,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseW
 
     socket.on('messages_seen', async ({ conversationId, userId }) => {
       try {
+        await dbConnect();
         await Message.updateMany(
           { conversationId: new Types.ObjectId(conversationId), readBy: { $ne: new Types.ObjectId(userId) } },
           { $addToSet: { readBy: new Types.ObjectId(userId) } }
         );
         
         // Notify others in the room that messages have been seen by this user
-        io.to(conversationId).emit('update_seen_status', { conversationId, userId });
+        socket.server.to(conversationId).emit('update_seen_status', { conversationId, userId });
       } catch (error) {
          console.error('Error marking messages as seen:', error);
       }
@@ -96,7 +83,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponseW
     socket.on('disconnect', () => {
       console.log('A user disconnected:', socket.id);
     });
+}
+
+
+export default async function handler(req: NextApiRequest, res: NextApiResponseWithSocket) {
+  if (res.socket.server.io) {
+    console.log('Socket is already running');
+    res.end();
+    return;
+  }
+
+  console.log('New Socket.io server...');
+  const io = new IOServer(res.socket.server, {
+    path: '/api/socket',
+    addTrailingSlash: false,
+    cors: { origin: "*", methods: ["GET", "POST"] },
   });
+  res.socket.server.io = io;
+
+  io.on('connection', onConnection);
 
   res.end();
 }

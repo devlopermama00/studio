@@ -9,6 +9,8 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
+import { v4 as uuidv4 } from 'uuid';
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -32,6 +34,12 @@ import { useSocket } from "@/lib/socket";
 interface Category {
     _id: string;
     name: string;
+}
+
+interface ImagePreview {
+    id: string;
+    url: string;
+    file: File;
 }
 
 const itineraryItemSchema = z.object({
@@ -61,11 +69,11 @@ const formSchema = z.object({
     .refine((files) => files && files.length >= 1, "Images are required.")
     .refine((files) => files && files.length >= 3, "Minimum of 3 images is required.")
     .refine(
-      (files) => files && Array.from(files).every((file: File) => file.size <= MAX_FILE_SIZE),
+      (files) => files && Array.from(files).every((file: any) => file.size <= MAX_FILE_SIZE),
       `Max file size is 5MB.`
     )
     .refine(
-      (files) => files && Array.from(files).every((file: File) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
+      (files) => files && Array.from(files).every((file: any) => ACCEPTED_IMAGE_TYPES.includes(file.type)),
       "Only .jpg, .jpeg, .png and .webp formats are supported."
     ),
   languages: z.string().min(3, { message: "Please list at least one language." }),
@@ -102,6 +110,7 @@ export default function AddTourPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingCategories, setIsFetchingCategories] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
 
   const form = useForm<TourFormValues>({
     resolver: zodResolver(formSchema),
@@ -131,20 +140,39 @@ export default function AddTourPage() {
     control: form.control,
     name: "itinerary",
   });
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const newPreviews: ImagePreview[] = files.map(file => ({
+        id: uuidv4(),
+        url: URL.createObjectURL(file),
+        file,
+    }));
+    
+    const existingPreviews = imagePreviews;
+    const combinedPreviews = [...existingPreviews, ...newPreviews];
+    setImagePreviews(combinedPreviews);
 
-  const images = form.watch("images");
-  const imagePreviews = useMemo(() => {
-    if (images && images.length > 0) {
-        return Array.from(images).map(file => URL.createObjectURL(file as Blob));
-    }
-    return [];
-  }, [images]);
+    const dataTransfer = new DataTransfer();
+    combinedPreviews.forEach(p => dataTransfer.items.add(p.file));
+    form.setValue("images", dataTransfer.files, { shouldValidate: true });
+  }
 
-   useEffect(() => {
+  const removeImage = (idToRemove: string) => {
+    const newPreviews = imagePreviews.filter(p => p.id !== idToRemove);
+    setImagePreviews(newPreviews);
+    
+    const dataTransfer = new DataTransfer();
+    newPreviews.forEach(p => dataTransfer.items.add(p.file));
+    form.setValue("images", dataTransfer.files, { shouldValidate: true });
+  }
+
+  useEffect(() => {
     return () => {
-        imagePreviews.forEach(url => URL.revokeObjectURL(url));
+        imagePreviews.forEach(p => URL.revokeObjectURL(p.url));
     };
-  }, [imagePreviews]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -165,16 +193,6 @@ export default function AddTourPage() {
     };
     fetchCategories();
   }, [toast]);
-  
-  const removeImage = (indexToRemove: number) => {
-    const currentFiles = form.getValues("images");
-    if (currentFiles) {
-        const newFiles = Array.from(currentFiles).filter((_, index) => index !== indexToRemove);
-        const dataTransfer = new DataTransfer();
-        newFiles.forEach(file => dataTransfer.items.add(file));
-        form.setValue("images", dataTransfer.files, { shouldValidate: true });
-    }
-  };
 
   async function onSubmit(values: TourFormValues) {
     setIsLoading(true);
@@ -268,14 +286,7 @@ export default function AddTourPage() {
                                 type="file"
                                 multiple
                                 accept="image/png, image/jpeg, image/jpg, image/webp"
-                                onChange={(e) => {
-                                    const existingFiles = field.value ? Array.from(field.value as FileList) : [];
-                                    const newFiles = e.target.files ? Array.from(e.target.files) : [];
-                                    const combinedFiles = [...existingFiles, ...newFiles];
-                                    const dataTransfer = new DataTransfer();
-                                    combinedFiles.forEach(file => dataTransfer.items.add(file as File));
-                                    field.onChange(dataTransfer.files);
-                                }}
+                                onChange={handleFileChange}
                             />
                         </FormControl>
                         <FormDescription>
@@ -287,10 +298,10 @@ export default function AddTourPage() {
                 />
                 {imagePreviews.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-                        {imagePreviews.map((src, index) => (
-                            <div key={src} className="relative group aspect-square">
+                        {imagePreviews.map((preview, index) => (
+                            <div key={preview.id} className="relative group aspect-square">
                                 <Image
-                                    src={src}
+                                    src={preview.url}
                                     alt={`Preview ${index + 1}`}
                                     fill
                                     sizes="(max-width: 768px) 50vw, 25vw"
@@ -301,7 +312,7 @@ export default function AddTourPage() {
                                     size="icon"
                                     variant="destructive"
                                     className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => removeImage(index)}
+                                    onClick={() => removeImage(preview.id)}
                                 >
                                     <X className="h-4 w-4" />
                                 </Button>
@@ -329,7 +340,7 @@ export default function AddTourPage() {
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    {currencies.map(c => <SelectItem key={c.code} value={c.code}>{c.code}</SelectItem>)}
+                                    {currencies.map(c => <SelectItem key={c.code} value={c.code}>{c.name} ({c.symbol})</SelectItem>)}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
@@ -414,8 +425,8 @@ export default function AddTourPage() {
                     {fields.map((item, index) => (
                         <div key={item.id} className="flex gap-4 items-start p-4 border rounded-lg bg-secondary/50">
                             <div className="flex-1 space-y-2">
-                                <FormField name={`itinerary.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Stop Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                                <FormField name={`itinerary.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Stop Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField key={`title-${item.id}`} name={`itinerary.${index}.title`} render={({ field }) => (<FormItem><FormLabel>Stop Title</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                                <FormField key={`description-${item.id}`} name={`itinerary.${index}.description`} render={({ field }) => (<FormItem><FormLabel>Stop Description</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>)} />
                             </div>
                             <Button type="button" variant="ghost" size="icon" className="mt-8 text-red-500" onClick={() => remove(index)}>
                                 <Trash2 className="h-4 w-4" />

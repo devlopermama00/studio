@@ -35,7 +35,7 @@ export function TourVistaLogo({ className, onClick, logoUrl, siteName }: TourVis
         <Mountain className="h-5 w-5" />
       </div>
       <span>{finalSiteName}</span>
-      <span className="text-primary">Georgia</span>
+      {/* <span className="text-primary">Georgia</span> */}
     </Link>
   );
 }
